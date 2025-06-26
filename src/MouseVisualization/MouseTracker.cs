@@ -76,18 +76,8 @@ namespace KeyOverlayFPS.MouseVisualization
         /// <returns>移動方向</returns>
         private static MouseDirection CalculateDirection(double deltaX, double deltaY)
         {
-            // 角度を計算（ラジアン） - Y軸反転で数学座標系に変換
-            var angle = Math.Atan2(-deltaY, deltaX); // Y軸反転: 上移動で正の角度
-            
-            // ラジアンを度に変換し、0-360度の範囲に正規化
-            var degrees = angle * 180.0 / Math.PI;
-            if (degrees < 0) degrees += 360;
-            
-            // MouseDirection列挙型に合わせた角度計算
-            // East(0) = 0度, North(8) = 90度, West(16) = 180度, South(24) = 270度
-            var directionIndex = (int)Math.Round(degrees / 11.25) % 32;
-            
-            return (MouseDirection)directionIndex;
+            // DirectionCalculatorの共通ロジックを使用
+            return DirectionCalculator.CalculateDirection(deltaX, deltaY);
         }
 
         /// <summary>

@@ -33,10 +33,8 @@ namespace KeyOverlayFPS
         
         public static class ScaleOptions
         {
-            public const double Scale80 = 0.8;
-            public const double Scale100 = 1.0;
-            public const double Scale120 = 1.2;
-            public const double Scale150 = 1.5;
+            public static readonly double[] Values = { 0.8, 1.0, 1.2, 1.5 };
+            public static readonly string[] Labels = { "80%", "100%", "120%", "150%" };
         }
     }
 
@@ -666,19 +664,14 @@ namespace KeyOverlayFPS
         {
             var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
             
-            var scaleOptions = new[]
+            for (int i = 0; i < Constants.ScaleOptions.Values.Length; i++)
             {
-                ("80%", Constants.ScaleOptions.Scale80),
-                ("100%", Constants.ScaleOptions.Scale100),
-                ("120%", Constants.ScaleOptions.Scale120),
-                ("150%", Constants.ScaleOptions.Scale150)
-            };
-            
-            foreach (var (name, scale) in scaleOptions)
-            {
+                var scale = Constants.ScaleOptions.Values[i];
+                var label = Constants.ScaleOptions.Labels[i];
+                
                 var menuItem = new MenuItem 
                 { 
-                    Header = name, 
+                    Header = label, 
                     IsCheckable = true, 
                     IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01 
                 };
@@ -971,7 +964,7 @@ namespace KeyOverlayFPS
             {
                 "MouseBody", "MouseLeft", "MouseRight", "MouseWheelButton", 
                 "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown",
-                "MouseDirectionCanvas", "MouseCenterCircle"
+                "MouseDirectionCanvas"
             };
             
             public static readonly Dictionary<string, (double Left, double Top)> Offsets = new()
@@ -984,8 +977,7 @@ namespace KeyOverlayFPS
                 { "MouseButton5", (0, 64) },
                 { "ScrollUp", (35, 10) },
                 { "ScrollDown", (35, 24) },
-                { "MouseDirectionCanvas", (15, 50) }, // マウス本体中央下に配置
-                { "MouseCenterCircle", (17.5, 37.5) }
+                { "MouseDirectionCanvas", (15, 50) } // マウス本体中央下に配置
             };
         }
         

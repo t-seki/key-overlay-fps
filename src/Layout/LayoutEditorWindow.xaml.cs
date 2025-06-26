@@ -177,10 +177,7 @@ namespace KeyOverlayFPS.Layout
 
         #region Element Management (Removed - Keyboard Keys Only)
 
-        // エレメント管理機能は削除（キーボードキーの編集のみ対応）
-        private void AddElement_Click(object sender, RoutedEventArgs e) { }
-        private void RemoveElement_Click(object sender, RoutedEventArgs e) { }
-        private void DuplicateElement_Click(object sender, RoutedEventArgs e) { }
+        // エレメント管理機能は削除済み（キーボードキーの編集のみ対応）
 
         #endregion
 
