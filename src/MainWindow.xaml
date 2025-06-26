@@ -105,7 +105,7 @@
         
         <!-- 第3列（ASDF） -->
         <Border x:Name="KeyCapsLock" Canvas.Left="5" Canvas.Top="61" Width="46" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
-            <TextBlock Text="Caps Lock" FontSize="8" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Text="Caps" FontSize="8" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <Border x:Name="KeyA" Canvas.Left="53" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="A" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>

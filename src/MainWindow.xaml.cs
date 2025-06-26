@@ -12,6 +12,30 @@ using YamlDotNet.Serialization;
 
 namespace KeyOverlayFPS
 {
+    // 定数定義
+    public static class Constants
+    {
+        public const double TimerInterval = 16.67; // ms
+        public const int ScrollDisplayFrames = 10;
+        
+        public static class WindowSizes
+        {
+            public const double FullKeyboardWidth = 580;
+            public const double FullKeyboardHeight = 160;
+            public const double FpsKeyboardWidth = 450;
+            public const double FpsKeyboardWidthWithMouse = 520;
+            public const double FpsKeyboardHeight = 160;
+        }
+        
+        public static class ScaleOptions
+        {
+            public const double Scale80 = 0.8;
+            public const double Scale100 = 1.0;
+            public const double Scale120 = 1.2;
+            public const double Scale150 = 1.5;
+        }
+    }
+
     // 設定データクラス
     public class AppSettings
     {
@@ -200,7 +224,7 @@ namespace KeyOverlayFPS
             
             _timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(16.67)
+                Interval = TimeSpan.FromMilliseconds(Constants.TimerInterval)
             };
             _timer.Tick += Timer_Tick;
             _timer.Start();
@@ -218,91 +242,91 @@ namespace KeyOverlayFPS
         {
             var contextMenu = new ContextMenu();
             
-            // 背景色メニュー
+            contextMenu.Items.Add(CreateBackgroundColorMenu());
+            contextMenu.Items.Add(CreateForegroundColorMenu());
+            contextMenu.Items.Add(CreateHighlightColorMenu());
+            contextMenu.Items.Add(CreateViewOptionsMenu());
+            contextMenu.Items.Add(CreateProfileMenu());
+            contextMenu.Items.Add(new Separator());
+            contextMenu.Items.Add(CreateExitMenu());
+            
+            ContextMenu = contextMenu;
+        }
+        
+        private MenuItem CreateBackgroundColorMenu()
+        {
             var backgroundMenuItem = new MenuItem { Header = "背景色" };
             
-            var transparentMenuItem = new MenuItem { Header = "透明" };
-            transparentMenuItem.Click += (s, e) => SetBackgroundColor(Colors.Transparent, true);
+            var backgroundOptions = new[]
+            {
+                ("透明", Colors.Transparent, true),
+                ("クロマキー緑", Colors.Lime, false),
+                ("クロマキー青", Colors.Blue, false),
+                ("黒", Colors.Black, false)
+            };
             
-            var chromaGreenMenuItem = new MenuItem { Header = "クロマキー緑" };
-            chromaGreenMenuItem.Click += (s, e) => SetBackgroundColor(Colors.Lime, false);
+            foreach (var (name, color, transparent) in backgroundOptions)
+            {
+                var menuItem = new MenuItem { Header = name };
+                menuItem.Click += (s, e) => SetBackgroundColor(color, transparent);
+                backgroundMenuItem.Items.Add(menuItem);
+            }
             
-            var chromaBlueMenuItem = new MenuItem { Header = "クロマキー青" };
-            chromaBlueMenuItem.Click += (s, e) => SetBackgroundColor(Colors.Blue, false);
-            
-            var blackMenuItem = new MenuItem { Header = "黒" };
-            blackMenuItem.Click += (s, e) => SetBackgroundColor(Colors.Black, false);
-            
-            backgroundMenuItem.Items.Add(transparentMenuItem);
-            backgroundMenuItem.Items.Add(chromaGreenMenuItem);
-            backgroundMenuItem.Items.Add(chromaBlueMenuItem);
-            backgroundMenuItem.Items.Add(blackMenuItem);
-            
-            // フォアグラウンド色メニュー
+            return backgroundMenuItem;
+        }
+        
+        private MenuItem CreateForegroundColorMenu()
+        {
             var foregroundMenuItem = new MenuItem { Header = "文字色" };
             
-            var whiteTextMenuItem = new MenuItem { Header = "白" };
-            whiteTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.White);
+            var foregroundColors = new[]
+            {
+                ("白", Colors.White),
+                ("黒", Colors.Black),
+                ("グレー", Colors.Gray),
+                ("青", Colors.CornflowerBlue),
+                ("緑", Colors.LimeGreen),
+                ("赤", Colors.Crimson),
+                ("黄", Colors.Yellow)
+            };
             
-            var blackTextMenuItem = new MenuItem { Header = "黒" };
-            blackTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Black);
+            foreach (var (name, color) in foregroundColors)
+            {
+                var menuItem = new MenuItem { Header = name };
+                menuItem.Click += (s, e) => SetForegroundColor(color);
+                foregroundMenuItem.Items.Add(menuItem);
+            }
             
-            var grayTextMenuItem = new MenuItem { Header = "グレー" };
-            grayTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Gray);
-            
-            var blueTextMenuItem = new MenuItem { Header = "青" };
-            blueTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.CornflowerBlue);
-            
-            var greenTextMenuItem = new MenuItem { Header = "緑" };
-            greenTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.LimeGreen);
-            
-            var redTextMenuItem = new MenuItem { Header = "赤" };
-            redTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Crimson);
-            
-            var yellowTextMenuItem = new MenuItem { Header = "黄" };
-            yellowTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Yellow);
-            
-            foregroundMenuItem.Items.Add(whiteTextMenuItem);
-            foregroundMenuItem.Items.Add(blackTextMenuItem);
-            foregroundMenuItem.Items.Add(grayTextMenuItem);
-            foregroundMenuItem.Items.Add(blueTextMenuItem);
-            foregroundMenuItem.Items.Add(greenTextMenuItem);
-            foregroundMenuItem.Items.Add(redTextMenuItem);
-            foregroundMenuItem.Items.Add(yellowTextMenuItem);
-            
-            // ハイライト色メニュー
+            return foregroundMenuItem;
+        }
+        
+        private MenuItem CreateHighlightColorMenu()
+        {
             var highlightMenuItem = new MenuItem { Header = "ハイライト色" };
             
-            var greenHighlightMenuItem = new MenuItem { Header = "緑" };
-            greenHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 0, 255, 0));
+            var highlightColors = new[]
+            {
+                ("緑", Color.FromArgb(180, 0, 255, 0)),
+                ("赤", Color.FromArgb(180, 255, 68, 68)),
+                ("青", Color.FromArgb(180, 68, 136, 255)),
+                ("オレンジ", Color.FromArgb(180, 255, 136, 68)),
+                ("紫", Color.FromArgb(180, 136, 68, 255)),
+                ("黄", Color.FromArgb(180, 255, 255, 68)),
+                ("シアン", Color.FromArgb(180, 68, 255, 255))
+            };
             
-            var redHighlightMenuItem = new MenuItem { Header = "赤" };
-            redHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 255, 68, 68));
+            foreach (var (name, color) in highlightColors)
+            {
+                var menuItem = new MenuItem { Header = name };
+                menuItem.Click += (s, e) => SetHighlightColor(color);
+                highlightMenuItem.Items.Add(menuItem);
+            }
             
-            var blueHighlightMenuItem = new MenuItem { Header = "青" };
-            blueHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 68, 136, 255));
-            
-            var orangeHighlightMenuItem = new MenuItem { Header = "オレンジ" };
-            orangeHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 255, 136, 68));
-            
-            var purpleHighlightMenuItem = new MenuItem { Header = "紫" };
-            purpleHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 136, 68, 255));
-            
-            var yellowHighlightMenuItem = new MenuItem { Header = "黄" };
-            yellowHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 255, 255, 68));
-            
-            var cyanHighlightMenuItem = new MenuItem { Header = "シアン" };
-            cyanHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 68, 255, 255));
-            
-            highlightMenuItem.Items.Add(greenHighlightMenuItem);
-            highlightMenuItem.Items.Add(redHighlightMenuItem);
-            highlightMenuItem.Items.Add(blueHighlightMenuItem);
-            highlightMenuItem.Items.Add(orangeHighlightMenuItem);
-            highlightMenuItem.Items.Add(purpleHighlightMenuItem);
-            highlightMenuItem.Items.Add(yellowHighlightMenuItem);
-            highlightMenuItem.Items.Add(cyanHighlightMenuItem);
-            
-            // 表示オプションメニュー
+            return highlightMenuItem;
+        }
+        
+        private MenuItem CreateViewOptionsMenu()
+        {
             var viewMenuItem = new MenuItem { Header = "表示オプション" };
             
             var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = _settings.IsTopmost };
@@ -311,77 +335,80 @@ namespace KeyOverlayFPS
             var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _settings.IsMouseVisible };
             mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibility();
             
-            // 表示スケールメニュー
-            var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
-            
-            var scale80MenuItem = new MenuItem { Header = "80%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 0.8) < 0.01 };
-            scale80MenuItem.Click += (s, e) => 
-            {
-                SetDisplayScale(0.8);
-                UpdateScaleMenuChecked(scaleMenuItem, scale80MenuItem);
-            };
-            
-            var scale100MenuItem = new MenuItem { Header = "100%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 1.0) < 0.01 };
-            scale100MenuItem.Click += (s, e) => 
-            {
-                SetDisplayScale(1.0);
-                UpdateScaleMenuChecked(scaleMenuItem, scale100MenuItem);
-            };
-            
-            var scale120MenuItem = new MenuItem { Header = "120%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 1.2) < 0.01 };
-            scale120MenuItem.Click += (s, e) => 
-            {
-                SetDisplayScale(1.2);
-                UpdateScaleMenuChecked(scaleMenuItem, scale120MenuItem);
-            };
-            
-            var scale150MenuItem = new MenuItem { Header = "150%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 1.5) < 0.01 };
-            scale150MenuItem.Click += (s, e) => 
-            {
-                SetDisplayScale(1.5);
-                UpdateScaleMenuChecked(scaleMenuItem, scale150MenuItem);
-            };
-            
-            scaleMenuItem.Items.Add(scale80MenuItem);
-            scaleMenuItem.Items.Add(scale100MenuItem);
-            scaleMenuItem.Items.Add(scale120MenuItem);
-            scaleMenuItem.Items.Add(scale150MenuItem);
+            var scaleMenuItem = CreateDisplayScaleMenu();
             
             viewMenuItem.Items.Add(topmostMenuItem);
             viewMenuItem.Items.Add(mouseVisibilityMenuItem);
             viewMenuItem.Items.Add(scaleMenuItem);
             
-            // プロファイルメニュー
+            return viewMenuItem;
+        }
+        
+        private MenuItem CreateDisplayScaleMenu()
+        {
+            var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
+            
+            var scaleOptions = new[]
+            {
+                ("80%", Constants.ScaleOptions.Scale80),
+                ("100%", Constants.ScaleOptions.Scale100),
+                ("120%", Constants.ScaleOptions.Scale120),
+                ("150%", Constants.ScaleOptions.Scale150)
+            };
+            
+            foreach (var (name, scale) in scaleOptions)
+            {
+                var menuItem = new MenuItem 
+                { 
+                    Header = name, 
+                    IsCheckable = true, 
+                    IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01 
+                };
+                menuItem.Click += (s, e) => 
+                {
+                    SetDisplayScale(scale);
+                    UpdateScaleMenuChecked(scaleMenuItem, menuItem);
+                };
+                scaleMenuItem.Items.Add(menuItem);
+            }
+            
+            return scaleMenuItem;
+        }
+        
+        private MenuItem CreateProfileMenu()
+        {
             var profileMenuItem = new MenuItem { Header = "プロファイル" };
             
-            var fullKeyboardMenuItem = new MenuItem { Header = "65%キーボード", IsCheckable = true, IsChecked = _settings.CurrentProfile == "FullKeyboard65" };
-            fullKeyboardMenuItem.Click += (s, e) => 
+            var profileOptions = new[]
             {
-                SwitchProfile(KeyboardProfile.FullKeyboard65);
-                UpdateProfileMenuChecked(profileMenuItem, fullKeyboardMenuItem);
+                ("65%キーボード", KeyboardProfile.FullKeyboard65, "FullKeyboard65"),
+                ("FPSキーボード", KeyboardProfile.FPSKeyboard, "FPSKeyboard")
             };
             
-            var fpsKeyboardMenuItem = new MenuItem { Header = "FPSキーボード", IsCheckable = true, IsChecked = _settings.CurrentProfile == "FPSKeyboard" };
-            fpsKeyboardMenuItem.Click += (s, e) => 
+            foreach (var (name, profile, settingName) in profileOptions)
             {
-                SwitchProfile(KeyboardProfile.FPSKeyboard);
-                UpdateProfileMenuChecked(profileMenuItem, fpsKeyboardMenuItem);
-            };
+                var menuItem = new MenuItem 
+                { 
+                    Header = name, 
+                    IsCheckable = true, 
+                    IsChecked = _settings.CurrentProfile == settingName 
+                };
+                menuItem.Click += (s, e) => 
+                {
+                    SwitchProfile(profile);
+                    UpdateProfileMenuChecked(profileMenuItem, menuItem);
+                };
+                profileMenuItem.Items.Add(menuItem);
+            }
             
-            profileMenuItem.Items.Add(fullKeyboardMenuItem);
-            profileMenuItem.Items.Add(fpsKeyboardMenuItem);
-            
+            return profileMenuItem;
+        }
+        
+        private MenuItem CreateExitMenu()
+        {
             var exitMenuItem = new MenuItem { Header = "終了" };
             exitMenuItem.Click += (s, e) => Application.Current.Shutdown();
-            
-            contextMenu.Items.Add(backgroundMenuItem);
-            contextMenu.Items.Add(foregroundMenuItem);
-            contextMenu.Items.Add(highlightMenuItem);
-            contextMenu.Items.Add(viewMenuItem);
-            contextMenu.Items.Add(profileMenuItem);
-            contextMenu.Items.Add(new Separator());
-            contextMenu.Items.Add(exitMenuItem);
-            ContextMenu = contextMenu;
+            return exitMenuItem;
         }
         
         private void SetBackgroundColor(Color color, bool transparent)
@@ -449,13 +476,13 @@ namespace KeyOverlayFPS
                 double baseWidth, baseHeight;
                 if (_currentProfile == KeyboardProfile.FPSKeyboard)
                 {
-                    baseWidth = _isMouseVisible ? 520 : 450;
-                    baseHeight = 160;
+                    baseWidth = _isMouseVisible ? Constants.WindowSizes.FpsKeyboardWidthWithMouse : Constants.WindowSizes.FpsKeyboardWidth;
+                    baseHeight = Constants.WindowSizes.FpsKeyboardHeight;
                 }
                 else
                 {
-                    baseWidth = 580;
-                    baseHeight = 160;
+                    baseWidth = Constants.WindowSizes.FullKeyboardWidth;
+                    baseHeight = Constants.WindowSizes.FullKeyboardHeight;
                 }
                 
                 Width = baseWidth * _displayScale;
@@ -509,15 +536,15 @@ namespace KeyOverlayFPS
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();
                     // ウィンドウサイズ調整
-                    Width = 580 * _displayScale;
-                    Height = 160 * _displayScale;
+                    Width = Constants.WindowSizes.FullKeyboardWidth * _displayScale;
+                    Height = Constants.WindowSizes.FullKeyboardHeight * _displayScale;
                     break;
                     
                 case KeyboardProfile.FPSKeyboard:
                     ShowFPSKeyboardLayout();
                     // ウィンドウサイズ調整（FPS用サイズ、マウス表示考慮）
-                    Width = (_isMouseVisible ? 520 : 450) * _displayScale;
-                    Height = 160 * _displayScale;
+                    Width = (_isMouseVisible ? Constants.WindowSizes.FpsKeyboardWidthWithMouse : Constants.WindowSizes.FpsKeyboardWidth) * _displayScale;
+                    Height = Constants.WindowSizes.FpsKeyboardHeight * _displayScale;
                     break;
             }
         }
@@ -1060,12 +1087,12 @@ namespace KeyOverlayFPS
                 if (e.Delta > 0)
                 {
                     // 上スクロール
-                    _scrollUpTimer = 10; // 10フレーム表示
+                    _scrollUpTimer = Constants.ScrollDisplayFrames;
                 }
                 else if (e.Delta < 0)
                 {
                     // 下スクロール
-                    _scrollDownTimer = 10; // 10フレーム表示
+                    _scrollDownTimer = Constants.ScrollDisplayFrames;
                 }
             }
         }
