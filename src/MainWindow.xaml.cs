@@ -167,7 +167,7 @@ namespace KeyOverlayFPS
         private readonly Dictionary<KeyboardProfile, (double Left, double Top)> _mousePositions = new()
         {
             { KeyboardProfile.FullKeyboard65, (475, 20) },  // 元の位置
-            { KeyboardProfile.FPSKeyboard, (350, 20) }      // FPS用位置
+            { KeyboardProfile.FPSKeyboard, (290, 20) }      // FPS用位置
         };
         
         // プロファイル別Shift表示変更設定
@@ -602,7 +602,7 @@ namespace KeyOverlayFPS
         {
             var mouseElements = new HashSet<string>
             {
-                "MouseLeft", "MouseRight", "MouseWheelButton", 
+                "MouseBody", "MouseLeft", "MouseRight", "MouseWheelButton", 
                 "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown"
             };
             return mouseElements.Contains(elementName);
@@ -612,67 +612,28 @@ namespace KeyOverlayFPS
         {
             if (!_mousePositions.TryGetValue(_currentProfile, out var position))
                 return;
-                
-            var canvas = Content as Canvas;
-            if (canvas == null) return;
             
-            // 名前付きマウス要素の位置更新
-            var mouseElements = new string[] 
+            // マウス要素の相対位置定義
+            var mouseElementOffsets = new Dictionary<string, (double Left, double Top)>
             {
-                "MouseLeft", "MouseRight", "MouseWheelButton", 
-                "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown"
+                { "MouseBody", (0, 0) },           // 基準位置
+                { "MouseLeft", (3, 3) },
+                { "MouseRight", (32, 3) },
+                { "MouseWheelButton", (25, 10) },
+                { "MouseButton4", (0, 42) },
+                { "MouseButton5", (0, 64) },
+                { "ScrollUp", (35, 10) },
+                { "ScrollDown", (35, 24) }
             };
             
-            foreach (var elementName in mouseElements)
+            // 全マウス要素の位置を一括更新
+            foreach (var (elementName, offset) in mouseElementOffsets)
             {
                 var element = FindName(elementName) as FrameworkElement;
                 if (element != null)
                 {
-                    // 各要素の相対位置を維持しながら基準位置を変更
-                    double offsetLeft = 0, offsetTop = 0;
-                    
-                    switch (elementName)
-                    {
-                        case "MouseLeft":
-                            offsetLeft = 3; offsetTop = 3;
-                            break;
-                        case "MouseRight":
-                            offsetLeft = 32; offsetTop = 3;
-                            break;
-                        case "MouseWheelButton":
-                            offsetLeft = 25; offsetTop = 10;
-                            break;
-                        case "MouseButton4":
-                            offsetLeft = 0; offsetTop = 42;
-                            break;
-                        case "MouseButton5":
-                            offsetLeft = 0; offsetTop = 64;
-                            break;
-                        case "ScrollUp":
-                            offsetLeft = 35; offsetTop = 10;
-                            break;
-                        case "ScrollDown":
-                            offsetLeft = 35; offsetTop = 24;
-                            break;
-                    }
-                    
-                    Canvas.SetLeft(element, position.Left + offsetLeft);
-                    Canvas.SetTop(element, position.Top + offsetTop);
-                }
-            }
-            
-            // マウス本体（名前なしBorder）の位置更新
-            foreach (var child in canvas.Children)
-            {
-                if (child is Border border && string.IsNullOrEmpty(border.Name))
-                {
-                    // マウス本体のサイズから識別
-                    if (border.Width == 60 && border.Height == 100)
-                    {
-                        Canvas.SetLeft(border, position.Left);
-                        Canvas.SetTop(border, position.Top);
-                        break;
-                    }
+                    Canvas.SetLeft(element, position.Left + offset.Left);
+                    Canvas.SetTop(element, position.Top + offset.Top);
                 }
             }
         }

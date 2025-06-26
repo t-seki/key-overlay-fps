@@ -233,7 +233,7 @@
         
         <!-- マウス入力表示（プロフェッショナルデザイン） -->
         <!-- マウス本体のメインシェイプ -->
-        <Border Canvas.Left="475" Canvas.Top="20" Width="60" Height="100" BorderBrush="#CCCCCC" BorderThickness="2" CornerRadius="28,28,25,25">
+        <Border x:Name="MouseBody" Canvas.Left="475" Canvas.Top="20" Width="60" Height="100" BorderBrush="#CCCCCC" BorderThickness="2" CornerRadius="28,28,25,25">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="#2A2A2A" Offset="0"/>
