@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -36,6 +37,73 @@ namespace KeyOverlayFPS
         }
     }
 
+    // 色管理クラス
+    public static class ColorManager
+    {
+        private static readonly Dictionary<string, Color> ForegroundColors = new()
+        {
+            { "White", Colors.White },
+            { "Black", Colors.Black },
+            { "Gray", Colors.Gray },
+            { "Blue", Colors.CornflowerBlue },
+            { "Green", Colors.LimeGreen },
+            { "Red", Colors.Crimson },
+            { "Yellow", Colors.Yellow }
+        };
+        
+        private static readonly Dictionary<string, Color> HighlightColors = new()
+        {
+            { "Green", Color.FromArgb(180, 0, 255, 0) },
+            { "Red", Color.FromArgb(180, 255, 68, 68) },
+            { "Blue", Color.FromArgb(180, 68, 136, 255) },
+            { "Orange", Color.FromArgb(180, 255, 136, 68) },
+            { "Purple", Color.FromArgb(180, 136, 68, 255) },
+            { "Yellow", Color.FromArgb(180, 255, 255, 68) },
+            { "Cyan", Color.FromArgb(180, 68, 255, 255) }
+        };
+        
+        private static readonly Dictionary<string, Color> BackgroundColors = new()
+        {
+            { "Transparent", Colors.Transparent },
+            { "Lime", Colors.Lime },
+            { "Blue", Colors.Blue },
+            { "Black", Colors.Black }
+        };
+        
+        public static Brush GetForegroundBrush(string colorName) =>
+            ForegroundColors.TryGetValue(colorName, out var color) ? new SolidColorBrush(color) : Brushes.White;
+            
+        public static Brush GetHighlightBrush(string colorName) =>
+            HighlightColors.TryGetValue(colorName, out var color) ? new SolidColorBrush(color) : new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
+            
+        public static Color GetBackgroundColor(string colorName) =>
+            BackgroundColors.TryGetValue(colorName, out var color) ? color : Colors.Transparent;
+            
+        public static string GetColorName(Brush brush)
+        {
+            if (brush is not SolidColorBrush solidBrush) return "White";
+            
+            var color = solidBrush.Color;
+            
+            // 前景色チェック
+            foreach (var (name, c) in ForegroundColors)
+                if (color == c) return name;
+                
+            // ハイライト色チェック
+            foreach (var (name, c) in HighlightColors)
+                if (color.A == c.A && color.R == c.R && color.G == c.G && color.B == c.B) return name;
+                
+            return "White";
+        }
+        
+        public static string GetBackgroundColorName(Color color)
+        {
+            foreach (var (name, c) in BackgroundColors)
+                if (color == c) return name;
+            return "Transparent";
+        }
+    }
+
     // 設定データクラス
     public class AppSettings
     {
@@ -48,6 +116,25 @@ namespace KeyOverlayFPS
         public string HighlightColor { get; set; } = "Green";
         public double WindowLeft { get; set; } = 100;
         public double WindowTop { get; set; } = 100;
+    }
+
+    // キー設定クラス
+    public class KeyConfig
+    {
+        public string Name { get; }
+        public int VirtualKey { get; }
+        public string NormalText { get; }
+        public string ShiftText { get; }
+        public bool HasShiftVariant { get; }
+        
+        public KeyConfig(string name, int virtualKey, string normalText = "", string shiftText = "")
+        {
+            Name = name;
+            VirtualKey = virtualKey;
+            NormalText = normalText;
+            ShiftText = shiftText;
+            HasShiftVariant = !string.IsNullOrEmpty(shiftText);
+        }
     }
 
     public partial class MainWindow : Window
@@ -69,99 +156,19 @@ namespace KeyOverlayFPS
             return (GetAsyncKeyState(virtualKeyCode) & KEY_PRESSED_MASK) != 0;
         }
 
-        // ESCキー
-        private const int VK_ESCAPE = 0x1B;
-        
-        // 数字キー
-        private const int VK_1 = 0x31;
-        private const int VK_2 = 0x32;
-        private const int VK_3 = 0x33;
-        private const int VK_4 = 0x34;
-        private const int VK_5 = 0x35;
-        private const int VK_6 = 0x36;
-        private const int VK_7 = 0x37;
-        private const int VK_8 = 0x38;
-        private const int VK_9 = 0x39;
-        private const int VK_0 = 0x30;
-        private const int VK_MINUS = 0xBD;
-        private const int VK_EQUALS = 0xBB;
-        private const int VK_BACKSPACE = 0x08;
-        
-        // アルファベットキー
-        private const int VK_TAB = 0x09;
-        private const int VK_Q = 0x51;
-        private const int VK_W = 0x57;
-        private const int VK_E = 0x45;
-        private const int VK_R = 0x52;
-        private const int VK_T = 0x54;
-        private const int VK_Y = 0x59;
-        private const int VK_U = 0x55;
-        private const int VK_I = 0x49;
-        private const int VK_O = 0x4F;
-        private const int VK_P = 0x50;
-        private const int VK_OPEN_BRACKET = 0xDB;
-        private const int VK_CLOSE_BRACKET = 0xDD;
-        private const int VK_BACKSLASH = 0xDC;
-        
-        private const int VK_CAPS_LOCK = 0x14;
-        private const int VK_A = 0x41;
-        private const int VK_S = 0x53;
-        private const int VK_D = 0x44;
-        private const int VK_F = 0x46;
-        private const int VK_G = 0x47;
-        private const int VK_H = 0x48;
-        private const int VK_J = 0x4A;
-        private const int VK_K = 0x4B;
-        private const int VK_L = 0x4C;
-        private const int VK_SEMICOLON = 0xBA;
-        private const int VK_QUOTE = 0xDE;
-        private const int VK_ENTER = 0x0D;
-        
-        private const int VK_SHIFT = 0x10;
-        private const int VK_Z = 0x5A;
-        private const int VK_X = 0x58;
-        private const int VK_C = 0x43;
-        private const int VK_V = 0x56;
-        private const int VK_B = 0x42;
-        private const int VK_N = 0x4E;
-        private const int VK_M = 0x4D;
-        private const int VK_COMMA = 0xBC;
-        private const int VK_PERIOD = 0xBE;
-        private const int VK_SLASH = 0xBF;
-        private const int VK_UP = 0x26;
-        
-        private const int VK_CONTROL = 0x11;
-        private const int VK_WIN = 0x5B;
-        private const int VK_ALT = 0x12;
-        private const int VK_SPACE = 0x20;
-        
-        // 左右個別修飾キー
+        // よく使用されるキーコードのみ保持
         private const int VK_LSHIFT = 0xA0;
         private const int VK_RSHIFT = 0xA1;
-        private const int VK_LCONTROL = 0xA2;
-        private const int VK_RCONTROL = 0xA3;
-        private const int VK_LMENU = 0xA4;    // Left Alt
-        private const int VK_RMENU = 0xA5;    // Right Alt
-        private const int VK_LEFT = 0x25;
-        private const int VK_DOWN = 0x28;
-        private const int VK_RIGHT = 0x27;
-        
-        // ナビゲーションキー
-        private const int VK_DELETE = 0x2E;
-        private const int VK_HOME = 0x24;
-        private const int VK_PAGE_UP = 0x21;
-        private const int VK_PAGE_DOWN = 0x22;
-        
-        // マウスボタン
         private const int VK_LBUTTON = 0x01;
         private const int VK_RBUTTON = 0x02;
-        private const int VK_MBUTTON = 0x04; // ホイールクリック
-        private const int VK_XBUTTON1 = 0x05; // マウスボタン4
-        private const int VK_XBUTTON2 = 0x06; // マウスボタン5
+        private const int VK_MBUTTON = 0x04;
+        private const int VK_XBUTTON1 = 0x05;
+        private const int VK_XBUTTON2 = 0x06;
 
         private readonly DispatcherTimer _timer;
         private Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
-        private readonly Brush _inactiveBrush = Brushes.Transparent;
+        private readonly Brush _inactiveBrush;
+        private readonly Brush _keyboardKeyDefaultBrush;
         // スクロール表示色（ハイライト色と同じ）
         private bool _isDragging = false;
         private Point _dragStartPoint;
@@ -201,6 +208,114 @@ namespace KeyOverlayFPS
             { KeyboardProfile.FPSKeyboard, false }      // FPSキーボードはShift表示変更無効
         };
         
+        // キー設定定義
+        private readonly Dictionary<string, KeyConfig> _keyConfigurations = new()
+        {
+            // 数字キー
+            { "KeyEscape", new KeyConfig("KeyEscape", 0x1B) },
+            { "Key1", new KeyConfig("Key1", 0x31, "1", "!") },
+            { "Key2", new KeyConfig("Key2", 0x32, "2", "@") },
+            { "Key3", new KeyConfig("Key3", 0x33, "3", "#") },
+            { "Key4", new KeyConfig("Key4", 0x34, "4", "$") },
+            { "Key5", new KeyConfig("Key5", 0x35, "5", "%") },
+            { "Key6", new KeyConfig("Key6", 0x36, "6", "^") },
+            { "Key7", new KeyConfig("Key7", 0x37, "7", "&") },
+            { "Key8", new KeyConfig("Key8", 0x38, "8", "*") },
+            { "Key9", new KeyConfig("Key9", 0x39, "9", "(") },
+            { "Key0", new KeyConfig("Key0", 0x30, "0", ")") },
+            { "KeyMinus", new KeyConfig("KeyMinus", 0xBD, "-", "_") },
+            { "KeyEquals", new KeyConfig("KeyEquals", 0xBB, "=", "+") },
+            { "KeyBackspace", new KeyConfig("KeyBackspace", 0x08) },
+            
+            // QWERTYキー
+            { "KeyTab", new KeyConfig("KeyTab", 0x09) },
+            { "KeyQ", new KeyConfig("KeyQ", 0x51) },
+            { "KeyW", new KeyConfig("KeyW", 0x57) },
+            { "KeyE", new KeyConfig("KeyE", 0x45) },
+            { "KeyR", new KeyConfig("KeyR", 0x52) },
+            { "KeyT", new KeyConfig("KeyT", 0x54) },
+            { "KeyY", new KeyConfig("KeyY", 0x59) },
+            { "KeyU", new KeyConfig("KeyU", 0x55) },
+            { "KeyI", new KeyConfig("KeyI", 0x49) },
+            { "KeyO", new KeyConfig("KeyO", 0x4F) },
+            { "KeyP", new KeyConfig("KeyP", 0x50) },
+            { "KeyOpenBracket", new KeyConfig("KeyOpenBracket", 0xDB, "[", "{") },
+            { "KeyCloseBracket", new KeyConfig("KeyCloseBracket", 0xDD, "]", "}") },
+            { "KeyBackslash", new KeyConfig("KeyBackslash", 0xDC, "\\", "|") },
+            
+            // ASDFキー
+            { "KeyCapsLock", new KeyConfig("KeyCapsLock", 0x14) },
+            { "KeyA", new KeyConfig("KeyA", 0x41) },
+            { "KeyS", new KeyConfig("KeyS", 0x53) },
+            { "KeyD", new KeyConfig("KeyD", 0x44) },
+            { "KeyF", new KeyConfig("KeyF", 0x46) },
+            { "KeyG", new KeyConfig("KeyG", 0x47) },
+            { "KeyH", new KeyConfig("KeyH", 0x48) },
+            { "KeyJ", new KeyConfig("KeyJ", 0x4A) },
+            { "KeyK", new KeyConfig("KeyK", 0x4B) },
+            { "KeyL", new KeyConfig("KeyL", 0x4C) },
+            { "KeySemicolon", new KeyConfig("KeySemicolon", 0xBA, ";", ":") },
+            { "KeyQuote", new KeyConfig("KeyQuote", 0xDE, "'", "\"") },
+            { "KeyEnter", new KeyConfig("KeyEnter", 0x0D) },
+            
+            // ZXCVキー
+            { "KeyShift", new KeyConfig("KeyShift", VK_LSHIFT) },
+            { "KeyZ", new KeyConfig("KeyZ", 0x5A) },
+            { "KeyX", new KeyConfig("KeyX", 0x58) },
+            { "KeyC", new KeyConfig("KeyC", 0x43) },
+            { "KeyV", new KeyConfig("KeyV", 0x56) },
+            { "KeyB", new KeyConfig("KeyB", 0x42) },
+            { "KeyN", new KeyConfig("KeyN", 0x4E) },
+            { "KeyM", new KeyConfig("KeyM", 0x4D) },
+            { "KeyComma", new KeyConfig("KeyComma", 0xBC, ",", "<") },
+            { "KeyPeriod", new KeyConfig("KeyPeriod", 0xBE, ".", ">") },
+            { "KeySlash", new KeyConfig("KeySlash", 0xBF, "/", "?") },
+            { "KeyRightShift", new KeyConfig("KeyRightShift", VK_RSHIFT) },
+            { "KeyUpArrow", new KeyConfig("KeyUpArrow", 0x26) },
+            
+            // 最下段キー
+            { "KeyCtrl", new KeyConfig("KeyCtrl", 0xA2) },
+            { "KeyWin", new KeyConfig("KeyWin", 0x5B) },
+            { "KeyAlt", new KeyConfig("KeyAlt", 0xA4) },
+            { "KeySpace", new KeyConfig("KeySpace", 0x20) },
+            { "KeyRightAlt", new KeyConfig("KeyRightAlt", 0xA5) },
+            { "KeyFn", new KeyConfig("KeyFn", 0) }, // Fnキーは検出不可
+            { "KeyRightCtrl", new KeyConfig("KeyRightCtrl", 0xA3) },
+            { "KeyLeftArrow", new KeyConfig("KeyLeftArrow", 0x25) },
+            { "KeyDownArrow", new KeyConfig("KeyDownArrow", 0x28) },
+            { "KeyRightArrow", new KeyConfig("KeyRightArrow", 0x27) },
+            
+            // ナビゲーションキー
+            { "KeyDelete", new KeyConfig("KeyDelete", 0x2E) },
+            { "KeyHome", new KeyConfig("KeyHome", 0x24) },
+            { "KeyPageUp", new KeyConfig("KeyPageUp", 0x21) },
+            { "KeyPageDown", new KeyConfig("KeyPageDown", 0x22) }
+        };
+        
+        // プロファイル別キー設定
+        private readonly Dictionary<KeyboardProfile, HashSet<string>> _profileKeys = new()
+        {
+            [KeyboardProfile.FullKeyboard65] = new HashSet<string>
+            {
+                // 全キーを含む
+                "KeyEscape", "Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7", "Key8", "Key9", "Key0", "KeyMinus", "KeyEquals", "KeyBackspace",
+                "KeyTab", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP", "KeyOpenBracket", "KeyCloseBracket", "KeyBackslash",
+                "KeyCapsLock", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL", "KeySemicolon", "KeyQuote", "KeyEnter",
+                "KeyShift", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "KeyComma", "KeyPeriod", "KeySlash", "KeyRightShift", "KeyUpArrow",
+                "KeyCtrl", "KeyWin", "KeyAlt", "KeySpace", "KeyRightAlt", "KeyFn", "KeyRightCtrl", "KeyLeftArrow", "KeyDownArrow", "KeyRightArrow",
+                "KeyDelete", "KeyHome", "KeyPageUp", "KeyPageDown"
+            },
+            [KeyboardProfile.FPSKeyboard] = new HashSet<string>
+            {
+                // FPS用キーのみ
+                "KeyEscape", "Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7",
+                "KeyTab", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU",
+                "KeyCapsLock", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
+                "KeyShift", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM",
+                "KeyCtrl", "KeyWin", "KeyAlt", "KeySpace"
+            }
+        };
+        
         // 設定ファイル管理
         private readonly string _settingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
@@ -211,6 +326,19 @@ namespace KeyOverlayFPS
 
         public MainWindow()
         {
+            // キーボードキーの背景ブラシを初期化（マウス本体と同じグラデーション）
+            _keyboardKeyDefaultBrush = new LinearGradientBrush(
+                new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(0x2A, 0x2A, 0x2A), 0),
+                    new GradientStop(Color.FromRgb(0x1A, 0x1A, 0x1A), 1)
+                },
+                new Point(0, 0),
+                new Point(1, 1)
+            );
+            
+            _inactiveBrush = _keyboardKeyDefaultBrush;
+            
             InitializeComponent();
             
             // 設定を読み込み
@@ -236,6 +364,24 @@ namespace KeyOverlayFPS
             
             // アプリケーション終了時に設定を保存
             Application.Current.Exit += (s, e) => SaveSettings();
+            
+            // キーボードキーの背景色を初期化
+            InitializeKeyboardKeyBackgrounds();
+        }
+        
+        private void InitializeKeyboardKeyBackgrounds()
+        {
+            var canvas = Content as Canvas;
+            if (canvas == null) return;
+            
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is Border border && !string.IsNullOrEmpty(border.Name) && !IsMouseElement(border.Name))
+                {
+                    // マウス要素以外のBorderの背景をキーボードキー用背景に設定
+                    border.Background = _keyboardKeyDefaultBrush;
+                }
+            }
         }
 
         private void SetupContextMenu()
@@ -367,7 +513,7 @@ namespace KeyOverlayFPS
                 menuItem.Click += (s, e) => 
                 {
                     SetDisplayScale(scale);
-                    UpdateScaleMenuChecked(scaleMenuItem, menuItem);
+                    UpdateMenuCheckedState(scaleMenuItem, menuItem);
                 };
                 scaleMenuItem.Items.Add(menuItem);
             }
@@ -396,7 +542,7 @@ namespace KeyOverlayFPS
                 menuItem.Click += (s, e) => 
                 {
                     SwitchProfile(profile);
-                    UpdateProfileMenuChecked(profileMenuItem, menuItem);
+                    UpdateMenuCheckedState(profileMenuItem, menuItem);
                 };
                 profileMenuItem.Items.Add(menuItem);
             }
@@ -422,6 +568,8 @@ namespace KeyOverlayFPS
             {
                 Background = new SolidColorBrush(color);
             }
+            _settings.BackgroundColor = ColorManager.GetBackgroundColorName(color);
+            SaveSettings();
         }
         
         private void SetForegroundColor(Color color)
@@ -490,32 +638,15 @@ namespace KeyOverlayFPS
             }
         }
         
-        private void UpdateProfileMenuChecked(MenuItem profileMenu, MenuItem selectedItem)
+        private static void UpdateMenuCheckedState(MenuItem parentMenu, MenuItem selectedItem)
         {
-            // 全てのプロファイルメニューアイテムのチェック状態をクリア
-            foreach (MenuItem item in profileMenu.Items)
+            foreach (MenuItem item in parentMenu.Items.OfType<MenuItem>())
             {
                 if (item.IsCheckable)
                 {
-                    item.IsChecked = false;
+                    item.IsChecked = item == selectedItem;
                 }
             }
-            // 選択されたアイテムのみチェック
-            selectedItem.IsChecked = true;
-        }
-        
-        private void UpdateScaleMenuChecked(MenuItem scaleMenu, MenuItem selectedItem)
-        {
-            // 全ての表示サイズメニューアイテムのチェック状態をクリア
-            foreach (MenuItem item in scaleMenu.Items)
-            {
-                if (item.IsCheckable)
-                {
-                    item.IsChecked = false;
-                }
-            }
-            // 選択されたアイテムのみチェック
-            selectedItem.IsChecked = true;
         }
         
         private void SwitchProfile(KeyboardProfile profile)
@@ -625,23 +756,16 @@ namespace KeyOverlayFPS
             }
         }
         
-        private bool IsMouseElement(string elementName)
+        // マウス要素管理クラス
+        private static class MouseElements
         {
-            var mouseElements = new HashSet<string>
+            public static readonly HashSet<string> Names = new()
             {
                 "MouseBody", "MouseLeft", "MouseRight", "MouseWheelButton", 
                 "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown"
             };
-            return mouseElements.Contains(elementName);
-        }
-        
-        private void UpdateMousePositions()
-        {
-            if (!_mousePositions.TryGetValue(_currentProfile, out var position))
-                return;
             
-            // マウス要素の相対位置定義
-            var mouseElementOffsets = new Dictionary<string, (double Left, double Top)>
+            public static readonly Dictionary<string, (double Left, double Top)> Offsets = new()
             {
                 { "MouseBody", (0, 0) },           // 基準位置
                 { "MouseLeft", (3, 3) },
@@ -652,9 +776,17 @@ namespace KeyOverlayFPS
                 { "ScrollUp", (35, 10) },
                 { "ScrollDown", (35, 24) }
             };
+        }
+        
+        private static bool IsMouseElement(string elementName) => MouseElements.Names.Contains(elementName);
+        
+        private void UpdateMousePositions()
+        {
+            if (!_mousePositions.TryGetValue(_currentProfile, out var position))
+                return;
             
             // 全マウス要素の位置を一括更新
-            foreach (var (elementName, offset) in mouseElementOffsets)
+            foreach (var (elementName, offset) in MouseElements.Offsets)
             {
                 var element = FindName(elementName) as FrameworkElement;
                 if (element != null)
@@ -697,8 +829,9 @@ namespace KeyOverlayFPS
                 _settings.WindowTop = Top;
                 
                 // 色設定の保存（簡易的に色名で保存）
-                _settings.ForegroundColor = GetColorName(_foregroundBrush);
-                _settings.HighlightColor = GetColorName(_activeBrush);
+                _settings.ForegroundColor = ColorManager.GetColorName(_foregroundBrush);
+                _settings.HighlightColor = ColorManager.GetColorName(_activeBrush);
+                // 背景色は SetBackgroundColor メソッドで既に設定済み
                 
                 // ディレクトリが存在しない場合は作成
                 var directory = Path.GetDirectoryName(_settingsPath);
@@ -739,8 +872,11 @@ namespace KeyOverlayFPS
             }
             
             // 色設定
-            _foregroundBrush = GetBrushFromColorName(_settings.ForegroundColor);
-            _activeBrush = GetBrushFromColorName(_settings.HighlightColor);
+            _foregroundBrush = ColorManager.GetForegroundBrush(_settings.ForegroundColor);
+            _activeBrush = ColorManager.GetHighlightBrush(_settings.HighlightColor);
+            
+            // 背景色設定を適用
+            ApplyBackgroundColorFromSettings();
             
             // レイアウトとスケールを適用
             ApplyProfileLayout();
@@ -749,48 +885,13 @@ namespace KeyOverlayFPS
             UpdateAllTextForeground();
         }
         
-        private string GetColorName(Brush brush)
+        private void ApplyBackgroundColorFromSettings()
         {
-            if (brush is SolidColorBrush solidBrush)
-            {
-                var color = solidBrush.Color;
-                if (color == Colors.White) return "White";
-                if (color == Colors.Black) return "Black";
-                if (color == Colors.Gray) return "Gray";
-                if (color == Colors.CornflowerBlue) return "Blue";
-                if (color == Colors.LimeGreen) return "Green";
-                if (color == Colors.Crimson) return "Red";
-                if (color == Colors.Yellow) return "Yellow";
-                
-                // ハイライト色の判定
-                if (color.A == 180 && color.R == 0 && color.G == 255 && color.B == 0) return "Green";
-                if (color.A == 180 && color.R == 255 && color.G == 68 && color.B == 68) return "Red";
-                if (color.A == 180 && color.R == 68 && color.G == 136 && color.B == 255) return "Blue";
-                if (color.A == 180 && color.R == 255 && color.G == 136 && color.B == 68) return "Orange";
-                if (color.A == 180 && color.R == 136 && color.G == 68 && color.B == 255) return "Purple";
-                if (color.A == 180 && color.R == 255 && color.G == 255 && color.B == 68) return "Yellow";
-                if (color.A == 180 && color.R == 68 && color.G == 255 && color.B == 255) return "Cyan";
-            }
-            return "White";
+            var color = ColorManager.GetBackgroundColor(_settings.BackgroundColor ?? "Transparent");
+            bool transparent = color == Colors.Transparent;
+            SetBackgroundColor(color, transparent);
         }
         
-        private Brush GetBrushFromColorName(string colorName)
-        {
-            return colorName switch
-            {
-                "White" => Brushes.White,
-                "Black" => Brushes.Black,
-                "Gray" => Brushes.Gray,
-                "Blue" => new SolidColorBrush(Colors.CornflowerBlue),
-                "Green" => new SolidColorBrush(Color.FromArgb(180, 0, 255, 0)),
-                "Red" => new SolidColorBrush(Colors.Crimson),
-                "Yellow" => Brushes.Yellow,
-                "Orange" => new SolidColorBrush(Color.FromArgb(180, 255, 136, 68)),
-                "Purple" => new SolidColorBrush(Color.FromArgb(180, 136, 68, 255)),
-                "Cyan" => new SolidColorBrush(Color.FromArgb(180, 68, 255, 255)),
-                _ => new SolidColorBrush(Color.FromArgb(180, 0, 255, 0))
-            };
-        }
         
         private void UpdateAllTextForeground()
         {
@@ -859,171 +960,48 @@ namespace KeyOverlayFPS
         {
             bool isShiftPressed = IsKeyPressed(VK_LSHIFT) || IsKeyPressed(VK_RSHIFT);
             
-            // プロファイルに応じてキー更新処理を分岐
-            if (_currentProfile == KeyboardProfile.FPSKeyboard)
-            {
-                UpdateFPSKeys(isShiftPressed);
-            }
-            else
-            {
-                UpdateFullKeyboard(isShiftPressed);
-            }
+            // キーボードキー更新
+            UpdateKeys(isShiftPressed);
             
             // マウス入力（表示時のみ更新）
             if (_isMouseVisible)
             {
-                UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
-                UpdateKeyStateByName("MouseRight", VK_RBUTTON);
-                UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
-                UpdateKeyStateByName("MouseButton4", VK_XBUTTON2);
-                UpdateKeyStateByName("MouseButton5", VK_XBUTTON1);
-                
-                // スクロール表示の更新
+                UpdateMouseKeys();
                 UpdateScrollIndicators();
             }
         }
         
-        private void UpdateFPSKeys(bool isShiftPressed)
+        private void UpdateKeys(bool isShiftPressed)
         {
-            // FPSプロファイル用キー更新
-            // 数字行
-            UpdateKeyStateByName("KeyEscape", VK_ESCAPE);
-            UpdateKeyStateWithShift("Key1", VK_1, "1", "!", isShiftPressed);
-            UpdateKeyStateWithShift("Key2", VK_2, "2", "@", isShiftPressed);
-            UpdateKeyStateWithShift("Key3", VK_3, "3", "#", isShiftPressed);
-            UpdateKeyStateWithShift("Key4", VK_4, "4", "$", isShiftPressed);
-            UpdateKeyStateWithShift("Key5", VK_5, "5", "%", isShiftPressed);
-            UpdateKeyStateWithShift("Key6", VK_6, "6", "^", isShiftPressed);
-            UpdateKeyStateWithShift("Key7", VK_7, "7", "&", isShiftPressed);
+            var activeKeys = _profileKeys[_currentProfile];
+            bool shouldShowShiftText = isShiftPressed && _shiftDisplayEnabled.GetValueOrDefault(_currentProfile, true);
             
-            // QWERTY行
-            UpdateKeyStateByName("KeyTab", VK_TAB);
-            UpdateKeyStateByName("KeyQ", VK_Q);
-            UpdateKeyState(KeyW, VK_W);
-            UpdateKeyStateByName("KeyE", VK_E);
-            UpdateKeyStateByName("KeyR", VK_R);
-            UpdateKeyStateByName("KeyT", VK_T);
-            UpdateKeyStateByName("KeyY", VK_Y);
-            UpdateKeyStateByName("KeyU", VK_U);
-            
-            // ASDF行
-            UpdateKeyStateByName("KeyCapsLock", VK_CAPS_LOCK);
-            UpdateKeyState(KeyA, VK_A);
-            UpdateKeyState(KeyS, VK_S);
-            UpdateKeyState(KeyD, VK_D);
-            UpdateKeyStateByName("KeyF", VK_F);
-            UpdateKeyStateByName("KeyG", VK_G);
-            UpdateKeyStateByName("KeyH", VK_H);
-            UpdateKeyStateByName("KeyJ", VK_J);
-            
-            // ZXCV行
-            UpdateKeyState(KeyShift, VK_LSHIFT);
-            UpdateKeyStateByName("KeyZ", VK_Z);
-            UpdateKeyStateByName("KeyX", VK_X);
-            UpdateKeyStateByName("KeyC", VK_C);
-            UpdateKeyStateByName("KeyV", VK_V);
-            UpdateKeyStateByName("KeyB", VK_B);
-            UpdateKeyStateByName("KeyN", VK_N);
-            UpdateKeyStateByName("KeyM", VK_M);
-            
-            // 下段
-            UpdateKeyState(KeyCtrl, VK_LCONTROL);
-            UpdateKeyStateByName("KeyWin", VK_WIN);
-            UpdateKeyStateByName("KeyAlt", VK_LMENU);
-            UpdateKeyState(KeySpace, VK_SPACE);
+            foreach (var keyName in activeKeys)
+            {
+                if (_keyConfigurations.TryGetValue(keyName, out var config))
+                {
+                    if (config.HasShiftVariant)
+                    {
+                        UpdateKeyStateWithShift(config.Name, config.VirtualKey, config.NormalText, config.ShiftText, shouldShowShiftText);
+                    }
+                    else
+                    {
+                        UpdateKeyStateByName(config.Name, config.VirtualKey);
+                    }
+                }
+            }
         }
         
-        private void UpdateFullKeyboard(bool isShiftPressed)
+        private void UpdateMouseKeys()
         {
-            // ESCキー
-            UpdateKeyStateByName("KeyEscape", VK_ESCAPE);
-            
-            // 数字キー（Shiftキー押下時の表示切り替え対応）
-            UpdateKeyStateWithShift("Key1", VK_1, "1", "!", isShiftPressed);
-            UpdateKeyStateWithShift("Key2", VK_2, "2", "@", isShiftPressed);
-            UpdateKeyStateWithShift("Key3", VK_3, "3", "#", isShiftPressed);
-            UpdateKeyStateWithShift("Key4", VK_4, "4", "$", isShiftPressed);
-            UpdateKeyStateWithShift("Key5", VK_5, "5", "%", isShiftPressed);
-            UpdateKeyStateWithShift("Key6", VK_6, "6", "^", isShiftPressed);
-            UpdateKeyStateWithShift("Key7", VK_7, "7", "&", isShiftPressed);
-            UpdateKeyStateWithShift("Key8", VK_8, "8", "*", isShiftPressed);
-            UpdateKeyStateWithShift("Key9", VK_9, "9", "(", isShiftPressed);
-            UpdateKeyStateWithShift("Key0", VK_0, "0", ")", isShiftPressed);
-            UpdateKeyStateWithShift("KeyMinus", VK_MINUS, "-", "_", isShiftPressed);
-            UpdateKeyStateWithShift("KeyEquals", VK_EQUALS, "=", "+", isShiftPressed);
-            UpdateKeyStateByName("KeyBackspace", VK_BACKSPACE);
-            
-            // QWERTYキー
-            UpdateKeyStateByName("KeyTab", VK_TAB);
-            UpdateKeyStateByName("KeyQ", VK_Q);
-            UpdateKeyState(KeyW, VK_W);
-            UpdateKeyStateByName("KeyE", VK_E);
-            UpdateKeyStateByName("KeyR", VK_R);
-            UpdateKeyStateByName("KeyT", VK_T);
-            UpdateKeyStateByName("KeyY", VK_Y);
-            UpdateKeyStateByName("KeyU", VK_U);
-            UpdateKeyStateByName("KeyI", VK_I);
-            UpdateKeyStateByName("KeyO", VK_O);
-            UpdateKeyStateByName("KeyP", VK_P);
-            UpdateKeyStateWithShift("KeyOpenBracket", VK_OPEN_BRACKET, "[", "{", isShiftPressed);
-            UpdateKeyStateWithShift("KeyCloseBracket", VK_CLOSE_BRACKET, "]", "}", isShiftPressed);
-            UpdateKeyStateWithShift("KeyBackslash", VK_BACKSLASH, "\\", "|", isShiftPressed);
-            
-            // ASDFキー
-            UpdateKeyStateByName("KeyCapsLock", VK_CAPS_LOCK);
-            UpdateKeyState(KeyA, VK_A);
-            UpdateKeyState(KeyS, VK_S);
-            UpdateKeyState(KeyD, VK_D);
-            UpdateKeyStateByName("KeyF", VK_F);
-            UpdateKeyStateByName("KeyG", VK_G);
-            UpdateKeyStateByName("KeyH", VK_H);
-            UpdateKeyStateByName("KeyJ", VK_J);
-            UpdateKeyStateByName("KeyK", VK_K);
-            UpdateKeyStateByName("KeyL", VK_L);
-            UpdateKeyStateWithShift("KeySemicolon", VK_SEMICOLON, ";", ":", isShiftPressed);
-            UpdateKeyStateWithShift("KeyQuote", VK_QUOTE, "'", "\"", isShiftPressed);
-            UpdateKeyStateByName("KeyEnter", VK_ENTER);
-            
-            // ZXCVキー
-            // 左ShiftキーはVK_LSHIFTで検知
-            UpdateKeyState(KeyShift, VK_LSHIFT);
-            UpdateKeyStateByName("KeyZ", VK_Z);
-            UpdateKeyStateByName("KeyX", VK_X);
-            UpdateKeyStateByName("KeyC", VK_C);
-            UpdateKeyStateByName("KeyV", VK_V);
-            UpdateKeyStateByName("KeyB", VK_B);
-            UpdateKeyStateByName("KeyN", VK_N);
-            UpdateKeyStateByName("KeyM", VK_M);
-            UpdateKeyStateWithShift("KeyComma", VK_COMMA, ",", "<", isShiftPressed);
-            UpdateKeyStateWithShift("KeyPeriod", VK_PERIOD, ".", ">", isShiftPressed);
-            UpdateKeyStateWithShift("KeySlash", VK_SLASH, "/", "?", isShiftPressed);
-            UpdateKeyStateByName("KeyRightShift", VK_RSHIFT);
-            UpdateKeyStateByName("KeyUpArrow", VK_UP);
-            
-            // 最下段キー（左右個別検知）
-            UpdateKeyState(KeyCtrl, VK_LCONTROL);
-            UpdateKeyStateByName("KeyWin", VK_WIN);
-            UpdateKeyStateByName("KeyAlt", VK_LMENU);
-            UpdateKeyState(KeySpace, VK_SPACE);
-            UpdateKeyStateByName("KeyRightAlt", VK_RMENU);
-            UpdateKeyStateByName("KeyFn", 0); // Fnキーは検出不可
-            UpdateKeyStateByName("KeyRightCtrl", VK_RCONTROL);
-            UpdateKeyStateByName("KeyLeftArrow", VK_LEFT);
-            UpdateKeyStateByName("KeyDownArrow", VK_DOWN);
-            UpdateKeyStateByName("KeyRightArrow", VK_RIGHT);
-            
-            // ナビゲーションキー
-            UpdateKeyStateByName("KeyDelete", VK_DELETE);
-            UpdateKeyStateByName("KeyHome", VK_HOME);
-            UpdateKeyStateByName("KeyPageUp", VK_PAGE_UP);
-            UpdateKeyStateByName("KeyPageDown", VK_PAGE_DOWN);
+            UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
+            UpdateKeyStateByName("MouseRight", VK_RBUTTON);
+            UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
+            UpdateKeyStateByName("MouseButton4", VK_XBUTTON2);
+            UpdateKeyStateByName("MouseButton5", VK_XBUTTON1);
         }
+        
 
-        private void UpdateKeyState(System.Windows.Controls.Border keyBorder, int virtualKeyCode)
-        {
-            bool isPressed = IsKeyPressed(virtualKeyCode);
-            keyBorder.Background = isPressed ? _activeBrush : _inactiveBrush;
-        }
 
         private void UpdateKeyStateByName(string keyName, int virtualKeyCode)
         {
