@@ -85,10 +85,10 @@ namespace KeyOverlayFPS.Tests
             Assert.AreEqual(expected, result);
         }
 
-        [TestCase(11, MouseDirection.East)] // 0° ± 11.25°の範囲内
-        [TestCase(350, MouseDirection.East)] // 360° - 10° = 350°も東の範囲
-        [TestCase(34, MouseDirection.NorthEast)] // 45° ± 11.25°の範囲内
-        [TestCase(56, MouseDirection.NorthEast)] // 45° ± 11.25°の範囲内
+        [TestCase(11, MouseDirection.East_11_25)] // 11.25°付近は East_11_25
+        [TestCase(350, MouseDirection.East_348_75)] // 348.75°付近は East_348_75
+        [TestCase(34, MouseDirection.East_33_75)] // 33.75°付近は East_33_75
+        [TestCase(56, MouseDirection.North_56_25)] // 56.25°付近は North_56_25
         public void GetDirectionFromAngle_BorderAngles_ReturnsCorrectDirection(double angle, MouseDirection expected)
         {
             var result = DirectionCalculator.GetDirectionFromAngle(angle);
@@ -143,8 +143,8 @@ namespace KeyOverlayFPS.Tests
         {
             var result = DirectionCalculator.GetAdjacentDirections(MouseDirection.East);
             Assert.AreEqual(2, result.Count);
-            Assert.Contains(MouseDirection.EastSouthEast, result);
-            Assert.Contains(MouseDirection.EastNorthEast, result);
+            Assert.Contains(MouseDirection.East_348_75, result); // 前の方向
+            Assert.Contains(MouseDirection.East_11_25, result);  // 次の方向
         }
 
         [Test]
@@ -152,8 +152,8 @@ namespace KeyOverlayFPS.Tests
         {
             var result = DirectionCalculator.GetAdjacentDirections(MouseDirection.North);
             Assert.AreEqual(2, result.Count);
-            Assert.Contains(MouseDirection.NorthNorthEast, result);
-            Assert.Contains(MouseDirection.NorthNorthWest, result);
+            Assert.Contains(MouseDirection.North_78_75, result);  // 前の方向
+            Assert.Contains(MouseDirection.North_101_25, result); // 次の方向
         }
 
         [Test]
@@ -161,8 +161,8 @@ namespace KeyOverlayFPS.Tests
         {
             var result = DirectionCalculator.GetAdjacentDirections(MouseDirection.EastSouthEast);
             Assert.AreEqual(2, result.Count);
-            Assert.Contains(MouseDirection.SouthEast, result);
-            Assert.Contains(MouseDirection.East, result);
+            Assert.Contains(MouseDirection.South_326_25, result); // 前の方向
+            Assert.Contains(MouseDirection.East_348_75, result);  // 次の方向
         }
     }
 }

@@ -316,6 +316,12 @@
                 <DropShadowEffect Color="Black" BlurRadius="1" ShadowDepth="1" Opacity="0.3"/>
             </Border.Effect>
             <TextBlock Text="" FontSize="8" FontWeight="Bold" Foreground="#CCCCCC" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>        
+        </Border>
+
+        <!-- マウス移動可視化 (新デザイン) - C#で動的に生成 -->
+        <Canvas x:Name="MouseDirectionCanvas" IsHitTestVisible="False">
+            <!-- UI要素はC#コードで動的に生成されます -->
+        </Canvas>
+        
     </Canvas>
 </Window>

@@ -9,49 +9,81 @@ namespace KeyOverlayFPS.MouseVisualization
     public static class DirectionCalculator
     {
         /// <summary>
-        /// 各方向の角度範囲（度）
+        /// 各方向の中心角度（度）- 32方向対応
         /// </summary>
-        private static readonly Dictionary<MouseDirection, (double Start, double End)> DirectionRanges = new()
+        private static readonly Dictionary<MouseDirection, double> DirectionCenterAngles = new()
         {
-            { MouseDirection.East, (348.75, 11.25) },           // 0° ± 11.25°
-            { MouseDirection.EastNorthEast, (11.25, 33.75) },   // 22.5° ± 11.25°
-            { MouseDirection.NorthEast, (33.75, 56.25) },       // 45° ± 11.25°
-            { MouseDirection.NorthNorthEast, (56.25, 78.75) },  // 67.5° ± 11.25°
-            { MouseDirection.North, (78.75, 101.25) },          // 90° ± 11.25°
-            { MouseDirection.NorthNorthWest, (101.25, 123.75) }, // 112.5° ± 11.25°
-            { MouseDirection.NorthWest, (123.75, 146.25) },     // 135° ± 11.25°
-            { MouseDirection.WestNorthWest, (146.25, 168.75) }, // 157.5° ± 11.25°
-            { MouseDirection.West, (168.75, 191.25) },          // 180° ± 11.25°
-            { MouseDirection.WestSouthWest, (191.25, 213.75) }, // 202.5° ± 11.25°
-            { MouseDirection.SouthWest, (213.75, 236.25) },     // 225° ± 11.25°
-            { MouseDirection.SouthSouthWest, (236.25, 258.75) }, // 247.5° ± 11.25°
-            { MouseDirection.South, (258.75, 281.25) },         // 270° ± 11.25°
-            { MouseDirection.SouthSouthEast, (281.25, 303.75) }, // 292.5° ± 11.25°
-            { MouseDirection.SouthEast, (303.75, 326.25) },     // 315° ± 11.25°
-            { MouseDirection.EastSouthEast, (326.25, 348.75) }  // 337.5° ± 11.25°
+            { MouseDirection.East, 0.0 },
+            { MouseDirection.East_11_25, 11.25 },
+            { MouseDirection.EastNorthEast, 22.5 },
+            { MouseDirection.East_33_75, 33.75 },
+            { MouseDirection.NorthEast, 45.0 },
+            { MouseDirection.North_56_25, 56.25 },
+            { MouseDirection.NorthNorthEast, 67.5 },
+            { MouseDirection.North_78_75, 78.75 },
+            { MouseDirection.North, 90.0 },
+            { MouseDirection.North_101_25, 101.25 },
+            { MouseDirection.NorthNorthWest, 112.5 },
+            { MouseDirection.North_123_75, 123.75 },
+            { MouseDirection.NorthWest, 135.0 },
+            { MouseDirection.West_146_25, 146.25 },
+            { MouseDirection.WestNorthWest, 157.5 },
+            { MouseDirection.West_168_75, 168.75 },
+            { MouseDirection.West, 180.0 },
+            { MouseDirection.West_191_25, 191.25 },
+            { MouseDirection.WestSouthWest, 202.5 },
+            { MouseDirection.West_213_75, 213.75 },
+            { MouseDirection.SouthWest, 225.0 },
+            { MouseDirection.South_236_25, 236.25 },
+            { MouseDirection.SouthSouthWest, 247.5 },
+            { MouseDirection.South_258_75, 258.75 },
+            { MouseDirection.South, 270.0 },
+            { MouseDirection.South_281_25, 281.25 },
+            { MouseDirection.SouthSouthEast, 292.5 },
+            { MouseDirection.South_303_75, 303.75 },
+            { MouseDirection.SouthEast, 315.0 },
+            { MouseDirection.South_326_25, 326.25 },
+            { MouseDirection.EastSouthEast, 337.5 },
+            { MouseDirection.East_348_75, 348.75 }
         };
 
         /// <summary>
-        /// 各方向の表示名
+        /// 各方向の表示名（32方向対応）
         /// </summary>
         private static readonly Dictionary<MouseDirection, string> DirectionNames = new()
         {
             { MouseDirection.East, "東" },
+            { MouseDirection.East_11_25, "東微北" },
             { MouseDirection.EastNorthEast, "東北東" },
+            { MouseDirection.East_33_75, "東北東微北" },
             { MouseDirection.NorthEast, "北東" },
+            { MouseDirection.North_56_25, "北東微北" },
             { MouseDirection.NorthNorthEast, "北北東" },
+            { MouseDirection.North_78_75, "北北東微北" },
             { MouseDirection.North, "北" },
+            { MouseDirection.North_101_25, "北微西" },
             { MouseDirection.NorthNorthWest, "北北西" },
+            { MouseDirection.North_123_75, "北北西微西" },
             { MouseDirection.NorthWest, "北西" },
+            { MouseDirection.West_146_25, "北西微西" },
             { MouseDirection.WestNorthWest, "西北西" },
+            { MouseDirection.West_168_75, "西北西微西" },
             { MouseDirection.West, "西" },
+            { MouseDirection.West_191_25, "西微南" },
             { MouseDirection.WestSouthWest, "西南西" },
+            { MouseDirection.West_213_75, "西南西微南" },
             { MouseDirection.SouthWest, "南西" },
+            { MouseDirection.South_236_25, "南西微南" },
             { MouseDirection.SouthSouthWest, "南南西" },
+            { MouseDirection.South_258_75, "南南西微南" },
             { MouseDirection.South, "南" },
+            { MouseDirection.South_281_25, "南微東" },
             { MouseDirection.SouthSouthEast, "南南東" },
+            { MouseDirection.South_303_75, "南南東微東" },
             { MouseDirection.SouthEast, "南東" },
-            { MouseDirection.EastSouthEast, "東南東" }
+            { MouseDirection.South_326_25, "南東微東" },
+            { MouseDirection.EastSouthEast, "東南東" },
+            { MouseDirection.East_348_75, "東南東微東" }
         };
 
         /// <summary>
@@ -81,7 +113,7 @@ namespace KeyOverlayFPS.MouseVisualization
         }
 
         /// <summary>
-        /// 角度から方向を取得
+        /// 角度から方向を取得（32方向対応）
         /// </summary>
         /// <param name="degrees">角度（度）</param>
         /// <returns>対応する方向</returns>
@@ -90,16 +122,10 @@ namespace KeyOverlayFPS.MouseVisualization
             // 角度を0-360度の範囲に正規化
             degrees = ((degrees % 360) + 360) % 360;
 
-            foreach (var (direction, (start, end)) in DirectionRanges)
-            {
-                if (IsAngleInRange(degrees, start, end))
-                {
-                    return direction;
-                }
-            }
-
-            // デフォルトとして東を返す
-            return MouseDirection.East;
+            // 32方向に分割（11.25度刻み）
+            var directionIndex = (int)Math.Round(degrees / 11.25) % 32;
+            
+            return (MouseDirection)directionIndex;
         }
 
         /// <summary>
@@ -113,35 +139,15 @@ namespace KeyOverlayFPS.MouseVisualization
         }
 
         /// <summary>
-        /// 方向から中心角度を取得
+        /// 方向から中心角度を取得（32方向対応）
         /// </summary>
         /// <param name="direction">方向</param>
         /// <returns>中心角度（度）</returns>
         public static double GetCenterAngle(MouseDirection direction)
         {
-            return (int)direction * 22.5;
+            return DirectionCenterAngles.TryGetValue(direction, out var angle) ? angle : 0.0;
         }
 
-        /// <summary>
-        /// 指定された角度が範囲内にあるかチェック
-        /// </summary>
-        /// <param name="angle">チェックする角度</param>
-        /// <param name="start">範囲の開始角度</param>
-        /// <param name="end">範囲の終了角度</param>
-        /// <returns>範囲内の場合true</returns>
-        private static bool IsAngleInRange(double angle, double start, double end)
-        {
-            if (start <= end)
-            {
-                // 通常の範囲（例：30° - 60°）
-                return angle >= start && angle <= end;
-            }
-            else
-            {
-                // 0度をまたぐ範囲（例：350° - 10°）
-                return angle >= start || angle <= end;
-            }
-        }
 
         /// <summary>
         /// 2つの方向間の角度差を計算
@@ -164,7 +170,7 @@ namespace KeyOverlayFPS.MouseVisualization
         }
 
         /// <summary>
-        /// 隣接する方向のリストを取得
+        /// 隣接する方向のリストを取得（32方向対応）
         /// </summary>
         /// <param name="direction">基準方向</param>
         /// <returns>隣接する方向のリスト</returns>
@@ -174,11 +180,11 @@ namespace KeyOverlayFPS.MouseVisualization
             var currentIndex = (int)direction;
             
             // 前の方向
-            var prevIndex = (currentIndex - 1 + 16) % 16;
+            var prevIndex = (currentIndex - 1 + 32) % 32;
             directions.Add((MouseDirection)prevIndex);
             
             // 次の方向  
-            var nextIndex = (currentIndex + 1) % 16;
+            var nextIndex = (currentIndex + 1) % 32;
             directions.Add((MouseDirection)nextIndex);
             
             return directions;

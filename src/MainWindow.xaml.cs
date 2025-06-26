@@ -10,6 +10,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using YamlDotNet.Serialization;
+using KeyOverlayFPS.MouseVisualization;
+using System.Windows.Shapes;
+using System.Windows.Media.Animation;
 
 namespace KeyOverlayFPS
 {
@@ -319,12 +322,28 @@ namespace KeyOverlayFPS
         };
         
         // 設定ファイル管理
-        private readonly string _settingsPath = Path.Combine(
+        private readonly string _settingsPath = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
             "KeyOverlayFPS", 
             "settings.yaml"
         );
         private AppSettings _settings = new();
+        
+        // マウス移動可視化
+        private readonly MouseTracker _mouseTracker = new();
+        private readonly Dictionary<MouseDirection, System.Windows.Shapes.Path> _directionIndicators = new();
+        private DispatcherTimer? _directionHideTimer;
+        private const double DIRECTION_HIGHLIGHT_DURATION = 100; // ミリ秒
+        
+        // マウス方向可視化の設定
+        private const double MOUSE_DIRECTION_CIRCLE_RADIUS = 15.0; // 半径（調整可能）
+        private const double MOUSE_DIRECTION_STROKE_THICKNESS = 3.0; // 線幅
+        private const int MOUSE_DIRECTION_SEGMENTS = 32; // 分割数
+        
+        // マウス方向可視化の位置設定
+        private const double MOUSE_DIRECTION_CANVAS_LEFT = 305; // Canvas左位置（マウス中央）
+        private const double MOUSE_DIRECTION_CANVAS_TOP = 70; // Canvas上位置（マウス中央）
+        private const double MOUSE_DIRECTION_CANVAS_SIZE = MOUSE_DIRECTION_CIRCLE_RADIUS * 2; // Canvasサイズ
 
         public MainWindow()
         {
@@ -369,6 +388,9 @@ namespace KeyOverlayFPS
             
             // キーボードキーの背景色を初期化
             InitializeKeyboardKeyBackgrounds();
+            
+            // マウス移動可視化の初期化
+            InitializeMouseVisualization();
         }
         
         private void InitializeKeyboardKeyBackgrounds()
@@ -385,6 +407,156 @@ namespace KeyOverlayFPS
                 }
             }
         }
+        
+        private void InitializeMouseVisualization()
+        {
+            var canvas = GetCachedElement<Canvas>("MouseDirectionCanvas");
+            if (canvas == null) return;
+            
+            // Canvasの位置とサイズを設定
+            Canvas.SetLeft(canvas, MOUSE_DIRECTION_CANVAS_LEFT);
+            Canvas.SetTop(canvas, MOUSE_DIRECTION_CANVAS_TOP);
+            canvas.Width = MOUSE_DIRECTION_CANVAS_SIZE;
+            canvas.Height = MOUSE_DIRECTION_CANVAS_SIZE;
+            
+            // 基準円周を作成（常時表示）
+            var baseCircle = new Ellipse
+            {
+                Name = "MouseDirectionBaseCircle",
+                Width = MOUSE_DIRECTION_CANVAS_SIZE,
+                Height = MOUSE_DIRECTION_CANVAS_SIZE,
+                Stroke = Brushes.White,
+                StrokeThickness = 1,
+                Fill = Brushes.Transparent,
+                Opacity = 0.3
+            };
+            Canvas.SetLeft(baseCircle, 0);
+            Canvas.SetTop(baseCircle, 0);
+            canvas.Children.Add(baseCircle);
+            
+            // 中心点を作成（常時表示）
+            var centerPoint = new Ellipse
+            {
+                Name = "MouseDirectionCenterPoint",
+                Width = 1,
+                Height = 1,
+                Fill = new SolidColorBrush(Color.FromRgb(255, 68, 68)), // #FF4444
+                Opacity = 0.8
+            };
+            Canvas.SetLeft(centerPoint, MOUSE_DIRECTION_CIRCLE_RADIUS - 0.5);
+            Canvas.SetTop(centerPoint, MOUSE_DIRECTION_CIRCLE_RADIUS - 0.5);
+            canvas.Children.Add(centerPoint);
+            
+            // 32方向の円弧セグメントを動的に生成
+            var directions = new MouseDirection[]
+            {
+                MouseDirection.East, MouseDirection.East_11_25, MouseDirection.EastNorthEast, MouseDirection.East_33_75,
+                MouseDirection.NorthEast, MouseDirection.North_56_25, MouseDirection.NorthNorthEast, MouseDirection.North_78_75,
+                MouseDirection.North, MouseDirection.North_101_25, MouseDirection.NorthNorthWest, MouseDirection.North_123_75,
+                MouseDirection.NorthWest, MouseDirection.West_146_25, MouseDirection.WestNorthWest, MouseDirection.West_168_75,
+                MouseDirection.West, MouseDirection.West_191_25, MouseDirection.WestSouthWest, MouseDirection.West_213_75,
+                MouseDirection.SouthWest, MouseDirection.South_236_25, MouseDirection.SouthSouthWest, MouseDirection.South_258_75,
+                MouseDirection.South, MouseDirection.South_281_25, MouseDirection.SouthSouthEast, MouseDirection.South_303_75,
+                MouseDirection.SouthEast, MouseDirection.South_326_25, MouseDirection.EastSouthEast, MouseDirection.East_348_75
+            };
+            
+            for (int i = 0; i < directions.Length; i++)
+            {
+                var direction = directions[i];
+                var arc = CreateDirectionArc(direction, i);
+                arc.Name = $"Direction{direction}";
+                canvas.Children.Add(arc);
+                _directionIndicators[direction] = arc;
+            }
+            
+            // マウストラッカーのイベントハンドラを登録
+            _mouseTracker.MouseMoved += OnMouseMoved;
+            
+            // 方向表示を非表示にするタイマーを初期化
+            _directionHideTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(DIRECTION_HIGHLIGHT_DURATION)
+            };
+            _directionHideTimer.Tick += OnDirectionHideTimer_Tick;
+        }
+        
+        private System.Windows.Shapes.Path CreateDirectionArc(MouseDirection direction, int segmentIndex)
+        {
+            var anglePerSegment = 360.0 / MOUSE_DIRECTION_SEGMENTS;
+            var startAngle = segmentIndex * anglePerSegment;
+            var endAngle = startAngle + anglePerSegment;
+            
+            // 角度をラジアンに変換（East=0度を3時方向に配置）
+            var startRadians = startAngle * Math.PI / 180; // East=0度は3時方向
+            var endRadians = endAngle * Math.PI / 180;
+            
+            // 円周上の開始点と終了点を計算
+            var centerX = MOUSE_DIRECTION_CIRCLE_RADIUS;
+            var centerY = MOUSE_DIRECTION_CIRCLE_RADIUS;
+            
+            var startX = centerX + MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Cos(startRadians);
+            var startY = centerY - MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Sin(startRadians); // Y軸反転（WPF座標系）
+            var endX = centerX + MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Cos(endRadians);
+            var endY = centerY - MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Sin(endRadians); // Y軸反転（WPF座標系）
+            
+            // 円弧のPath要素を作成
+            var pathGeometry = new PathGeometry();
+            var pathFigure = new PathFigure
+            {
+                StartPoint = new Point(startX, startY)
+            };
+            
+            var arcSegment = new ArcSegment
+            {
+                Point = new Point(endX, endY),
+                Size = new Size(MOUSE_DIRECTION_CIRCLE_RADIUS, MOUSE_DIRECTION_CIRCLE_RADIUS),
+                SweepDirection = SweepDirection.Clockwise,
+                IsLargeArc = false
+            };
+            
+            pathFigure.Segments.Add(arcSegment);
+            pathGeometry.Figures.Add(pathFigure);
+            
+            return new System.Windows.Shapes.Path
+            {
+                Data = pathGeometry,
+                Stroke = _activeBrush, // キーボードと同じハイライト色
+                StrokeThickness = MOUSE_DIRECTION_STROKE_THICKNESS,
+                Opacity = 0.0
+            };
+        }
+        
+        private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
+        {
+            // 指定方向のインジケータをハイライト表示
+            if (_directionIndicators.TryGetValue(e.Direction, out var indicator))
+            {
+                // 現在表示中の方向をリセット
+                ResetDirectionIndicators();
+                
+                // 新しい方向をハイライト
+                indicator.Opacity = 0.9;
+                
+                // タイマーをリセットして再開
+                _directionHideTimer?.Stop();
+                _directionHideTimer?.Start();
+            }
+        }
+        
+        private void OnDirectionHideTimer_Tick(object? sender, EventArgs e)
+        {
+            // 方向表示を非表示にする
+            ResetDirectionIndicators();
+            _directionHideTimer?.Stop();
+        }
+        
+        private void ResetDirectionIndicators()
+        {
+            foreach (var indicator in _directionIndicators.Values)
+            {
+                indicator.Opacity = 0.0;
+            }
+        }
 
         private void SetupContextMenu()
         {
@@ -395,6 +567,8 @@ namespace KeyOverlayFPS
             contextMenu.Items.Add(CreateHighlightColorMenu());
             contextMenu.Items.Add(CreateViewOptionsMenu());
             contextMenu.Items.Add(CreateProfileMenu());
+            contextMenu.Items.Add(new Separator());
+            contextMenu.Items.Add(CreateLayoutManagementMenu());
             contextMenu.Items.Add(new Separator());
             contextMenu.Items.Add(CreateExitMenu());
             
@@ -552,6 +726,33 @@ namespace KeyOverlayFPS
             return profileMenuItem;
         }
         
+        private MenuItem CreateLayoutManagementMenu()
+        {
+            var layoutMenuItem = new MenuItem { Header = "レイアウト管理" };
+            layoutMenuItem.Click += (s, e) => OpenLayoutEditor();
+            return layoutMenuItem;
+        }
+        
+        private void OpenLayoutEditor()
+        {
+            try
+            {
+                var layoutEditor = new KeyOverlayFPS.Layout.LayoutEditorWindow();
+                var result = layoutEditor.ShowDialog();
+                
+                if (result == true && layoutEditor.Result != null)
+                {
+                    // レイアウトが適用された場合の処理
+                    // 将来的にレイアウトを実際のUIに適用する機能を追加
+                    MessageBox.Show("レイアウトが適用されました。", "適用完了", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"レイアウトエディターの起動に失敗しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
         private MenuItem CreateExitMenu()
         {
             var exitMenuItem = new MenuItem { Header = "終了" };
@@ -701,6 +902,11 @@ namespace KeyOverlayFPS
                         border.Visibility = Visibility.Visible;
                     }
                 }
+                else if (child is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
+                {
+                    // マウス移動可視化キャンバス
+                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                }
                 else
                 {
                     // マウス本体など名前なし要素の処理
@@ -749,6 +955,11 @@ namespace KeyOverlayFPS
                         border.Visibility = Visibility.Collapsed;
                     }
                 }
+                else if (child is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
+                {
+                    // マウス移動可視化キャンバス
+                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                }
                 else
                 {
                     // マウス本体など名前なし要素
@@ -763,7 +974,8 @@ namespace KeyOverlayFPS
             public static readonly HashSet<string> Names = new()
             {
                 "MouseBody", "MouseLeft", "MouseRight", "MouseWheelButton", 
-                "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown"
+                "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown",
+                "MouseDirectionCanvas", "MouseCenterCircle"
             };
             
             public static readonly Dictionary<string, (double Left, double Top)> Offsets = new()
@@ -775,7 +987,9 @@ namespace KeyOverlayFPS
                 { "MouseButton4", (0, 42) },
                 { "MouseButton5", (0, 64) },
                 { "ScrollUp", (35, 10) },
-                { "ScrollDown", (35, 24) }
+                { "ScrollDown", (35, 24) },
+                { "MouseDirectionCanvas", (-45, 25) },
+                { "MouseCenterCircle", (17.5, 37.5) }
             };
         }
         
@@ -851,7 +1065,7 @@ namespace KeyOverlayFPS
                 // 背景色は SetBackgroundColor メソッドで既に設定済み
                 
                 // ディレクトリが存在しない場合は作成
-                var directory = Path.GetDirectoryName(_settingsPath);
+                var directory = System.IO.Path.GetDirectoryName(_settingsPath);
                 if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
@@ -985,6 +1199,9 @@ namespace KeyOverlayFPS
             {
                 UpdateMouseKeys();
                 UpdateScrollIndicators();
+                
+                // マウス移動追跡（5.0は閾値）
+                _mouseTracker.Update(5.0);
             }
         }
         
