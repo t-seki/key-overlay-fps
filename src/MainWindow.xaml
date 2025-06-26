@@ -104,43 +104,43 @@
         </Border>
         
         <!-- 第3列（ASDF） -->
-        <Border x:Name="KeyCapsLock" Canvas.Left="5" Canvas.Top="61" Width="44" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyCapsLock" Canvas.Left="5" Canvas.Top="61" Width="46" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="Caps Lock" FontSize="8" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyA" Canvas.Left="51" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyA" Canvas.Left="53" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="A" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyS" Canvas.Left="79" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyS" Canvas.Left="81" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="S" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyD" Canvas.Left="107" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyD" Canvas.Left="109" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="D" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyF" Canvas.Left="135" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyF" Canvas.Left="137" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="F" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyG" Canvas.Left="163" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyG" Canvas.Left="165" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="G" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyH" Canvas.Left="191" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyH" Canvas.Left="193" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="H" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyJ" Canvas.Left="219" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyJ" Canvas.Left="221" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="J" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyK" Canvas.Left="247" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyK" Canvas.Left="249" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="K" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyL" Canvas.Left="275" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyL" Canvas.Left="277" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="L" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeySemicolon" Canvas.Left="303" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeySemicolon" Canvas.Left="305" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock x:Name="KeySemicolonText" Text=";" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyQuote" Canvas.Left="331" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyQuote" Canvas.Left="333" Canvas.Top="61" Width="26" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock x:Name="KeyQuoteText" Text="'" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <Border x:Name="KeyEnter" Canvas.Left="359" Canvas.Top="61" Width="70" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
+        <Border x:Name="KeyEnter" Canvas.Left="361" Canvas.Top="61" Width="68" Height="26" BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="2" MouseLeftButtonDown="KeyBorder_MouseLeftButtonDown" MouseRightButtonDown="KeyBorder_MouseRightButtonDown">
             <TextBlock Text="Enter" FontSize="9" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         

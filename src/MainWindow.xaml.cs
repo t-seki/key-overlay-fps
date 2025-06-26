@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +13,20 @@ namespace KeyOverlayFPS
     {
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
+        
+        // キー状態検出用定数
+        private const short KEY_PRESSED_MASK = unchecked((short)0x8000);
+        
+        /// <summary>
+        /// 指定された仮想キーが現在押されているかを判定
+        /// </summary>
+        /// <param name="virtualKeyCode">仮想キーコード</param>
+        /// <returns>キーが押されている場合はtrue</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsKeyPressed(int virtualKeyCode)
+        {
+            return (GetAsyncKeyState(virtualKeyCode) & KEY_PRESSED_MASK) != 0;
+        }
 
         // ESCキー
         private const int VK_ESCAPE = 0x1B;
@@ -78,6 +93,14 @@ namespace KeyOverlayFPS
         private const int VK_WIN = 0x5B;
         private const int VK_ALT = 0x12;
         private const int VK_SPACE = 0x20;
+        
+        // 左右個別修飾キー
+        private const int VK_LSHIFT = 0xA0;
+        private const int VK_RSHIFT = 0xA1;
+        private const int VK_LCONTROL = 0xA2;
+        private const int VK_RCONTROL = 0xA3;
+        private const int VK_LMENU = 0xA4;    // Left Alt
+        private const int VK_RMENU = 0xA5;    // Right Alt
         private const int VK_LEFT = 0x25;
         private const int VK_DOWN = 0x28;
         private const int VK_RIGHT = 0x27;
@@ -96,7 +119,7 @@ namespace KeyOverlayFPS
         private const int VK_XBUTTON2 = 0x06; // マウスボタン5
 
         private readonly DispatcherTimer _timer;
-        private readonly Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
+        private Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
         private readonly Brush _inactiveBrush = Brushes.Transparent;
         private readonly Brush _scrollBrush = new SolidColorBrush(Color.FromArgb(255, 255, 255, 0)); // 黄色
         private bool _isDragging = false;
@@ -104,6 +127,9 @@ namespace KeyOverlayFPS
         private bool _transparentMode = true;
         private int _scrollUpTimer = 0;
         private int _scrollDownTimer = 0;
+        
+        // フォアグラウンド色管理
+        private Brush _foregroundBrush = Brushes.White;
 
         public MainWindow()
         {
@@ -127,6 +153,7 @@ namespace KeyOverlayFPS
         {
             var contextMenu = new ContextMenu();
             
+            // 背景色メニュー
             var backgroundMenuItem = new MenuItem { Header = "背景色" };
             
             var transparentMenuItem = new MenuItem { Header = "透明" };
@@ -146,10 +173,85 @@ namespace KeyOverlayFPS
             backgroundMenuItem.Items.Add(chromaBlueMenuItem);
             backgroundMenuItem.Items.Add(blackMenuItem);
             
+            // フォアグラウンド色メニュー
+            var foregroundMenuItem = new MenuItem { Header = "文字色" };
+            
+            var whiteTextMenuItem = new MenuItem { Header = "白" };
+            whiteTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.White);
+            
+            var blackTextMenuItem = new MenuItem { Header = "黒" };
+            blackTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Black);
+            
+            var grayTextMenuItem = new MenuItem { Header = "グレー" };
+            grayTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Gray);
+            
+            var blueTextMenuItem = new MenuItem { Header = "青" };
+            blueTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.CornflowerBlue);
+            
+            var greenTextMenuItem = new MenuItem { Header = "緑" };
+            greenTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.LimeGreen);
+            
+            var redTextMenuItem = new MenuItem { Header = "赤" };
+            redTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Crimson);
+            
+            var yellowTextMenuItem = new MenuItem { Header = "黄" };
+            yellowTextMenuItem.Click += (s, e) => SetForegroundColor(Colors.Yellow);
+            
+            foregroundMenuItem.Items.Add(whiteTextMenuItem);
+            foregroundMenuItem.Items.Add(blackTextMenuItem);
+            foregroundMenuItem.Items.Add(grayTextMenuItem);
+            foregroundMenuItem.Items.Add(blueTextMenuItem);
+            foregroundMenuItem.Items.Add(greenTextMenuItem);
+            foregroundMenuItem.Items.Add(redTextMenuItem);
+            foregroundMenuItem.Items.Add(yellowTextMenuItem);
+            
+            // ハイライト色メニュー
+            var highlightMenuItem = new MenuItem { Header = "ハイライト色" };
+            
+            var greenHighlightMenuItem = new MenuItem { Header = "緑" };
+            greenHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 0, 255, 0));
+            
+            var redHighlightMenuItem = new MenuItem { Header = "赤" };
+            redHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 255, 68, 68));
+            
+            var blueHighlightMenuItem = new MenuItem { Header = "青" };
+            blueHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 68, 136, 255));
+            
+            var orangeHighlightMenuItem = new MenuItem { Header = "オレンジ" };
+            orangeHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 255, 136, 68));
+            
+            var purpleHighlightMenuItem = new MenuItem { Header = "紫" };
+            purpleHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 136, 68, 255));
+            
+            var yellowHighlightMenuItem = new MenuItem { Header = "黄" };
+            yellowHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 255, 255, 68));
+            
+            var cyanHighlightMenuItem = new MenuItem { Header = "シアン" };
+            cyanHighlightMenuItem.Click += (s, e) => SetHighlightColor(Color.FromArgb(180, 68, 255, 255));
+            
+            highlightMenuItem.Items.Add(greenHighlightMenuItem);
+            highlightMenuItem.Items.Add(redHighlightMenuItem);
+            highlightMenuItem.Items.Add(blueHighlightMenuItem);
+            highlightMenuItem.Items.Add(orangeHighlightMenuItem);
+            highlightMenuItem.Items.Add(purpleHighlightMenuItem);
+            highlightMenuItem.Items.Add(yellowHighlightMenuItem);
+            highlightMenuItem.Items.Add(cyanHighlightMenuItem);
+            
+            // 表示オプションメニュー
+            var viewMenuItem = new MenuItem { Header = "表示オプション" };
+            
+            var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = true };
+            topmostMenuItem.Click += (s, e) => ToggleTopmost();
+            
+            viewMenuItem.Items.Add(topmostMenuItem);
+            
             var exitMenuItem = new MenuItem { Header = "終了" };
             exitMenuItem.Click += (s, e) => Application.Current.Shutdown();
             
             contextMenu.Items.Add(backgroundMenuItem);
+            contextMenu.Items.Add(foregroundMenuItem);
+            contextMenu.Items.Add(highlightMenuItem);
+            contextMenu.Items.Add(viewMenuItem);
             contextMenu.Items.Add(new Separator());
             contextMenu.Items.Add(exitMenuItem);
             ContextMenu = contextMenu;
@@ -165,6 +267,56 @@ namespace KeyOverlayFPS
             else
             {
                 Background = new SolidColorBrush(color);
+            }
+        }
+        
+        private void SetForegroundColor(Color color)
+        {
+            _foregroundBrush = new SolidColorBrush(color);
+            UpdateAllTextForeground();
+        }
+        
+        private void SetHighlightColor(Color color)
+        {
+            _activeBrush = new SolidColorBrush(color);
+        }
+        
+        private void ToggleTopmost()
+        {
+            Topmost = !Topmost;
+        }
+        
+        private void UpdateAllTextForeground()
+        {
+            // Canvas内のすべてのTextBlockを探してフォアグラウンド色を更新
+            var canvas = Content as Canvas;
+            if (canvas != null)
+            {
+                foreach (var child in canvas.Children)
+                {
+                    if (child is Border border)
+                    {
+                        UpdateBorderTextForeground(border);
+                    }
+                }
+            }
+        }
+        
+        private void UpdateBorderTextForeground(Border border)
+        {
+            if (border.Child is TextBlock textBlock)
+            {
+                textBlock.Foreground = _foregroundBrush;
+            }
+            else if (border.Child is StackPanel stackPanel)
+            {
+                foreach (var child in stackPanel.Children)
+                {
+                    if (child is TextBlock tb)
+                    {
+                        tb.Foreground = _foregroundBrush;
+                    }
+                }
             }
         }
 
@@ -199,7 +351,7 @@ namespace KeyOverlayFPS
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+            bool isShiftPressed = IsKeyPressed(VK_LSHIFT) || IsKeyPressed(VK_RSHIFT);
             
             // ESCキー
             UpdateKeyStateByName("KeyEscape", VK_ESCAPE);
@@ -251,7 +403,8 @@ namespace KeyOverlayFPS
             UpdateKeyStateByName("KeyEnter", VK_ENTER);
             
             // ZXCVキー
-            UpdateKeyState(KeyShift, VK_SHIFT);
+            // 左ShiftキーはVK_LSHIFTで検知
+            UpdateKeyState(KeyShift, VK_LSHIFT);
             UpdateKeyStateByName("KeyZ", VK_Z);
             UpdateKeyStateByName("KeyX", VK_X);
             UpdateKeyStateByName("KeyC", VK_C);
@@ -262,17 +415,17 @@ namespace KeyOverlayFPS
             UpdateKeyStateWithShift("KeyComma", VK_COMMA, ",", "<", isShiftPressed);
             UpdateKeyStateWithShift("KeyPeriod", VK_PERIOD, ".", ">", isShiftPressed);
             UpdateKeyStateWithShift("KeySlash", VK_SLASH, "/", "?", isShiftPressed);
-            UpdateKeyStateByName("KeyRightShift", VK_SHIFT);
+            UpdateKeyStateByName("KeyRightShift", VK_RSHIFT);
             UpdateKeyStateByName("KeyUpArrow", VK_UP);
             
-            // 最下段キー
-            UpdateKeyState(KeyCtrl, VK_CONTROL);
+            // 最下段キー（左右個別検知）
+            UpdateKeyState(KeyCtrl, VK_LCONTROL);
             UpdateKeyStateByName("KeyWin", VK_WIN);
-            UpdateKeyStateByName("KeyAlt", VK_ALT);
+            UpdateKeyStateByName("KeyAlt", VK_LMENU);
             UpdateKeyState(KeySpace, VK_SPACE);
-            UpdateKeyStateByName("KeyRightAlt", VK_ALT);
+            UpdateKeyStateByName("KeyRightAlt", VK_RMENU);
             UpdateKeyStateByName("KeyFn", 0); // Fnキーは検出不可
-            UpdateKeyStateByName("KeyRightCtrl", VK_CONTROL);
+            UpdateKeyStateByName("KeyRightCtrl", VK_RCONTROL);
             UpdateKeyStateByName("KeyLeftArrow", VK_LEFT);
             UpdateKeyStateByName("KeyDownArrow", VK_DOWN);
             UpdateKeyStateByName("KeyRightArrow", VK_RIGHT);
@@ -296,7 +449,7 @@ namespace KeyOverlayFPS
 
         private void UpdateKeyState(System.Windows.Controls.Border keyBorder, int virtualKeyCode)
         {
-            bool isPressed = (GetAsyncKeyState(virtualKeyCode) & 0x8000) != 0;
+            bool isPressed = IsKeyPressed(virtualKeyCode);
             keyBorder.Background = isPressed ? _activeBrush : _inactiveBrush;
         }
 
@@ -307,7 +460,7 @@ namespace KeyOverlayFPS
             var keyBorder = FindName(keyName) as System.Windows.Controls.Border;
             if (keyBorder != null)
             {
-                bool isPressed = (GetAsyncKeyState(virtualKeyCode) & 0x8000) != 0;
+                bool isPressed = IsKeyPressed(virtualKeyCode);
                 keyBorder.Background = isPressed ? _activeBrush : _inactiveBrush;
             }
         }
@@ -319,7 +472,7 @@ namespace KeyOverlayFPS
             
             if (keyBorder != null && textBlock != null)
             {
-                bool isPressed = (GetAsyncKeyState(virtualKeyCode) & 0x8000) != 0;
+                bool isPressed = IsKeyPressed(virtualKeyCode);
                 keyBorder.Background = isPressed ? _activeBrush : _inactiveBrush;
                 textBlock.Text = isShiftPressed ? shiftText : normalText;
             }
