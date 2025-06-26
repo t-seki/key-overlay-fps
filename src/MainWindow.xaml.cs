@@ -130,6 +130,12 @@ namespace KeyOverlayFPS
         
         // フォアグラウンド色管理
         private Brush _foregroundBrush = Brushes.White;
+        
+        // マウス表示切り替え
+        private bool _isMouseVisible = true;
+        
+        // 表示スケール（0.8, 1.0, 1.2, 1.5）
+        private double _displayScale = 1.0;
 
         public MainWindow()
         {
@@ -243,7 +249,32 @@ namespace KeyOverlayFPS
             var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = true };
             topmostMenuItem.Click += (s, e) => ToggleTopmost();
             
+            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = true };
+            mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibility();
+            
+            // 表示スケールメニュー
+            var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
+            
+            var scale80MenuItem = new MenuItem { Header = "80%" };
+            scale80MenuItem.Click += (s, e) => SetDisplayScale(0.8);
+            
+            var scale100MenuItem = new MenuItem { Header = "100%", IsChecked = true };
+            scale100MenuItem.Click += (s, e) => SetDisplayScale(1.0);
+            
+            var scale120MenuItem = new MenuItem { Header = "120%" };
+            scale120MenuItem.Click += (s, e) => SetDisplayScale(1.2);
+            
+            var scale150MenuItem = new MenuItem { Header = "150%" };
+            scale150MenuItem.Click += (s, e) => SetDisplayScale(1.5);
+            
+            scaleMenuItem.Items.Add(scale80MenuItem);
+            scaleMenuItem.Items.Add(scale100MenuItem);
+            scaleMenuItem.Items.Add(scale120MenuItem);
+            scaleMenuItem.Items.Add(scale150MenuItem);
+            
             viewMenuItem.Items.Add(topmostMenuItem);
+            viewMenuItem.Items.Add(mouseVisibilityMenuItem);
+            viewMenuItem.Items.Add(scaleMenuItem);
             
             var exitMenuItem = new MenuItem { Header = "終了" };
             exitMenuItem.Click += (s, e) => Application.Current.Shutdown();
@@ -284,6 +315,98 @@ namespace KeyOverlayFPS
         private void ToggleTopmost()
         {
             Topmost = !Topmost;
+        }
+        
+        private void ToggleMouseVisibility()
+        {
+            _isMouseVisible = !_isMouseVisible;
+            UpdateMouseVisibility();
+        }
+        
+        private void UpdateMouseVisibility()
+        {
+            var visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+            
+            // マウス要素の表示切り替え
+            var mouseElements = new string[] 
+            {
+                "MouseLeft",
+                "MouseRight", 
+                "MouseWheelButton",
+                "MouseButton4",
+                "MouseButton5"
+            };
+            
+            foreach (var elementName in mouseElements)
+            {
+                var element = FindName(elementName) as UIElement;
+                if (element != null)
+                {
+                    element.Visibility = visibility;
+                }
+            }
+            
+            // スクロール表示要素の切り替え
+            var scrollElements = new string[] 
+            {
+                "ScrollUp",
+                "ScrollDown"
+            };
+            
+            foreach (var elementName in scrollElements)
+            {
+                var element = FindName(elementName) as UIElement;
+                if (element != null)
+                {
+                    element.Visibility = visibility;
+                }
+            }
+            
+            // マウス本体（名前なしBorder）の検索と非表示
+            var canvas = Content as Canvas;
+            if (canvas != null)
+            {
+                foreach (var child in canvas.Children)
+                {
+                    if (child is Border border && string.IsNullOrEmpty(border.Name))
+                    {
+                        // マウス本体の位置とサイズから識別
+                        var left = Canvas.GetLeft(border);
+                        var top = Canvas.GetTop(border);
+                        var width = border.Width;
+                        var height = border.Height;
+                        
+                        if (left == 475 && top == 20 && width == 60 && height == 85)
+                        {
+                            border.Visibility = visibility;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        private void SetDisplayScale(double scale)
+        {
+            _displayScale = scale;
+            ApplyDisplayScale();
+        }
+        
+        private void ApplyDisplayScale()
+        {
+            var canvas = Content as Canvas;
+            if (canvas != null)
+            {
+                // Canvas全体にスケール変換を適用
+                var transform = new ScaleTransform(_displayScale, _displayScale);
+                canvas.RenderTransform = transform;
+                
+                // ウィンドウサイズを調整
+                var baseWidth = 580;
+                var baseHeight = 160;
+                Width = baseWidth * _displayScale;
+                Height = baseHeight * _displayScale;
+            }
         }
         
         private void UpdateAllTextForeground()
@@ -436,15 +559,18 @@ namespace KeyOverlayFPS
             UpdateKeyStateByName("KeyPageUp", VK_PAGE_UP);
             UpdateKeyStateByName("KeyPageDown", VK_PAGE_DOWN);
             
-            // マウス入力
-            UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
-            UpdateKeyStateByName("MouseRight", VK_RBUTTON);
-            UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
-            UpdateKeyStateByName("MouseButton4", VK_XBUTTON2); // 上のボタンはXBUTTON2
-            UpdateKeyStateByName("MouseButton5", VK_XBUTTON1); // 下のボタンはXBUTTON1
-            
-            // スクロール表示の更新
-            UpdateScrollIndicators();
+            // マウス入力（表示時のみ更新）
+            if (_isMouseVisible)
+            {
+                UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
+                UpdateKeyStateByName("MouseRight", VK_RBUTTON);
+                UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
+                UpdateKeyStateByName("MouseButton4", VK_XBUTTON2); // 上のボタンはXBUTTON2
+                UpdateKeyStateByName("MouseButton5", VK_XBUTTON1); // 下のボタンはXBUTTON1
+                
+                // スクロール表示の更新
+                UpdateScrollIndicators();
+            }
         }
 
         private void UpdateKeyState(System.Windows.Controls.Border keyBorder, int virtualKeyCode)
@@ -506,15 +632,19 @@ namespace KeyOverlayFPS
         
         private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (e.Delta > 0)
+            if (_isMouseVisible)
             {
-                // 上スクロール
-                _scrollUpTimer = 10; // 10フレーム表示
-            }
-            else if (e.Delta < 0)
-            {
-                // 下スクロール
-                _scrollDownTimer = 10; // 10フレーム表示
+                // スクロール表示（マウス表示時のみ）
+                if (e.Delta > 0)
+                {
+                    // 上スクロール
+                    _scrollUpTimer = 10; // 10フレーム表示
+                }
+                else if (e.Delta < 0)
+                {
+                    // 下スクロール
+                    _scrollDownTimer = 10; // 10フレーム表示
+                }
             }
         }
         
