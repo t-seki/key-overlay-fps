@@ -340,9 +340,7 @@ namespace KeyOverlayFPS
         private const double MOUSE_DIRECTION_STROKE_THICKNESS = 3.0; // 線幅
         private const int MOUSE_DIRECTION_SEGMENTS = 32; // 分割数
         
-        // マウス方向可視化の位置設定
-        private const double MOUSE_DIRECTION_CANVAS_LEFT = 305; // Canvas左位置（マウス中央）
-        private const double MOUSE_DIRECTION_CANVAS_TOP = 70; // Canvas上位置（マウス中央）
+        // マウス方向可視化のサイズ設定
         private const double MOUSE_DIRECTION_CANVAS_SIZE = MOUSE_DIRECTION_CIRCLE_RADIUS * 2; // Canvasサイズ
 
         public MainWindow()
@@ -413,9 +411,7 @@ namespace KeyOverlayFPS
             var canvas = GetCachedElement<Canvas>("MouseDirectionCanvas");
             if (canvas == null) return;
             
-            // Canvasの位置とサイズを設定
-            Canvas.SetLeft(canvas, MOUSE_DIRECTION_CANVAS_LEFT);
-            Canvas.SetTop(canvas, MOUSE_DIRECTION_CANVAS_TOP);
+            // Canvasサイズを設定（位置はUpdateMousePositions()で設定）
             canvas.Width = MOUSE_DIRECTION_CANVAS_SIZE;
             canvas.Height = MOUSE_DIRECTION_CANVAS_SIZE;
             
@@ -988,7 +984,7 @@ namespace KeyOverlayFPS
                 { "MouseButton5", (0, 64) },
                 { "ScrollUp", (35, 10) },
                 { "ScrollDown", (35, 24) },
-                { "MouseDirectionCanvas", (-45, 25) },
+                { "MouseDirectionCanvas", (15, 50) }, // マウス本体中央下に配置
                 { "MouseCenterCircle", (17.5, 37.5) }
             };
         }
