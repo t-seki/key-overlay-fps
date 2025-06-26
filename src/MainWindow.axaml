@@ -1,0 +1,113 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="KeyOverlayFPS.MainWindow"
+        Title="KeyOverlayFPS"
+        Width="200"
+        Height="150"
+        WindowState="Normal"
+        Topmost="True"
+        ShowInTaskbar="False"
+        CanResize="False"
+        SystemDecorations="None"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- W key -->
+        <Border x:Name="KeyW" Grid.Row="0" Grid.Column="1" 
+                Width="30" Height="30" Margin="2"
+                BorderBrush="White" BorderThickness="2"
+                Background="Transparent"
+                CornerRadius="3">
+            <TextBlock Text="W" FontSize="14" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- A key -->
+        <Border x:Name="KeyA" Grid.Row="1" Grid.Column="0" 
+                Width="30" Height="30" Margin="2"
+                BorderBrush="White" BorderThickness="2"
+                Background="Transparent"
+                CornerRadius="3">
+            <TextBlock Text="A" FontSize="14" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- S key -->
+        <Border x:Name="KeyS" Grid.Row="1" Grid.Column="1" 
+                Width="30" Height="30" Margin="2"
+                BorderBrush="White" BorderThickness="2"
+                Background="Transparent"
+                CornerRadius="3">
+            <TextBlock Text="S" FontSize="14" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- D key -->
+        <Border x:Name="KeyD" Grid.Row="1" Grid.Column="2" 
+                Width="30" Height="30" Margin="2"
+                BorderBrush="White" BorderThickness="2"
+                Background="Transparent"
+                CornerRadius="3">
+            <TextBlock Text="D" FontSize="14" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- Shift key -->
+        <Border x:Name="KeyShift" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                Width="64" Height="25" Margin="2"
+                BorderBrush="White" BorderThickness="2"
+                Background="Transparent"
+                CornerRadius="3">
+            <TextBlock Text="Shift" FontSize="10" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- Space key -->
+        <Border x:Name="KeySpace" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                Width="64" Height="20" Margin="2"
+                BorderBrush="White" BorderThickness="2"
+                Background="Transparent"
+                CornerRadius="3">
+            <TextBlock Text="Space" FontSize="9" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- Ctrl key -->
+        <Border x:Name="KeyCtrl" Grid.Row="2" Grid.Column="2"
+                Width="30" Height="25" Margin="2"
+                BorderBrush="White" BorderThickness="2"
+                Background="Transparent"
+                CornerRadius="3">
+            <TextBlock Text="Ctrl" FontSize="8" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
+</Window>
