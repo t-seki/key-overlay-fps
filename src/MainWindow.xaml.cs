@@ -81,6 +81,19 @@ namespace KeyOverlayFPS
         private const int VK_LEFT = 0x25;
         private const int VK_DOWN = 0x28;
         private const int VK_RIGHT = 0x27;
+        
+        // ナビゲーションキー
+        private const int VK_DELETE = 0x2E;
+        private const int VK_HOME = 0x24;
+        private const int VK_PAGE_UP = 0x21;
+        private const int VK_PAGE_DOWN = 0x22;
+        
+        // マウスボタン
+        private const int VK_LBUTTON = 0x01;
+        private const int VK_RBUTTON = 0x02;
+        private const int VK_MBUTTON = 0x04; // ホイールクリック
+        private const int VK_XBUTTON1 = 0x05; // マウスボタン4
+        private const int VK_XBUTTON2 = 0x06; // マウスボタン5
 
         private readonly DispatcherTimer _timer;
         private readonly Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
@@ -104,8 +117,6 @@ namespace KeyOverlayFPS
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
-            MouseEnter += MainWindow_MouseEnter;
-            MouseLeave += MainWindow_MouseLeave;
         }
 
         private void SetupContextMenu()
@@ -155,8 +166,6 @@ namespace KeyOverlayFPS
 
         private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.Source == CloseButton) return;
-            
             _isDragging = true;
             _dragStartPoint = e.GetPosition(this);
             CaptureMouse();
@@ -263,6 +272,19 @@ namespace KeyOverlayFPS
             UpdateKeyStateByName("KeyLeftArrow", VK_LEFT);
             UpdateKeyStateByName("KeyDownArrow", VK_DOWN);
             UpdateKeyStateByName("KeyRightArrow", VK_RIGHT);
+            
+            // ナビゲーションキー
+            UpdateKeyStateByName("KeyDelete", VK_DELETE);
+            UpdateKeyStateByName("KeyHome", VK_HOME);
+            UpdateKeyStateByName("KeyPageUp", VK_PAGE_UP);
+            UpdateKeyStateByName("KeyPageDown", VK_PAGE_DOWN);
+            
+            // マウス入力
+            UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
+            UpdateKeyStateByName("MouseRight", VK_RBUTTON);
+            UpdateKeyStateByName("MouseWheel", VK_MBUTTON);
+            UpdateKeyStateByName("MouseButton4", VK_XBUTTON1);
+            UpdateKeyStateByName("MouseButton5", VK_XBUTTON2);
         }
 
         private void UpdateKeyState(System.Windows.Controls.Border keyBorder, int virtualKeyCode)
@@ -296,20 +318,6 @@ namespace KeyOverlayFPS
             }
         }
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
-        private void MainWindow_MouseEnter(object sender, MouseEventArgs e)
-        {
-            CloseButton.Visibility = Visibility.Visible;
-        }
-
-        private void MainWindow_MouseLeave(object sender, MouseEventArgs e)
-        {
-            CloseButton.Visibility = Visibility.Hidden;
-        }
 
         private void Canvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
