@@ -12,7 +12,6 @@ using System.Windows.Threading;
 using YamlDotNet.Serialization;
 using KeyOverlayFPS.MouseVisualization;
 using System.Windows.Shapes;
-using System.Windows.Media.Animation;
 
 namespace KeyOverlayFPS
 {
@@ -103,6 +102,37 @@ namespace KeyOverlayFPS
                 if (color == c) return name;
             return "Transparent";
         }
+        
+        // メニュー用の色オプション
+        public static readonly (string Name, Color Color, bool Transparent)[] BackgroundMenuOptions = 
+        {
+            ("透明", Colors.Transparent, true),
+            ("クロマキー緑", Colors.Lime, false),
+            ("クロマキー青", Colors.Blue, false),
+            ("黒", Colors.Black, false)
+        };
+        
+        public static readonly (string Name, Color Color)[] ForegroundMenuOptions = 
+        {
+            ("白", Colors.White),
+            ("黒", Colors.Black),
+            ("グレー", Colors.Gray),
+            ("青", Colors.CornflowerBlue),
+            ("緑", Colors.LimeGreen),
+            ("赤", Colors.Crimson),
+            ("黄", Colors.Yellow)
+        };
+        
+        public static readonly (string Name, Color Color)[] HighlightMenuOptions = 
+        {
+            ("緑", Color.FromArgb(180, 0, 255, 0)),
+            ("赤", Color.FromArgb(180, 255, 68, 68)),
+            ("青", Color.FromArgb(180, 68, 136, 255)),
+            ("オレンジ", Color.FromArgb(180, 255, 136, 68)),
+            ("紫", Color.FromArgb(180, 136, 68, 255)),
+            ("黄", Color.FromArgb(180, 255, 255, 68)),
+            ("シアン", Color.FromArgb(180, 68, 255, 255))
+        };
     }
 
     // 設定データクラス
@@ -573,15 +603,7 @@ namespace KeyOverlayFPS
         {
             var backgroundMenuItem = new MenuItem { Header = "背景色" };
             
-            var backgroundOptions = new[]
-            {
-                ("透明", Colors.Transparent, true),
-                ("クロマキー緑", Colors.Lime, false),
-                ("クロマキー青", Colors.Blue, false),
-                ("黒", Colors.Black, false)
-            };
-            
-            foreach (var (name, color, transparent) in backgroundOptions)
+            foreach (var (name, color, transparent) in ColorManager.BackgroundMenuOptions)
             {
                 var menuItem = new MenuItem { Header = name };
                 menuItem.Click += (s, e) => SetBackgroundColor(color, transparent);
@@ -595,18 +617,7 @@ namespace KeyOverlayFPS
         {
             var foregroundMenuItem = new MenuItem { Header = "文字色" };
             
-            var foregroundColors = new[]
-            {
-                ("白", Colors.White),
-                ("黒", Colors.Black),
-                ("グレー", Colors.Gray),
-                ("青", Colors.CornflowerBlue),
-                ("緑", Colors.LimeGreen),
-                ("赤", Colors.Crimson),
-                ("黄", Colors.Yellow)
-            };
-            
-            foreach (var (name, color) in foregroundColors)
+            foreach (var (name, color) in ColorManager.ForegroundMenuOptions)
             {
                 var menuItem = new MenuItem { Header = name };
                 menuItem.Click += (s, e) => SetForegroundColor(color);
@@ -620,18 +631,7 @@ namespace KeyOverlayFPS
         {
             var highlightMenuItem = new MenuItem { Header = "ハイライト色" };
             
-            var highlightColors = new[]
-            {
-                ("緑", Color.FromArgb(180, 0, 255, 0)),
-                ("赤", Color.FromArgb(180, 255, 68, 68)),
-                ("青", Color.FromArgb(180, 68, 136, 255)),
-                ("オレンジ", Color.FromArgb(180, 255, 136, 68)),
-                ("紫", Color.FromArgb(180, 136, 68, 255)),
-                ("黄", Color.FromArgb(180, 255, 255, 68)),
-                ("シアン", Color.FromArgb(180, 68, 255, 255))
-            };
-            
-            foreach (var (name, color) in highlightColors)
+            foreach (var (name, color) in ColorManager.HighlightMenuOptions)
             {
                 var menuItem = new MenuItem { Header = name };
                 menuItem.Click += (s, e) => SetHighlightColor(color);
@@ -906,20 +906,8 @@ namespace KeyOverlayFPS
         
         private void ShowFPSKeyboardLayout()
         {
-            // FPSに重要なキーのみ表示
-            var fpsKeys = new HashSet<string>
-            {
-                // 数字行
-                "KeyEscape", "Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7",
-                // QWERTY行
-                "KeyTab", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU",
-                // ASDF行
-                "KeyCapsLock", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
-                // ZXCV行
-                "KeyShift", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM",
-                // 下段
-                "KeyCtrl", "KeyWin", "KeyAlt", "KeySpace"
-            };
+            // FPSに重要なキーのみ表示（_profileKeysから取得）
+            var fpsKeys = _profileKeys[KeyboardProfile.FPSKeyboard];
             
             var canvas = Content as Canvas;
             if (canvas == null) return;
