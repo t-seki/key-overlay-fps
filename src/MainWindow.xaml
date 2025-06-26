@@ -233,7 +233,7 @@
         
         <!-- マウス入力表示（プロフェッショナルデザイン） -->
         <!-- マウス本体のメインシェイプ -->
-        <Border Canvas.Left="475" Canvas.Top="20" Width="60" Height="85" BorderBrush="#CCCCCC" BorderThickness="2" CornerRadius="28,28,25,25">
+        <Border Canvas.Left="475" Canvas.Top="20" Width="60" Height="100" BorderBrush="#CCCCCC" BorderThickness="2" CornerRadius="28,28,25,25">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="#2A2A2A" Offset="0"/>
@@ -292,7 +292,7 @@
         </Border>
         
         <!-- サイドボタン4 (左サイドプレミアム) -->
-        <Border x:Name="MouseButton4" Canvas.Left="475" Canvas.Top="60" Width="10" Height="18" BorderBrush="#777777" BorderThickness="1" CornerRadius="5,2,2,5">
+        <Border x:Name="MouseButton4" Canvas.Left="475" Canvas.Top="62" Width="10" Height="18" BorderBrush="#777777" BorderThickness="1" CornerRadius="5,2,2,5">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#383838" Offset="0"/>
@@ -306,7 +306,7 @@
         </Border>
         
         <!-- サイドボタン5 (左サイドプレミアム) -->
-        <Border x:Name="MouseButton5" Canvas.Left="475" Canvas.Top="80" Width="10" Height="18" BorderBrush="#777777" BorderThickness="1" CornerRadius="5,2,2,5">
+        <Border x:Name="MouseButton5" Canvas.Left="475" Canvas.Top="84" Width="10" Height="18" BorderBrush="#777777" BorderThickness="1" CornerRadius="5,2,2,5">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#383838" Offset="0"/>

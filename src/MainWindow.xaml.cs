@@ -643,10 +643,10 @@ namespace KeyOverlayFPS
                             offsetLeft = 25; offsetTop = 10;
                             break;
                         case "MouseButton4":
-                            offsetLeft = 0; offsetTop = 40;
+                            offsetLeft = 0; offsetTop = 42;
                             break;
                         case "MouseButton5":
-                            offsetLeft = 0; offsetTop = 60;
+                            offsetLeft = 0; offsetTop = 64;
                             break;
                         case "ScrollUp":
                             offsetLeft = 35; offsetTop = 10;
@@ -667,7 +667,7 @@ namespace KeyOverlayFPS
                 if (child is Border border && string.IsNullOrEmpty(border.Name))
                 {
                     // マウス本体のサイズから識別
-                    if (border.Width == 60 && border.Height == 85)
+                    if (border.Width == 60 && border.Height == 100)
                     {
                         Canvas.SetLeft(border, position.Left);
                         Canvas.SetTop(border, position.Top);
