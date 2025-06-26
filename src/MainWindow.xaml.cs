@@ -98,9 +98,12 @@ namespace KeyOverlayFPS
         private readonly DispatcherTimer _timer;
         private readonly Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
         private readonly Brush _inactiveBrush = Brushes.Transparent;
+        private readonly Brush _scrollBrush = new SolidColorBrush(Color.FromArgb(255, 255, 255, 0)); // 黄色
         private bool _isDragging = false;
         private Point _dragStartPoint;
         private bool _transparentMode = true;
+        private int _scrollUpTimer = 0;
+        private int _scrollDownTimer = 0;
 
         public MainWindow()
         {
@@ -117,6 +120,7 @@ namespace KeyOverlayFPS
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
+            this.MouseWheel += MainWindow_MouseWheel;
         }
 
         private void SetupContextMenu()
@@ -282,9 +286,12 @@ namespace KeyOverlayFPS
             // マウス入力
             UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
             UpdateKeyStateByName("MouseRight", VK_RBUTTON);
-            UpdateKeyStateByName("MouseWheel", VK_MBUTTON);
-            UpdateKeyStateByName("MouseButton4", VK_XBUTTON1);
-            UpdateKeyStateByName("MouseButton5", VK_XBUTTON2);
+            UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
+            UpdateKeyStateByName("MouseButton4", VK_XBUTTON2); // 上のボタンはXBUTTON2
+            UpdateKeyStateByName("MouseButton5", VK_XBUTTON1); // 下のボタンはXBUTTON1
+            
+            // スクロール表示の更新
+            UpdateScrollIndicators();
         }
 
         private void UpdateKeyState(System.Windows.Controls.Border keyBorder, int virtualKeyCode)
@@ -342,6 +349,53 @@ namespace KeyOverlayFPS
                 ContextMenu.IsOpen = true;
             }
             e.Handled = true;
+        }
+        
+        private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                // 上スクロール
+                _scrollUpTimer = 10; // 10フレーム表示
+            }
+            else if (e.Delta < 0)
+            {
+                // 下スクロール
+                _scrollDownTimer = 10; // 10フレーム表示
+            }
+        }
+        
+        private void UpdateScrollIndicators()
+        {
+            // スクロールアップ表示
+            var scrollUpIndicator = FindName("ScrollUpIndicator") as TextBlock;
+            if (scrollUpIndicator != null)
+            {
+                if (_scrollUpTimer > 0)
+                {
+                    scrollUpIndicator.Foreground = _scrollBrush;
+                    _scrollUpTimer--;
+                }
+                else
+                {
+                    scrollUpIndicator.Foreground = Brushes.Transparent;
+                }
+            }
+            
+            // スクロールダウン表示
+            var scrollDownIndicator = FindName("ScrollDownIndicator") as TextBlock;
+            if (scrollDownIndicator != null)
+            {
+                if (_scrollDownTimer > 0)
+                {
+                    scrollDownIndicator.Foreground = _scrollBrush;
+                    _scrollDownTimer--;
+                }
+                else
+                {
+                    scrollDownIndicator.Foreground = Brushes.Transparent;
+                }
+            }
         }
     }
 }
