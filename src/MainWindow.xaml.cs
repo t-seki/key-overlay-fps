@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -136,6 +137,22 @@ namespace KeyOverlayFPS
         
         // 表示スケール（0.8, 1.0, 1.2, 1.5）
         private double _displayScale = 1.0;
+        
+        // プロファイル管理
+        public enum KeyboardProfile
+        {
+            FullKeyboard65,  // 現在の65%キーボード
+            FPSKeyboard      // FPS用コンパクトキーボード
+        }
+        
+        private KeyboardProfile _currentProfile = KeyboardProfile.FullKeyboard65;
+        
+        // プロファイル別マウス表示位置
+        private readonly Dictionary<KeyboardProfile, (double Left, double Top)> _mousePositions = new()
+        {
+            { KeyboardProfile.FullKeyboard65, (475, 20) },  // 元の位置
+            { KeyboardProfile.FPSKeyboard, (350, 20) }      // FPS用位置
+        };
 
         public MainWindow()
         {
@@ -255,17 +272,33 @@ namespace KeyOverlayFPS
             // 表示スケールメニュー
             var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
             
-            var scale80MenuItem = new MenuItem { Header = "80%" };
-            scale80MenuItem.Click += (s, e) => SetDisplayScale(0.8);
+            var scale80MenuItem = new MenuItem { Header = "80%", IsCheckable = true };
+            scale80MenuItem.Click += (s, e) => 
+            {
+                SetDisplayScale(0.8);
+                UpdateScaleMenuChecked(scaleMenuItem, scale80MenuItem);
+            };
             
-            var scale100MenuItem = new MenuItem { Header = "100%", IsChecked = true };
-            scale100MenuItem.Click += (s, e) => SetDisplayScale(1.0);
+            var scale100MenuItem = new MenuItem { Header = "100%", IsCheckable = true, IsChecked = true };
+            scale100MenuItem.Click += (s, e) => 
+            {
+                SetDisplayScale(1.0);
+                UpdateScaleMenuChecked(scaleMenuItem, scale100MenuItem);
+            };
             
-            var scale120MenuItem = new MenuItem { Header = "120%" };
-            scale120MenuItem.Click += (s, e) => SetDisplayScale(1.2);
+            var scale120MenuItem = new MenuItem { Header = "120%", IsCheckable = true };
+            scale120MenuItem.Click += (s, e) => 
+            {
+                SetDisplayScale(1.2);
+                UpdateScaleMenuChecked(scaleMenuItem, scale120MenuItem);
+            };
             
-            var scale150MenuItem = new MenuItem { Header = "150%" };
-            scale150MenuItem.Click += (s, e) => SetDisplayScale(1.5);
+            var scale150MenuItem = new MenuItem { Header = "150%", IsCheckable = true };
+            scale150MenuItem.Click += (s, e) => 
+            {
+                SetDisplayScale(1.5);
+                UpdateScaleMenuChecked(scaleMenuItem, scale150MenuItem);
+            };
             
             scaleMenuItem.Items.Add(scale80MenuItem);
             scaleMenuItem.Items.Add(scale100MenuItem);
@@ -276,6 +309,26 @@ namespace KeyOverlayFPS
             viewMenuItem.Items.Add(mouseVisibilityMenuItem);
             viewMenuItem.Items.Add(scaleMenuItem);
             
+            // プロファイルメニュー
+            var profileMenuItem = new MenuItem { Header = "プロファイル" };
+            
+            var fullKeyboardMenuItem = new MenuItem { Header = "65%キーボード", IsCheckable = true, IsChecked = true };
+            fullKeyboardMenuItem.Click += (s, e) => 
+            {
+                SwitchProfile(KeyboardProfile.FullKeyboard65);
+                UpdateProfileMenuChecked(profileMenuItem, fullKeyboardMenuItem);
+            };
+            
+            var fpsKeyboardMenuItem = new MenuItem { Header = "FPSキーボード", IsCheckable = true };
+            fpsKeyboardMenuItem.Click += (s, e) => 
+            {
+                SwitchProfile(KeyboardProfile.FPSKeyboard);
+                UpdateProfileMenuChecked(profileMenuItem, fpsKeyboardMenuItem);
+            };
+            
+            profileMenuItem.Items.Add(fullKeyboardMenuItem);
+            profileMenuItem.Items.Add(fpsKeyboardMenuItem);
+            
             var exitMenuItem = new MenuItem { Header = "終了" };
             exitMenuItem.Click += (s, e) => Application.Current.Shutdown();
             
@@ -283,6 +336,7 @@ namespace KeyOverlayFPS
             contextMenu.Items.Add(foregroundMenuItem);
             contextMenu.Items.Add(highlightMenuItem);
             contextMenu.Items.Add(viewMenuItem);
+            contextMenu.Items.Add(profileMenuItem);
             contextMenu.Items.Add(new Separator());
             contextMenu.Items.Add(exitMenuItem);
             ContextMenu = contextMenu;
@@ -325,65 +379,8 @@ namespace KeyOverlayFPS
         
         private void UpdateMouseVisibility()
         {
-            var visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
-            
-            // マウス要素の表示切り替え
-            var mouseElements = new string[] 
-            {
-                "MouseLeft",
-                "MouseRight", 
-                "MouseWheelButton",
-                "MouseButton4",
-                "MouseButton5"
-            };
-            
-            foreach (var elementName in mouseElements)
-            {
-                var element = FindName(elementName) as UIElement;
-                if (element != null)
-                {
-                    element.Visibility = visibility;
-                }
-            }
-            
-            // スクロール表示要素の切り替え
-            var scrollElements = new string[] 
-            {
-                "ScrollUp",
-                "ScrollDown"
-            };
-            
-            foreach (var elementName in scrollElements)
-            {
-                var element = FindName(elementName) as UIElement;
-                if (element != null)
-                {
-                    element.Visibility = visibility;
-                }
-            }
-            
-            // マウス本体（名前なしBorder）の検索と非表示
-            var canvas = Content as Canvas;
-            if (canvas != null)
-            {
-                foreach (var child in canvas.Children)
-                {
-                    if (child is Border border && string.IsNullOrEmpty(border.Name))
-                    {
-                        // マウス本体の位置とサイズから識別
-                        var left = Canvas.GetLeft(border);
-                        var top = Canvas.GetTop(border);
-                        var width = border.Width;
-                        var height = border.Height;
-                        
-                        if (left == 475 && top == 20 && width == 60 && height == 85)
-                        {
-                            border.Visibility = visibility;
-                            break;
-                        }
-                    }
-                }
-            }
+            // プロファイルレイアウトを再適用してマウス表示状態を反映
+            ApplyProfileLayout();
         }
         
         private void SetDisplayScale(double scale)
@@ -401,11 +398,234 @@ namespace KeyOverlayFPS
                 var transform = new ScaleTransform(_displayScale, _displayScale);
                 canvas.RenderTransform = transform;
                 
-                // ウィンドウサイズを調整
-                var baseWidth = 580;
-                var baseHeight = 160;
+                // プロファイルに応じたウィンドウサイズ調整
+                double baseWidth, baseHeight;
+                if (_currentProfile == KeyboardProfile.FPSKeyboard)
+                {
+                    baseWidth = _isMouseVisible ? 520 : 450;
+                    baseHeight = 160;
+                }
+                else
+                {
+                    baseWidth = 580;
+                    baseHeight = 160;
+                }
+                
                 Width = baseWidth * _displayScale;
                 Height = baseHeight * _displayScale;
+            }
+        }
+        
+        private void UpdateProfileMenuChecked(MenuItem profileMenu, MenuItem selectedItem)
+        {
+            // 全てのプロファイルメニューアイテムのチェック状態をクリア
+            foreach (MenuItem item in profileMenu.Items)
+            {
+                if (item.IsCheckable)
+                {
+                    item.IsChecked = false;
+                }
+            }
+            // 選択されたアイテムのみチェック
+            selectedItem.IsChecked = true;
+        }
+        
+        private void UpdateScaleMenuChecked(MenuItem scaleMenu, MenuItem selectedItem)
+        {
+            // 全ての表示サイズメニューアイテムのチェック状態をクリア
+            foreach (MenuItem item in scaleMenu.Items)
+            {
+                if (item.IsCheckable)
+                {
+                    item.IsChecked = false;
+                }
+            }
+            // 選択されたアイテムのみチェック
+            selectedItem.IsChecked = true;
+        }
+        
+        private void SwitchProfile(KeyboardProfile profile)
+        {
+            _currentProfile = profile;
+            ApplyProfileLayout();
+            UpdateMousePositions();
+        }
+        
+        private void ApplyProfileLayout()
+        {
+            var canvas = Content as Canvas;
+            if (canvas == null) return;
+            
+            switch (_currentProfile)
+            {
+                case KeyboardProfile.FullKeyboard65:
+                    ShowFullKeyboardLayout();
+                    // ウィンドウサイズ調整
+                    Width = 580 * _displayScale;
+                    Height = 160 * _displayScale;
+                    break;
+                    
+                case KeyboardProfile.FPSKeyboard:
+                    ShowFPSKeyboardLayout();
+                    // ウィンドウサイズ調整（FPS用サイズ、マウス表示考慮）
+                    Width = (_isMouseVisible ? 520 : 450) * _displayScale;
+                    Height = 160 * _displayScale;
+                    break;
+            }
+        }
+        
+        private void ShowFullKeyboardLayout()
+        {
+            // 全キーを表示
+            var canvas = Content as Canvas;
+            if (canvas == null) return;
+            
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is Border border && !string.IsNullOrEmpty(border.Name))
+                {
+                    // マウス要素は現在の設定に従う
+                    if (IsMouseElement(border.Name))
+                    {
+                        border.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        border.Visibility = Visibility.Visible;
+                    }
+                }
+                else
+                {
+                    // マウス本体など名前なし要素の処理
+                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+        }
+        
+        private void ShowFPSKeyboardLayout()
+        {
+            // FPSに重要なキーのみ表示
+            var fpsKeys = new HashSet<string>
+            {
+                // 数字行
+                "KeyEscape", "Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7",
+                // QWERTY行
+                "KeyTab", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU",
+                // ASDF行
+                "KeyCapsLock", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
+                // ZXCV行
+                "KeyShift", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM",
+                // 下段
+                "KeyCtrl", "KeyWin", "KeyAlt", "KeySpace"
+            };
+            
+            var canvas = Content as Canvas;
+            if (canvas == null) return;
+            
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is Border border && !string.IsNullOrEmpty(border.Name))
+                {
+                    if (IsMouseElement(border.Name))
+                    {
+                        // マウス要素は設定に従う
+                        border.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                    else if (fpsKeys.Contains(border.Name))
+                    {
+                        // FPSキーは表示
+                        border.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        // その他のキーは非表示
+                        border.Visibility = Visibility.Collapsed;
+                    }
+                }
+                else
+                {
+                    // マウス本体など名前なし要素
+                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+        }
+        
+        private bool IsMouseElement(string elementName)
+        {
+            var mouseElements = new HashSet<string>
+            {
+                "MouseLeft", "MouseRight", "MouseWheelButton", 
+                "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown"
+            };
+            return mouseElements.Contains(elementName);
+        }
+        
+        private void UpdateMousePositions()
+        {
+            if (!_mousePositions.TryGetValue(_currentProfile, out var position))
+                return;
+                
+            var canvas = Content as Canvas;
+            if (canvas == null) return;
+            
+            // 名前付きマウス要素の位置更新
+            var mouseElements = new string[] 
+            {
+                "MouseLeft", "MouseRight", "MouseWheelButton", 
+                "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown"
+            };
+            
+            foreach (var elementName in mouseElements)
+            {
+                var element = FindName(elementName) as FrameworkElement;
+                if (element != null)
+                {
+                    // 各要素の相対位置を維持しながら基準位置を変更
+                    double offsetLeft = 0, offsetTop = 0;
+                    
+                    switch (elementName)
+                    {
+                        case "MouseLeft":
+                            offsetLeft = 3; offsetTop = 3;
+                            break;
+                        case "MouseRight":
+                            offsetLeft = 32; offsetTop = 3;
+                            break;
+                        case "MouseWheelButton":
+                            offsetLeft = 25; offsetTop = 10;
+                            break;
+                        case "MouseButton4":
+                            offsetLeft = 0; offsetTop = 40;
+                            break;
+                        case "MouseButton5":
+                            offsetLeft = 0; offsetTop = 60;
+                            break;
+                        case "ScrollUp":
+                            offsetLeft = 35; offsetTop = 10;
+                            break;
+                        case "ScrollDown":
+                            offsetLeft = 35; offsetTop = 24;
+                            break;
+                    }
+                    
+                    Canvas.SetLeft(element, position.Left + offsetLeft);
+                    Canvas.SetTop(element, position.Top + offsetTop);
+                }
+            }
+            
+            // マウス本体（名前なしBorder）の位置更新
+            foreach (var child in canvas.Children)
+            {
+                if (child is Border border && string.IsNullOrEmpty(border.Name))
+                {
+                    // マウス本体のサイズから識別
+                    if (border.Width == 60 && border.Height == 85)
+                    {
+                        Canvas.SetLeft(border, position.Left);
+                        Canvas.SetTop(border, position.Top);
+                        break;
+                    }
+                }
             }
         }
         
@@ -476,6 +696,82 @@ namespace KeyOverlayFPS
         {
             bool isShiftPressed = IsKeyPressed(VK_LSHIFT) || IsKeyPressed(VK_RSHIFT);
             
+            // プロファイルに応じてキー更新処理を分岐
+            if (_currentProfile == KeyboardProfile.FPSKeyboard)
+            {
+                UpdateFPSKeys(isShiftPressed);
+            }
+            else
+            {
+                UpdateFullKeyboard(isShiftPressed);
+            }
+            
+            // マウス入力（表示時のみ更新）
+            if (_isMouseVisible)
+            {
+                UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
+                UpdateKeyStateByName("MouseRight", VK_RBUTTON);
+                UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
+                UpdateKeyStateByName("MouseButton4", VK_XBUTTON2);
+                UpdateKeyStateByName("MouseButton5", VK_XBUTTON1);
+                
+                // スクロール表示の更新
+                UpdateScrollIndicators();
+            }
+        }
+        
+        private void UpdateFPSKeys(bool isShiftPressed)
+        {
+            // FPSプロファイル用キー更新
+            // 数字行
+            UpdateKeyStateByName("KeyEscape", VK_ESCAPE);
+            UpdateKeyStateWithShift("Key1", VK_1, "1", "!", isShiftPressed);
+            UpdateKeyStateWithShift("Key2", VK_2, "2", "@", isShiftPressed);
+            UpdateKeyStateWithShift("Key3", VK_3, "3", "#", isShiftPressed);
+            UpdateKeyStateWithShift("Key4", VK_4, "4", "$", isShiftPressed);
+            UpdateKeyStateWithShift("Key5", VK_5, "5", "%", isShiftPressed);
+            UpdateKeyStateWithShift("Key6", VK_6, "6", "^", isShiftPressed);
+            UpdateKeyStateWithShift("Key7", VK_7, "7", "&", isShiftPressed);
+            
+            // QWERTY行
+            UpdateKeyStateByName("KeyTab", VK_TAB);
+            UpdateKeyStateByName("KeyQ", VK_Q);
+            UpdateKeyState(KeyW, VK_W);
+            UpdateKeyStateByName("KeyE", VK_E);
+            UpdateKeyStateByName("KeyR", VK_R);
+            UpdateKeyStateByName("KeyT", VK_T);
+            UpdateKeyStateByName("KeyY", VK_Y);
+            UpdateKeyStateByName("KeyU", VK_U);
+            
+            // ASDF行
+            UpdateKeyStateByName("KeyCapsLock", VK_CAPS_LOCK);
+            UpdateKeyState(KeyA, VK_A);
+            UpdateKeyState(KeyS, VK_S);
+            UpdateKeyState(KeyD, VK_D);
+            UpdateKeyStateByName("KeyF", VK_F);
+            UpdateKeyStateByName("KeyG", VK_G);
+            UpdateKeyStateByName("KeyH", VK_H);
+            UpdateKeyStateByName("KeyJ", VK_J);
+            
+            // ZXCV行
+            UpdateKeyState(KeyShift, VK_LSHIFT);
+            UpdateKeyStateByName("KeyZ", VK_Z);
+            UpdateKeyStateByName("KeyX", VK_X);
+            UpdateKeyStateByName("KeyC", VK_C);
+            UpdateKeyStateByName("KeyV", VK_V);
+            UpdateKeyStateByName("KeyB", VK_B);
+            UpdateKeyStateByName("KeyN", VK_N);
+            UpdateKeyStateByName("KeyM", VK_M);
+            
+            // 下段
+            UpdateKeyState(KeyCtrl, VK_LCONTROL);
+            UpdateKeyStateByName("KeyWin", VK_WIN);
+            UpdateKeyStateByName("KeyAlt", VK_LMENU);
+            UpdateKeyState(KeySpace, VK_SPACE);
+        }
+        
+        private void UpdateFullKeyboard(bool isShiftPressed)
+        {
             // ESCキー
             UpdateKeyStateByName("KeyEscape", VK_ESCAPE);
             
@@ -558,19 +854,6 @@ namespace KeyOverlayFPS
             UpdateKeyStateByName("KeyHome", VK_HOME);
             UpdateKeyStateByName("KeyPageUp", VK_PAGE_UP);
             UpdateKeyStateByName("KeyPageDown", VK_PAGE_DOWN);
-            
-            // マウス入力（表示時のみ更新）
-            if (_isMouseVisible)
-            {
-                UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
-                UpdateKeyStateByName("MouseRight", VK_RBUTTON);
-                UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
-                UpdateKeyStateByName("MouseButton4", VK_XBUTTON2); // 上のボタンはXBUTTON2
-                UpdateKeyStateByName("MouseButton5", VK_XBUTTON1); // 下のボタンはXBUTTON1
-                
-                // スクロール表示の更新
-                UpdateScrollIndicators();
-            }
         }
 
         private void UpdateKeyState(System.Windows.Controls.Border keyBorder, int virtualKeyCode)
