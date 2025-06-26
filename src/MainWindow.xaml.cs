@@ -169,10 +169,12 @@ namespace KeyOverlayFPS
         private Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
         private readonly Brush _inactiveBrush;
         private readonly Brush _keyboardKeyDefaultBrush;
+        
+        // UIエレメントキャッシュ
+        private readonly Dictionary<string, FrameworkElement> _elementCache = new();
         // スクロール表示色（ハイライト色と同じ）
         private bool _isDragging = false;
         private Point _dragStartPoint;
-        private bool _transparentMode = true;
         private int _scrollUpTimer = 0;
         private int _scrollDownTimer = 0;
         
@@ -559,7 +561,6 @@ namespace KeyOverlayFPS
         
         private void SetBackgroundColor(Color color, bool transparent)
         {
-            _transparentMode = transparent;
             if (transparent)
             {
                 Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
@@ -780,6 +781,22 @@ namespace KeyOverlayFPS
         
         private static bool IsMouseElement(string elementName) => MouseElements.Names.Contains(elementName);
         
+        /// <summary>
+        /// キャッシュ付きでUIエレメントを取得
+        /// </summary>
+        private T? GetCachedElement<T>(string name) where T : FrameworkElement
+        {
+            if (!_elementCache.TryGetValue(name, out var element))
+            {
+                element = FindName(name) as T;
+                if (element != null)
+                {
+                    _elementCache[name] = element;
+                }
+            }
+            return element as T;
+        }
+        
         private void UpdateMousePositions()
         {
             if (!_mousePositions.TryGetValue(_currentProfile, out var position))
@@ -788,7 +805,7 @@ namespace KeyOverlayFPS
             // 全マウス要素の位置を一括更新
             foreach (var (elementName, offset) in MouseElements.Offsets)
             {
-                var element = FindName(elementName) as FrameworkElement;
+                var element = GetCachedElement<FrameworkElement>(elementName);
                 if (element != null)
                 {
                     Canvas.SetLeft(element, position.Left + offset.Left);
@@ -994,11 +1011,19 @@ namespace KeyOverlayFPS
         
         private void UpdateMouseKeys()
         {
-            UpdateKeyStateByName("MouseLeft", VK_LBUTTON);
-            UpdateKeyStateByName("MouseRight", VK_RBUTTON);
-            UpdateKeyStateByName("MouseWheelButton", VK_MBUTTON);
-            UpdateKeyStateByName("MouseButton4", VK_XBUTTON2);
-            UpdateKeyStateByName("MouseButton5", VK_XBUTTON1);
+            var mouseKeys = new[]
+            {
+                ("MouseLeft", VK_LBUTTON),
+                ("MouseRight", VK_RBUTTON),
+                ("MouseWheelButton", VK_MBUTTON),
+                ("MouseButton4", VK_XBUTTON2),
+                ("MouseButton5", VK_XBUTTON1)
+            };
+            
+            foreach (var (keyName, virtualKey) in mouseKeys)
+            {
+                UpdateKeyStateByName(keyName, virtualKey);
+            }
         }
         
 
@@ -1007,7 +1032,7 @@ namespace KeyOverlayFPS
         {
             if (virtualKeyCode == 0) return; // Fnキーなど検出不可のキー
             
-            var keyBorder = FindName(keyName) as System.Windows.Controls.Border;
+            var keyBorder = GetCachedElement<Border>(keyName);
             if (keyBorder != null)
             {
                 bool isPressed = IsKeyPressed(virtualKeyCode);
@@ -1017,8 +1042,8 @@ namespace KeyOverlayFPS
 
         private void UpdateKeyStateWithShift(string keyName, int virtualKeyCode, string normalText, string shiftText, bool isShiftPressed)
         {
-            var keyBorder = FindName(keyName) as System.Windows.Controls.Border;
-            var textBlock = FindName(keyName + "Text") as System.Windows.Controls.TextBlock;
+            var keyBorder = GetCachedElement<Border>(keyName);
+            var textBlock = GetCachedElement<TextBlock>(keyName + "Text");
             
             if (keyBorder != null && textBlock != null)
             {
@@ -1078,7 +1103,7 @@ namespace KeyOverlayFPS
         private void UpdateScrollIndicators()
         {
             // スクロールアップ表示
-            var scrollUpIndicator = FindName("ScrollUpIndicator") as TextBlock;
+            var scrollUpIndicator = GetCachedElement<TextBlock>("ScrollUpIndicator");
             if (scrollUpIndicator != null)
             {
                 if (_scrollUpTimer > 0)
@@ -1093,7 +1118,7 @@ namespace KeyOverlayFPS
             }
             
             // スクロールダウン表示
-            var scrollDownIndicator = FindName("ScrollDownIndicator") as TextBlock;
+            var scrollDownIndicator = GetCachedElement<TextBlock>("ScrollDownIndicator");
             if (scrollDownIndicator != null)
             {
                 if (_scrollDownTimer > 0)
