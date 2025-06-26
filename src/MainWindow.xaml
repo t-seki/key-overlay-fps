@@ -274,7 +274,7 @@
         </Border>
         
         <!-- ホイール（中央ボタン）プレミアム -->
-        <Border x:Name="MouseWheelButton" Canvas.Left="500" Canvas.Top="30" Width="10" Height="20" BorderBrush="#666666" BorderThickness="1" CornerRadius="5">
+        <Border x:Name="MouseWheelButton" Canvas.Left="500" Canvas.Top="28" Width="10" Height="22" BorderBrush="#666666" BorderThickness="1" CornerRadius="5">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#505050" Offset="0"/>
@@ -286,8 +286,8 @@
                 <DropShadowEffect Color="Black" BlurRadius="1" ShadowDepth="1" Opacity="0.4"/>
             </Border.Effect>
             <StackPanel>
-                <TextBlock Text="▲" FontSize="5" FontWeight="Bold" Foreground="#DDDDDD" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                <TextBlock Text="▼" FontSize="5" FontWeight="Bold" Foreground="#DDDDDD" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                <TextBlock x:Name="ScrollUpIndicator" Text="▲" FontSize="8" FontWeight="Bold" Foreground="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0"/>
+                <TextBlock x:Name="ScrollDownIndicator" Text="▼" FontSize="8" FontWeight="Bold" Foreground="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0"/>
             </StackPanel>
         </Border>
         
@@ -317,15 +317,6 @@
                 <DropShadowEffect Color="Black" BlurRadius="1" ShadowDepth="1" Opacity="0.3"/>
             </Border.Effect>
             <TextBlock Text="5" FontSize="8" FontWeight="Bold" Foreground="#CCCCCC" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>
-        
-        <!-- スクロール表示用 -->
-        <Border x:Name="ScrollUp" Canvas.Left="510" Canvas.Top="30" Width="6" Height="6" BorderBrush="Transparent" BorderThickness="0" Background="Transparent">
-            <TextBlock x:Name="ScrollUpIndicator" Text="▲" FontSize="8" FontWeight="Bold" Foreground="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>
-        <Border x:Name="ScrollDown" Canvas.Left="510" Canvas.Top="44" Width="6" Height="6" BorderBrush="Transparent" BorderThickness="0" Background="Transparent">
-            <TextBlock x:Name="ScrollDownIndicator" Text="▼" FontSize="8" FontWeight="Bold" Foreground="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>
-        
+        </Border>        
     </Canvas>
 </Window>

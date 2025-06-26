@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -7,9 +8,24 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using YamlDotNet.Serialization;
 
 namespace KeyOverlayFPS
 {
+    // 設定データクラス
+    public class AppSettings
+    {
+        public string CurrentProfile { get; set; } = "FullKeyboard65";
+        public double DisplayScale { get; set; } = 1.0;
+        public bool IsMouseVisible { get; set; } = true;
+        public bool IsTopmost { get; set; } = true;
+        public string BackgroundColor { get; set; } = "Transparent";
+        public string ForegroundColor { get; set; } = "White";
+        public string HighlightColor { get; set; } = "Green";
+        public double WindowLeft { get; set; } = 100;
+        public double WindowTop { get; set; } = 100;
+    }
+
     public partial class MainWindow : Window
     {
         [DllImport("user32.dll")]
@@ -122,7 +138,7 @@ namespace KeyOverlayFPS
         private readonly DispatcherTimer _timer;
         private Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
         private readonly Brush _inactiveBrush = Brushes.Transparent;
-        private readonly Brush _scrollBrush = new SolidColorBrush(Color.FromArgb(255, 255, 255, 0)); // 黄色
+        // スクロール表示色（ハイライト色と同じ）
         private bool _isDragging = false;
         private Point _dragStartPoint;
         private bool _transparentMode = true;
@@ -153,11 +169,34 @@ namespace KeyOverlayFPS
             { KeyboardProfile.FullKeyboard65, (475, 20) },  // 元の位置
             { KeyboardProfile.FPSKeyboard, (350, 20) }      // FPS用位置
         };
+        
+        // プロファイル別Shift表示変更設定
+        private readonly Dictionary<KeyboardProfile, bool> _shiftDisplayEnabled = new()
+        {
+            { KeyboardProfile.FullKeyboard65, true },   // 65%キーボードはShift表示変更有効
+            { KeyboardProfile.FPSKeyboard, false }      // FPSキーボードはShift表示変更無効
+        };
+        
+        // 設定ファイル管理
+        private readonly string _settingsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+            "KeyOverlayFPS", 
+            "settings.yaml"
+        );
+        private AppSettings _settings = new();
 
         public MainWindow()
         {
             InitializeComponent();
+            
+            // 設定を読み込み
+            LoadSettings();
+            
+            // コンテキストメニューを設定（設定読み込み後）
             SetupContextMenu();
+            
+            // 設定を適用（メニュー設定後）
+            ApplySettings();
             
             _timer = new DispatcherTimer
             {
@@ -170,6 +209,9 @@ namespace KeyOverlayFPS
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
             this.MouseWheel += MainWindow_MouseWheel;
+            
+            // アプリケーション終了時に設定を保存
+            Application.Current.Exit += (s, e) => SaveSettings();
         }
 
         private void SetupContextMenu()
@@ -263,37 +305,37 @@ namespace KeyOverlayFPS
             // 表示オプションメニュー
             var viewMenuItem = new MenuItem { Header = "表示オプション" };
             
-            var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = true };
+            var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = _settings.IsTopmost };
             topmostMenuItem.Click += (s, e) => ToggleTopmost();
             
-            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = true };
+            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _settings.IsMouseVisible };
             mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibility();
             
             // 表示スケールメニュー
             var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
             
-            var scale80MenuItem = new MenuItem { Header = "80%", IsCheckable = true };
+            var scale80MenuItem = new MenuItem { Header = "80%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 0.8) < 0.01 };
             scale80MenuItem.Click += (s, e) => 
             {
                 SetDisplayScale(0.8);
                 UpdateScaleMenuChecked(scaleMenuItem, scale80MenuItem);
             };
             
-            var scale100MenuItem = new MenuItem { Header = "100%", IsCheckable = true, IsChecked = true };
+            var scale100MenuItem = new MenuItem { Header = "100%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 1.0) < 0.01 };
             scale100MenuItem.Click += (s, e) => 
             {
                 SetDisplayScale(1.0);
                 UpdateScaleMenuChecked(scaleMenuItem, scale100MenuItem);
             };
             
-            var scale120MenuItem = new MenuItem { Header = "120%", IsCheckable = true };
+            var scale120MenuItem = new MenuItem { Header = "120%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 1.2) < 0.01 };
             scale120MenuItem.Click += (s, e) => 
             {
                 SetDisplayScale(1.2);
                 UpdateScaleMenuChecked(scaleMenuItem, scale120MenuItem);
             };
             
-            var scale150MenuItem = new MenuItem { Header = "150%", IsCheckable = true };
+            var scale150MenuItem = new MenuItem { Header = "150%", IsCheckable = true, IsChecked = Math.Abs(_settings.DisplayScale - 1.5) < 0.01 };
             scale150MenuItem.Click += (s, e) => 
             {
                 SetDisplayScale(1.5);
@@ -312,14 +354,14 @@ namespace KeyOverlayFPS
             // プロファイルメニュー
             var profileMenuItem = new MenuItem { Header = "プロファイル" };
             
-            var fullKeyboardMenuItem = new MenuItem { Header = "65%キーボード", IsCheckable = true, IsChecked = true };
+            var fullKeyboardMenuItem = new MenuItem { Header = "65%キーボード", IsCheckable = true, IsChecked = _settings.CurrentProfile == "FullKeyboard65" };
             fullKeyboardMenuItem.Click += (s, e) => 
             {
                 SwitchProfile(KeyboardProfile.FullKeyboard65);
                 UpdateProfileMenuChecked(profileMenuItem, fullKeyboardMenuItem);
             };
             
-            var fpsKeyboardMenuItem = new MenuItem { Header = "FPSキーボード", IsCheckable = true };
+            var fpsKeyboardMenuItem = new MenuItem { Header = "FPSキーボード", IsCheckable = true, IsChecked = _settings.CurrentProfile == "FPSKeyboard" };
             fpsKeyboardMenuItem.Click += (s, e) => 
             {
                 SwitchProfile(KeyboardProfile.FPSKeyboard);
@@ -359,22 +401,26 @@ namespace KeyOverlayFPS
         {
             _foregroundBrush = new SolidColorBrush(color);
             UpdateAllTextForeground();
+            SaveSettings();
         }
         
         private void SetHighlightColor(Color color)
         {
             _activeBrush = new SolidColorBrush(color);
+            SaveSettings();
         }
         
         private void ToggleTopmost()
         {
             Topmost = !Topmost;
+            SaveSettings();
         }
         
         private void ToggleMouseVisibility()
         {
             _isMouseVisible = !_isMouseVisible;
             UpdateMouseVisibility();
+            SaveSettings();
         }
         
         private void UpdateMouseVisibility()
@@ -387,6 +433,7 @@ namespace KeyOverlayFPS
         {
             _displayScale = scale;
             ApplyDisplayScale();
+            SaveSettings();
         }
         
         private void ApplyDisplayScale()
@@ -449,6 +496,7 @@ namespace KeyOverlayFPS
             _currentProfile = profile;
             ApplyProfileLayout();
             UpdateMousePositions();
+            SaveSettings();
         }
         
         private void ApplyProfileLayout()
@@ -627,6 +675,133 @@ namespace KeyOverlayFPS
                     }
                 }
             }
+        }
+        
+        private void LoadSettings()
+        {
+            try
+            {
+                if (File.Exists(_settingsPath))
+                {
+                    var yaml = File.ReadAllText(_settingsPath);
+                    var deserializer = new DeserializerBuilder().Build();
+                    _settings = deserializer.Deserialize<AppSettings>(yaml) ?? new AppSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                // 設定読み込みエラー時はデフォルト設定を使用
+                System.Diagnostics.Debug.WriteLine($"設定読み込みエラー: {ex.Message}");
+                _settings = new AppSettings();
+            }
+        }
+        
+        private void SaveSettings()
+        {
+            try
+            {
+                // 現在の設定を保存用データに反映
+                _settings.CurrentProfile = _currentProfile.ToString();
+                _settings.DisplayScale = _displayScale;
+                _settings.IsMouseVisible = _isMouseVisible;
+                _settings.IsTopmost = Topmost;
+                _settings.WindowLeft = Left;
+                _settings.WindowTop = Top;
+                
+                // 色設定の保存（簡易的に色名で保存）
+                _settings.ForegroundColor = GetColorName(_foregroundBrush);
+                _settings.HighlightColor = GetColorName(_activeBrush);
+                
+                // ディレクトリが存在しない場合は作成
+                var directory = Path.GetDirectoryName(_settingsPath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                
+                // YAML形式で保存
+                var serializer = new SerializerBuilder().Build();
+                var yaml = serializer.Serialize(_settings);
+                File.WriteAllText(_settingsPath, yaml);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"設定保存エラー: {ex.Message}");
+            }
+        }
+        
+        private void ApplySettings()
+        {
+            // プロファイル設定
+            if (Enum.TryParse<KeyboardProfile>(_settings.CurrentProfile, out var profile))
+            {
+                _currentProfile = profile;
+            }
+            
+            // 表示設定
+            _displayScale = _settings.DisplayScale;
+            _isMouseVisible = _settings.IsMouseVisible;
+            Topmost = _settings.IsTopmost;
+            
+            // ウィンドウ位置設定
+            if (_settings.WindowLeft > 0 && _settings.WindowTop > 0)
+            {
+                Left = _settings.WindowLeft;
+                Top = _settings.WindowTop;
+            }
+            
+            // 色設定
+            _foregroundBrush = GetBrushFromColorName(_settings.ForegroundColor);
+            _activeBrush = GetBrushFromColorName(_settings.HighlightColor);
+            
+            // レイアウトとスケールを適用
+            ApplyProfileLayout();
+            ApplyDisplayScale();  // DisplayScaleを明示的に適用
+            UpdateMousePositions();
+            UpdateAllTextForeground();
+        }
+        
+        private string GetColorName(Brush brush)
+        {
+            if (brush is SolidColorBrush solidBrush)
+            {
+                var color = solidBrush.Color;
+                if (color == Colors.White) return "White";
+                if (color == Colors.Black) return "Black";
+                if (color == Colors.Gray) return "Gray";
+                if (color == Colors.CornflowerBlue) return "Blue";
+                if (color == Colors.LimeGreen) return "Green";
+                if (color == Colors.Crimson) return "Red";
+                if (color == Colors.Yellow) return "Yellow";
+                
+                // ハイライト色の判定
+                if (color.A == 180 && color.R == 0 && color.G == 255 && color.B == 0) return "Green";
+                if (color.A == 180 && color.R == 255 && color.G == 68 && color.B == 68) return "Red";
+                if (color.A == 180 && color.R == 68 && color.G == 136 && color.B == 255) return "Blue";
+                if (color.A == 180 && color.R == 255 && color.G == 136 && color.B == 68) return "Orange";
+                if (color.A == 180 && color.R == 136 && color.G == 68 && color.B == 255) return "Purple";
+                if (color.A == 180 && color.R == 255 && color.G == 255 && color.B == 68) return "Yellow";
+                if (color.A == 180 && color.R == 68 && color.G == 255 && color.B == 255) return "Cyan";
+            }
+            return "White";
+        }
+        
+        private Brush GetBrushFromColorName(string colorName)
+        {
+            return colorName switch
+            {
+                "White" => Brushes.White,
+                "Black" => Brushes.Black,
+                "Gray" => Brushes.Gray,
+                "Blue" => new SolidColorBrush(Colors.CornflowerBlue),
+                "Green" => new SolidColorBrush(Color.FromArgb(180, 0, 255, 0)),
+                "Red" => new SolidColorBrush(Colors.Crimson),
+                "Yellow" => Brushes.Yellow,
+                "Orange" => new SolidColorBrush(Color.FromArgb(180, 255, 136, 68)),
+                "Purple" => new SolidColorBrush(Color.FromArgb(180, 136, 68, 255)),
+                "Cyan" => new SolidColorBrush(Color.FromArgb(180, 68, 255, 255)),
+                _ => new SolidColorBrush(Color.FromArgb(180, 0, 255, 0))
+            };
         }
         
         private void UpdateAllTextForeground()
@@ -883,7 +1058,10 @@ namespace KeyOverlayFPS
             {
                 bool isPressed = IsKeyPressed(virtualKeyCode);
                 keyBorder.Background = isPressed ? _activeBrush : _inactiveBrush;
-                textBlock.Text = isShiftPressed ? shiftText : normalText;
+                
+                // プロファイルのShift表示設定を確認
+                bool shouldShowShiftText = isShiftPressed && _shiftDisplayEnabled.GetValueOrDefault(_currentProfile, true);
+                textBlock.Text = shouldShowShiftText ? shiftText : normalText;
             }
         }
 
@@ -939,12 +1117,12 @@ namespace KeyOverlayFPS
             {
                 if (_scrollUpTimer > 0)
                 {
-                    scrollUpIndicator.Foreground = _scrollBrush;
+                    scrollUpIndicator.Foreground = _activeBrush; // ハイライト色を使用
                     _scrollUpTimer--;
                 }
                 else
                 {
-                    scrollUpIndicator.Foreground = Brushes.Transparent;
+                    scrollUpIndicator.Foreground = _inactiveBrush;
                 }
             }
             
@@ -954,12 +1132,12 @@ namespace KeyOverlayFPS
             {
                 if (_scrollDownTimer > 0)
                 {
-                    scrollDownIndicator.Foreground = _scrollBrush;
+                    scrollDownIndicator.Foreground = _activeBrush; // ハイライト色を使用
                     _scrollDownTimer--;
                 }
                 else
                 {
-                    scrollDownIndicator.Foreground = Brushes.Transparent;
+                    scrollDownIndicator.Foreground = _inactiveBrush;
                 }
             }
         }
