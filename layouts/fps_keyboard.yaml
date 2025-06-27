@@ -1,0 +1,413 @@
+profile:
+  name: "FPSキーボード"
+  description: "FPSゲーム用コンパクトキーボードレイアウト - 必要最小限のキー表示"
+  version: "1.0"
+  author: "KeyOverlayFPS"
+  createdAt: 2025-01-27T00:00:00Z
+
+global:
+  keySize:
+    width: 26
+    height: 26
+  fontSize: 10
+  fontFamily: "Arial"
+  backgroundColor: "#2A2A2A"
+  highlightColor: "#00FF00"
+  foregroundColor: "#FFFFFF"
+  mouseCircleSize: 20
+  mouseCircleColor: "#FFFFFF"
+  mouseMoveHighlightColor: "#FF0000"
+  mouseMoveHighlightDuration: 0.1
+  mouseMoveThreshold: 5.0
+  windowWidth: 520
+  windowHeight: 160
+
+window:
+  width: 520
+  height: 160
+  backgroundColor: "Transparent"
+
+keys:
+  # ESCキー
+  KeyEscape:
+    position: { x: 5, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "Esc"
+    virtualKey: 0x1B
+    fontSize: 8
+    isVisible: true
+
+  # 数字キー（FPS重要キー）
+  Key1:
+    position: { x: 33, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "1"
+    shiftText: "!"
+    virtualKey: 0x31
+    isVisible: true
+  Key2:
+    position: { x: 61, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "2"
+    shiftText: "@"
+    virtualKey: 0x32
+    isVisible: true
+  Key3:
+    position: { x: 89, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "3"
+    shiftText: "#"
+    virtualKey: 0x33
+    isVisible: true
+  Key4:
+    position: { x: 117, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "4"
+    shiftText: "$"
+    virtualKey: 0x34
+    isVisible: true
+  Key5:
+    position: { x: 145, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "5"
+    shiftText: "%"
+    virtualKey: 0x35
+    isVisible: true
+  Key6:
+    position: { x: 173, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "6"
+    shiftText: "^"
+    virtualKey: 0x36
+    isVisible: true
+  Key7:
+    position: { x: 201, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "7"
+    shiftText: "&"
+    virtualKey: 0x37
+    isVisible: true
+
+  # その他の数字キーは非表示
+  Key8:
+    position: { x: 229, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "8"
+    shiftText: "*"
+    virtualKey: 0x38
+    isVisible: false
+  Key9:
+    position: { x: 257, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "9"
+    shiftText: "("
+    virtualKey: 0x39
+    isVisible: false
+  Key0:
+    position: { x: 285, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "0"
+    shiftText: ")"
+    virtualKey: 0x30
+    isVisible: false
+
+  # QWERTY行（FPS重要キー）
+  KeyTab:
+    position: { x: 5, y: 33 }
+    size: { width: 36, height: 26 }
+    text: "Tab"
+    virtualKey: 0x09
+    fontSize: 9
+    isVisible: true
+  KeyQ:
+    position: { x: 43, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "Q"
+    virtualKey: 0x51
+    isVisible: true
+  KeyW:
+    position: { x: 71, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "W"
+    virtualKey: 0x57
+    isVisible: true
+  KeyE:
+    position: { x: 99, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "E"
+    virtualKey: 0x45
+    isVisible: true
+  KeyR:
+    position: { x: 127, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "R"
+    virtualKey: 0x52
+    isVisible: true
+  KeyT:
+    position: { x: 155, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "T"
+    virtualKey: 0x54
+    isVisible: true
+  KeyY:
+    position: { x: 183, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "Y"
+    virtualKey: 0x59
+    isVisible: true
+  KeyU:
+    position: { x: 211, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "U"
+    virtualKey: 0x55
+    isVisible: true
+
+  # その他のQWERTYキーは非表示
+  KeyI:
+    position: { x: 239, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "I"
+    virtualKey: 0x49
+    isVisible: false
+  KeyO:
+    position: { x: 267, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "O"
+    virtualKey: 0x4F
+    isVisible: false
+  KeyP:
+    position: { x: 295, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "P"
+    virtualKey: 0x50
+    isVisible: false
+
+  # ASDF行（FPS重要キー）
+  KeyCapsLock:
+    position: { x: 5, y: 61 }
+    size: { width: 46, height: 26 }
+    text: "Caps"
+    virtualKey: 0x14
+    fontSize: 8
+    isVisible: true
+  KeyA:
+    position: { x: 53, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "A"
+    virtualKey: 0x41
+    isVisible: true
+  KeyS:
+    position: { x: 81, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "S"
+    virtualKey: 0x53
+    isVisible: true
+  KeyD:
+    position: { x: 109, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "D"
+    virtualKey: 0x44
+    isVisible: true
+  KeyF:
+    position: { x: 137, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "F"
+    virtualKey: 0x46
+    isVisible: true
+  KeyG:
+    position: { x: 165, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "G"
+    virtualKey: 0x47
+    isVisible: true
+  KeyH:
+    position: { x: 193, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "H"
+    virtualKey: 0x48
+    isVisible: true
+  KeyJ:
+    position: { x: 221, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "J"
+    virtualKey: 0x4A
+    isVisible: true
+
+  # その他のASDFキーは非表示
+  KeyK:
+    position: { x: 249, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "K"
+    virtualKey: 0x4B
+    isVisible: false
+  KeyL:
+    position: { x: 277, y: 61 }
+    size: { width: 26, height: 26 }
+    text: "L"
+    virtualKey: 0x4C
+    isVisible: false
+
+  # ZXCV行（FPS重要キー）
+  KeyShift:
+    position: { x: 5, y: 89 }
+    size: { width: 58, height: 26 }
+    text: "Shift"
+    virtualKey: 0xA0
+    fontSize: 9
+    isVisible: true
+  KeyZ:
+    position: { x: 65, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "Z"
+    virtualKey: 0x5A
+    isVisible: true
+  KeyX:
+    position: { x: 93, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "X"
+    virtualKey: 0x58
+    isVisible: true
+  KeyC:
+    position: { x: 121, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "C"
+    virtualKey: 0x43
+    isVisible: true
+  KeyV:
+    position: { x: 149, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "V"
+    virtualKey: 0x56
+    isVisible: true
+  KeyB:
+    position: { x: 177, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "B"
+    virtualKey: 0x42
+    isVisible: true
+  KeyN:
+    position: { x: 205, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "N"
+    virtualKey: 0x4E
+    isVisible: true
+  KeyM:
+    position: { x: 233, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "M"
+    virtualKey: 0x4D
+    isVisible: true
+
+  # その他のZXCVキーは非表示
+  KeyComma:
+    position: { x: 261, y: 89 }
+    size: { width: 26, height: 26 }
+    text: ","
+    shiftText: "<"
+    virtualKey: 0xBC
+    isVisible: false
+  KeyPeriod:
+    position: { x: 289, y: 89 }
+    size: { width: 26, height: 26 }
+    text: "."
+    shiftText: ">"
+    virtualKey: 0xBE
+    isVisible: false
+
+  # 最下段（FPS重要キー）
+  KeyCtrl:
+    position: { x: 5, y: 117 }
+    size: { width: 32, height: 26 }
+    text: "Ctrl"
+    virtualKey: 0xA2
+    fontSize: 8
+    isVisible: true
+  KeyWin:
+    position: { x: 39, y: 117 }
+    size: { width: 32, height: 26 }
+    text: "Win"
+    virtualKey: 0x5B
+    fontSize: 8
+    isVisible: true
+  KeyAlt:
+    position: { x: 73, y: 117 }
+    size: { width: 32, height: 26 }
+    text: "Alt"
+    virtualKey: 0xA4
+    fontSize: 8
+    isVisible: true
+  KeySpace:
+    position: { x: 107, y: 117 }
+    size: { width: 164, height: 26 }
+    text: "Space"
+    virtualKey: 0x20
+    fontSize: 8
+    isVisible: true
+
+  # その他の最下段キーは非表示
+  KeyRightAlt:
+    position: { x: 273, y: 117 }
+    size: { width: 32, height: 26 }
+    text: "Alt"
+    virtualKey: 0xA5
+    fontSize: 8
+    isVisible: false
+  KeyFn:
+    position: { x: 307, y: 117 }
+    size: { width: 32, height: 26 }
+    text: "Fn"
+    virtualKey: 0
+    fontSize: 8
+    isVisible: false
+
+  # ナビゲーションキーは全て非表示
+  KeyHome:
+    position: { x: 431, y: 5 }
+    size: { width: 26, height: 26 }
+    text: "Home"
+    virtualKey: 0x24
+    fontSize: 7
+    isVisible: false
+  KeyDelete:
+    position: { x: 431, y: 33 }
+    size: { width: 26, height: 26 }
+    text: "Del"
+    virtualKey: 0x2E
+    fontSize: 8
+    isVisible: false
+
+mouse:
+  isVisible: true
+  position: { x: 290, y: 20 }  # FPS用に左に配置
+  movement:
+    circleSize: 15
+    circleColor: "#FFFFFF"
+    highlightColor: "#00FF00"
+    highlightDuration: 100
+    threshold: 5.0
+  buttons:
+    MouseLeft:
+      offset: { x: 3, y: 3 }
+      size: { width: 25, height: 35 }
+      virtualKey: 1
+      isVisible: true
+    MouseRight:
+      offset: { x: 32, y: 3 }
+      size: { width: 25, height: 35 }
+      virtualKey: 2
+      isVisible: true
+    MouseWheelButton:
+      offset: { x: 25, y: 10 }
+      size: { width: 10, height: 22 }
+      virtualKey: 3
+      isVisible: true
+    MouseButton4:
+      offset: { x: 0, y: 42 }
+      size: { width: 10, height: 18 }
+      virtualKey: 5
+      isVisible: true
+    MouseButton5:
+      offset: { x: 0, y: 64 }
+      size: { width: 10, height: 18 }
+      virtualKey: 4
+      isVisible: true
