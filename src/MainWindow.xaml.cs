@@ -16,31 +16,13 @@ using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Colors;
 using KeyOverlayFPS.Input;
 using KeyOverlayFPS.Layout;
+using KeyOverlayFPS.Constants;
+using KeyOverlayFPS.UI;
 using System.Windows.Shapes;
 
 namespace KeyOverlayFPS
 {
-    // 定数定義
-    public static class Constants
-    {
-        public const double TimerInterval = 16.67; // ms
-        public const int ScrollDisplayFrames = 10;
-        
-        public static class WindowSizes
-        {
-            public const double FullKeyboardWidth = 580;
-            public const double FullKeyboardHeight = 160;
-            public const double FpsKeyboardWidth = 450;
-            public const double FpsKeyboardWidthWithMouse = 520;
-            public const double FpsKeyboardHeight = 160;
-        }
-        
-        public static class ScaleOptions
-        {
-            public static readonly double[] Values = { 0.8, 1.0, 1.2, 1.5 };
-            public static readonly string[] Labels = { "80%", "100%", "120%", "150%" };
-        }
-    }
+    // 定数はApplicationConstants.csに移動済み
 
 
     // 設定データクラス
@@ -88,12 +70,8 @@ namespace KeyOverlayFPS
         // 統一設定システム（将来の拡張用として保持）
         // private readonly UnifiedSettingsManager _settingsManager = UnifiedSettingsManager.Instance;
         
-        // 旧設定システム（移行期間用） - プロパティ化して統一設定に透明に橋渡し
-        private readonly string _settingsPath = System.IO.Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-            "KeyOverlayFPS", 
-            "settings.yaml"
-        );
+        // 旧設定システム（移行期間用）
+        private readonly string _settingsPath = ApplicationConstants.Paths.LegacySettingsFile;
         
         // 旧設定システム（安定動作用）
         private AppSettings _settings = new AppSettings();
@@ -102,34 +80,18 @@ namespace KeyOverlayFPS
         private readonly MouseTracker _mouseTracker = new();
         private readonly Dictionary<MouseDirection, System.Windows.Shapes.Path> _directionIndicators = new();
         private DispatcherTimer? _directionHideTimer;
-        private const double DIRECTION_HIGHLIGHT_DURATION = 100; // ミリ秒
         
         // 動的レイアウトシステム
         private LayoutConfig? _currentLayout;
         private KeyEventBinder? _eventBinder;
         private Canvas? _dynamicCanvas;
         
-        // マウス方向可視化の設定
-        private const double MOUSE_DIRECTION_CIRCLE_RADIUS = 15.0; // 半径（調整可能）
-        private const double MOUSE_DIRECTION_STROKE_THICKNESS = 3.0; // 線幅
-        private const int MOUSE_DIRECTION_SEGMENTS = 32; // 分割数
-        
-        // マウス方向可視化のサイズ設定
-        private const double MOUSE_DIRECTION_CANVAS_SIZE = MOUSE_DIRECTION_CIRCLE_RADIUS * 2; // Canvasサイズ
+        // マウス方向可視化設定はApplicationConstants.MouseVisualizationに移動済み
 
         public MainWindow()
         {
-            // キーボードキーの背景ブラシを初期化（マウス本体と同じグラデーション）
-            _keyboardKeyDefaultBrush = new LinearGradientBrush(
-                new GradientStopCollection
-                {
-                    new GradientStop(Color.FromRgb(0x2A, 0x2A, 0x2A), 0),
-                    new GradientStop(Color.FromRgb(0x1A, 0x1A, 0x1A), 1)
-                },
-                new Point(0, 0),
-                new Point(1, 1)
-            );
-            
+            // ブラシを統一ファクトリーから初期化
+            _keyboardKeyDefaultBrush = BrushFactory.CreateKeyboardKeyBackground();
             _inactiveBrush = _keyboardKeyDefaultBrush;
             
             InitializeComponent();
@@ -146,7 +108,7 @@ namespace KeyOverlayFPS
             // タイマー初期化
             _timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(Constants.TimerInterval)
+                Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.MainTimerInterval)
             };
             _timer.Tick += Timer_Tick;
             _timer.Start();
@@ -193,7 +155,7 @@ namespace KeyOverlayFPS
                 Content = _dynamicCanvas;
                 
                 // ウィンドウ背景を設定
-                Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
+                Background = BrushFactory.CreateTransparentBackground();
                 
                 // 要素名を登録
                 UIGenerator.RegisterElementNames(_dynamicCanvas, this);
@@ -211,7 +173,7 @@ namespace KeyOverlayFPS
                 // 方向表示を非表示にするタイマーを初期化
                 _directionHideTimer = new DispatcherTimer
                 {
-                    Interval = TimeSpan.FromMilliseconds(DIRECTION_HIGHLIGHT_DURATION)
+                    Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.DirectionHideDelay)
                 };
                 _directionHideTimer.Tick += OnDirectionHideTimer_Tick;
             }
@@ -232,8 +194,8 @@ namespace KeyOverlayFPS
         {
             return profile switch
             {
-                KeyboardProfile.FPSKeyboard => "/home/tseki/dev/key-overlay-fps/layouts/fps_keyboard.yaml",
-                _ => "/home/tseki/dev/key-overlay-fps/layouts/65_keyboard.yaml"
+                KeyboardProfile.FPSKeyboard => ApplicationConstants.Paths.FpsLayout,
+                _ => ApplicationConstants.Paths.Keyboard65Layout
             };
         }
         
@@ -321,58 +283,18 @@ namespace KeyOverlayFPS
             var canvas = GetCachedElement<Canvas>("MouseDirectionCanvas");
             if (canvas == null) return;
             
-            // Canvasサイズを設定（位置はUpdateMousePositions()で設定）
-            canvas.Width = MOUSE_DIRECTION_CANVAS_SIZE;
-            canvas.Height = MOUSE_DIRECTION_CANVAS_SIZE;
+            // Canvasサイズを設定
+            canvas.Width = ApplicationConstants.MouseVisualization.CanvasSize;
+            canvas.Height = ApplicationConstants.MouseVisualization.CanvasSize;
             
-            // 基準円周を作成（常時表示）
-            var baseCircle = new Ellipse
-            {
-                Name = "MouseDirectionBaseCircle",
-                Width = MOUSE_DIRECTION_CANVAS_SIZE,
-                Height = MOUSE_DIRECTION_CANVAS_SIZE,
-                Stroke = Brushes.White,
-                StrokeThickness = 1,
-                Fill = Brushes.Transparent,
-                Opacity = 0.3
-            };
-            Canvas.SetLeft(baseCircle, 0);
-            Canvas.SetTop(baseCircle, 0);
-            canvas.Children.Add(baseCircle);
+            // 基準円と中心点を作成
+            DirectionArcGenerator.CreateBaseCircleAndCenter(canvas);
             
-            // 中心点を作成（常時表示）
-            var centerPoint = new Ellipse
+            // 32方向の円弧を一括生成
+            var indicators = DirectionArcGenerator.CreateAllDirectionArcs(canvas);
+            foreach (var (direction, path) in indicators)
             {
-                Name = "MouseDirectionCenterPoint",
-                Width = 1,
-                Height = 1,
-                Fill = new SolidColorBrush(Color.FromRgb(255, 68, 68)), // #FF4444
-                Opacity = 0.8
-            };
-            Canvas.SetLeft(centerPoint, MOUSE_DIRECTION_CIRCLE_RADIUS - 0.5);
-            Canvas.SetTop(centerPoint, MOUSE_DIRECTION_CIRCLE_RADIUS - 0.5);
-            canvas.Children.Add(centerPoint);
-            
-            // 32方向の円弧セグメントを動的に生成
-            var directions = new MouseDirection[]
-            {
-                MouseDirection.East, MouseDirection.East_11_25, MouseDirection.EastNorthEast, MouseDirection.East_33_75,
-                MouseDirection.NorthEast, MouseDirection.North_56_25, MouseDirection.NorthNorthEast, MouseDirection.North_78_75,
-                MouseDirection.North, MouseDirection.North_101_25, MouseDirection.NorthNorthWest, MouseDirection.North_123_75,
-                MouseDirection.NorthWest, MouseDirection.West_146_25, MouseDirection.WestNorthWest, MouseDirection.West_168_75,
-                MouseDirection.West, MouseDirection.West_191_25, MouseDirection.WestSouthWest, MouseDirection.West_213_75,
-                MouseDirection.SouthWest, MouseDirection.South_236_25, MouseDirection.SouthSouthWest, MouseDirection.South_258_75,
-                MouseDirection.South, MouseDirection.South_281_25, MouseDirection.SouthSouthEast, MouseDirection.South_303_75,
-                MouseDirection.SouthEast, MouseDirection.South_326_25, MouseDirection.EastSouthEast, MouseDirection.East_348_75
-            };
-            
-            for (int i = 0; i < directions.Length; i++)
-            {
-                var direction = directions[i];
-                var arc = CreateDirectionArc(direction, i);
-                arc.Name = $"Direction{direction}";
-                canvas.Children.Add(arc);
-                _directionIndicators[direction] = arc;
+                _directionIndicators[direction] = path;
             }
             
             // マウストラッカーのイベントハンドラを登録
@@ -381,56 +303,12 @@ namespace KeyOverlayFPS
             // 方向表示を非表示にするタイマーを初期化
             _directionHideTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(DIRECTION_HIGHLIGHT_DURATION)
+                Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.DirectionHideDelay)
             };
             _directionHideTimer.Tick += OnDirectionHideTimer_Tick;
         }
         
-        private System.Windows.Shapes.Path CreateDirectionArc(MouseDirection direction, int segmentIndex)
-        {
-            var anglePerSegment = 360.0 / MOUSE_DIRECTION_SEGMENTS;
-            var startAngle = segmentIndex * anglePerSegment;
-            var endAngle = startAngle + anglePerSegment;
-            
-            // 角度をラジアンに変換（East=0度を3時方向に配置）
-            var startRadians = startAngle * Math.PI / 180; // East=0度は3時方向
-            var endRadians = endAngle * Math.PI / 180;
-            
-            // 円周上の開始点と終了点を計算
-            var centerX = MOUSE_DIRECTION_CIRCLE_RADIUS;
-            var centerY = MOUSE_DIRECTION_CIRCLE_RADIUS;
-            
-            var startX = centerX + MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Cos(startRadians);
-            var startY = centerY - MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Sin(startRadians); // Y軸反転（WPF座標系）
-            var endX = centerX + MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Cos(endRadians);
-            var endY = centerY - MOUSE_DIRECTION_CIRCLE_RADIUS * Math.Sin(endRadians); // Y軸反転（WPF座標系）
-            
-            // 円弧のPath要素を作成
-            var pathGeometry = new PathGeometry();
-            var pathFigure = new PathFigure
-            {
-                StartPoint = new Point(startX, startY)
-            };
-            
-            var arcSegment = new ArcSegment
-            {
-                Point = new Point(endX, endY),
-                Size = new Size(MOUSE_DIRECTION_CIRCLE_RADIUS, MOUSE_DIRECTION_CIRCLE_RADIUS),
-                SweepDirection = SweepDirection.Clockwise,
-                IsLargeArc = false
-            };
-            
-            pathFigure.Segments.Add(arcSegment);
-            pathGeometry.Figures.Add(pathFigure);
-            
-            return new System.Windows.Shapes.Path
-            {
-                Data = pathGeometry,
-                Stroke = _activeBrush, // キーボードと同じハイライト色
-                StrokeThickness = MOUSE_DIRECTION_STROKE_THICKNESS,
-                Opacity = 0.0
-            };
-        }
+        // CreateDirectionArcメソッドはDirectionArcGenerator.csに移動済み
 
         private void SetupContextMenu()
         {
@@ -514,10 +392,10 @@ namespace KeyOverlayFPS
         {
             var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
             
-            for (int i = 0; i < Constants.ScaleOptions.Values.Length; i++)
+            for (int i = 0; i < ApplicationConstants.ScaleOptions.Values.Length; i++)
             {
-                var scale = Constants.ScaleOptions.Values[i];
-                var label = Constants.ScaleOptions.Labels[i];
+                var scale = ApplicationConstants.ScaleOptions.Values[i];
+                var label = ApplicationConstants.ScaleOptions.Labels[i];
                 
                 var menuItem = new MenuItem 
                 { 
@@ -572,12 +450,7 @@ namespace KeyOverlayFPS
             var layoutEditorItem = new MenuItem { Header = "レイアウトエディター" };
             layoutEditorItem.Click += (s, e) => OpenLayoutEditor();
             
-            var testDynamicItem = new MenuItem { Header = "動的レイアウトテスト" };
-            testDynamicItem.Click += (s, e) => TestDynamicLayoutProgram.RunTest();
-            
             layoutMenuItem.Items.Add(layoutEditorItem);
-            layoutMenuItem.Items.Add(new Separator());
-            layoutMenuItem.Items.Add(testDynamicItem);
             
             return layoutMenuItem;
         }
@@ -759,7 +632,7 @@ namespace KeyOverlayFPS
         {
             if (transparent)
             {
-                Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
+                Background = BrushFactory.CreateTransparentBackground();
             }
             else
             {
@@ -822,13 +695,13 @@ namespace KeyOverlayFPS
                 double baseWidth, baseHeight;
                 if (_keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard)
                 {
-                    baseWidth = _isMouseVisible ? Constants.WindowSizes.FpsKeyboardWidthWithMouse : Constants.WindowSizes.FpsKeyboardWidth;
-                    baseHeight = Constants.WindowSizes.FpsKeyboardHeight;
+                    baseWidth = _isMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth;
+                    baseHeight = ApplicationConstants.WindowSizes.FpsKeyboardHeight;
                 }
                 else
                 {
-                    baseWidth = Constants.WindowSizes.FullKeyboardWidth;
-                    baseHeight = Constants.WindowSizes.FullKeyboardHeight;
+                    baseWidth = ApplicationConstants.WindowSizes.FullKeyboardWidth;
+                    baseHeight = ApplicationConstants.WindowSizes.FullKeyboardHeight;
                 }
                 
                 Width = baseWidth * _displayScale;
@@ -865,15 +738,15 @@ namespace KeyOverlayFPS
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();
                     // ウィンドウサイズ調整
-                    Width = Constants.WindowSizes.FullKeyboardWidth * _displayScale;
-                    Height = Constants.WindowSizes.FullKeyboardHeight * _displayScale;
+                    Width = ApplicationConstants.WindowSizes.FullKeyboardWidth * _displayScale;
+                    Height = ApplicationConstants.WindowSizes.FullKeyboardHeight * _displayScale;
                     break;
                     
                 case KeyboardProfile.FPSKeyboard:
                     ShowFPSKeyboardLayout();
                     // ウィンドウサイズ調整（FPS用サイズ、マウス表示考慮）
-                    Width = (_isMouseVisible ? Constants.WindowSizes.FpsKeyboardWidthWithMouse : Constants.WindowSizes.FpsKeyboardWidth) * _displayScale;
-                    Height = Constants.WindowSizes.FpsKeyboardHeight * _displayScale;
+                    Width = (_isMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth) * _displayScale;
+                    Height = ApplicationConstants.WindowSizes.FpsKeyboardHeight * _displayScale;
                     break;
             }
         }
@@ -1455,12 +1328,12 @@ namespace KeyOverlayFPS
                 if (e.Delta > 0)
                 {
                     // 上スクロール
-                    _scrollUpTimer = Constants.ScrollDisplayFrames;
+                    _scrollUpTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
                 }
                 else if (e.Delta < 0)
                 {
                     // 下スクロール
-                    _scrollDownTimer = Constants.ScrollDisplayFrames;
+                    _scrollDownTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
                 }
             }
         }

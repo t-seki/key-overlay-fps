@@ -5,6 +5,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
+using KeyOverlayFPS.Constants;
+using KeyOverlayFPS.UI;
+using KeyOverlayFPS.MouseVisualization;
 
 namespace KeyOverlayFPS.Layout
 {
@@ -121,7 +124,7 @@ namespace KeyOverlayFPS.Layout
                 BorderBrush = GetBrushFromColor(global.ForegroundColor),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(2),
-                Background = CreateKeyboardKeyBackground()  // 元のMainWindowと同じグラデーション背景
+                Background = BrushFactory.CreateKeyboardKeyBackground()  // 共通ファクトリーから生成
             };
             
             // イベントハンドラーは後でKeyEventBinderで設定されます
@@ -168,7 +171,7 @@ namespace KeyOverlayFPS.Layout
                 BorderBrush = new SolidColorBrush(Color.FromRgb(0xCC, 0xCC, 0xCC)),
                 BorderThickness = new Thickness(2),
                 CornerRadius = new CornerRadius(28, 28, 25, 25),
-                Background = CreateMouseBodyBackground(),
+                Background = BrushFactory.CreateMouseBodyBackground(),
                 Effect = new DropShadowEffect
                 {
                     Color = System.Windows.Media.Colors.Black,
@@ -193,7 +196,7 @@ namespace KeyOverlayFPS.Layout
                 Height = buttonConfig.Size.Height,
                 BorderBrush = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
                 BorderThickness = new Thickness(1),
-                Background = CreateMouseButtonBackground(),
+                Background = BrushFactory.CreateMouseButtonBackground(),
                 Effect = new DropShadowEffect
                 {
                     Color = System.Windows.Media.Colors.Black,
@@ -269,170 +272,23 @@ namespace KeyOverlayFPS.Layout
             var canvas = new Canvas
             {
                 Name = "MouseDirectionCanvas",
-                Width = mouseSettings.Movement.CircleSize * 2,
-                Height = mouseSettings.Movement.CircleSize * 2,
+                Width = ApplicationConstants.MouseVisualization.CanvasSize,
+                Height = ApplicationConstants.MouseVisualization.CanvasSize,
                 IsHitTestVisible = false
             };
 
-            // 基準円を作成
-            var baseCircle = new Ellipse
-            {
-                Name = "MouseDirectionBaseCircle",
-                Width = mouseSettings.Movement.CircleSize * 2,
-                Height = mouseSettings.Movement.CircleSize * 2,
-                Stroke = GetBrushFromColor(mouseSettings.Movement.CircleColor),
-                StrokeThickness = 1,
-                Fill = Brushes.Transparent,
-                Opacity = 0.3
-            };
-            Canvas.SetLeft(baseCircle, 0);
-            Canvas.SetTop(baseCircle, 0);
-            canvas.Children.Add(baseCircle);
+            // 基準円と中心点を作成
+            DirectionArcGenerator.CreateBaseCircleAndCenter(canvas);
 
-            // 中心点を作成
-            var centerPoint = new Ellipse
-            {
-                Name = "MouseDirectionCenterPoint",
-                Width = 1,
-                Height = 1,
-                Fill = new SolidColorBrush(Color.FromRgb(255, 68, 68)),
-                Opacity = 0.8
-            };
-            Canvas.SetLeft(centerPoint, mouseSettings.Movement.CircleSize - 0.5);
-            Canvas.SetTop(centerPoint, mouseSettings.Movement.CircleSize - 0.5);
-            canvas.Children.Add(centerPoint);
-
-            // 32方向の円弧セグメントを動的に生成
-            var directions = new KeyOverlayFPS.MouseVisualization.MouseDirection[]
-            {
-                KeyOverlayFPS.MouseVisualization.MouseDirection.East, KeyOverlayFPS.MouseVisualization.MouseDirection.East_11_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.EastNorthEast, KeyOverlayFPS.MouseVisualization.MouseDirection.East_33_75,
-                KeyOverlayFPS.MouseVisualization.MouseDirection.NorthEast, KeyOverlayFPS.MouseVisualization.MouseDirection.North_56_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.NorthNorthEast, KeyOverlayFPS.MouseVisualization.MouseDirection.North_78_75,
-                KeyOverlayFPS.MouseVisualization.MouseDirection.North, KeyOverlayFPS.MouseVisualization.MouseDirection.North_101_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.NorthNorthWest, KeyOverlayFPS.MouseVisualization.MouseDirection.North_123_75,
-                KeyOverlayFPS.MouseVisualization.MouseDirection.NorthWest, KeyOverlayFPS.MouseVisualization.MouseDirection.West_146_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.WestNorthWest, KeyOverlayFPS.MouseVisualization.MouseDirection.West_168_75,
-                KeyOverlayFPS.MouseVisualization.MouseDirection.West, KeyOverlayFPS.MouseVisualization.MouseDirection.West_191_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.WestSouthWest, KeyOverlayFPS.MouseVisualization.MouseDirection.West_213_75,
-                KeyOverlayFPS.MouseVisualization.MouseDirection.SouthWest, KeyOverlayFPS.MouseVisualization.MouseDirection.South_236_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.SouthSouthWest, KeyOverlayFPS.MouseVisualization.MouseDirection.South_258_75,
-                KeyOverlayFPS.MouseVisualization.MouseDirection.South, KeyOverlayFPS.MouseVisualization.MouseDirection.South_281_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.SouthSouthEast, KeyOverlayFPS.MouseVisualization.MouseDirection.South_303_75,
-                KeyOverlayFPS.MouseVisualization.MouseDirection.SouthEast, KeyOverlayFPS.MouseVisualization.MouseDirection.South_326_25, 
-                KeyOverlayFPS.MouseVisualization.MouseDirection.EastSouthEast, KeyOverlayFPS.MouseVisualization.MouseDirection.East_348_75
-            };
-            
-            for (int i = 0; i < directions.Length; i++)
-            {
-                var direction = directions[i];
-                var arc = CreateDirectionArc(direction, i, mouseSettings.Movement.CircleSize);
-                arc.Name = $"Direction{direction}";
-                canvas.Children.Add(arc);
-            }
+            // 32方向の円弧を一括生成
+            DirectionArcGenerator.CreateAllDirectionArcs(canvas);
 
             return canvas;
         }
 
-        /// <summary>
-        /// 方向円弧を作成
-        /// </summary>
-        private static System.Windows.Shapes.Path CreateDirectionArc(KeyOverlayFPS.MouseVisualization.MouseDirection direction, int segmentIndex, double radius)
-        {
-            const int MOUSE_DIRECTION_SEGMENTS = 32;
-            const double MOUSE_DIRECTION_STROKE_THICKNESS = 3.0;
-            
-            var anglePerSegment = 360.0 / MOUSE_DIRECTION_SEGMENTS;
-            var startAngle = segmentIndex * anglePerSegment;
-            var endAngle = startAngle + anglePerSegment;
-            
-            // 角度をラジアンに変換（East=0度を3時方向に配置）
-            var startRadians = startAngle * Math.PI / 180;
-            var endRadians = endAngle * Math.PI / 180;
-            
-            // 円周上の開始点と終了点を計算
-            var centerX = radius;
-            var centerY = radius;
-            
-            var startX = centerX + radius * Math.Cos(startRadians);
-            var startY = centerY - radius * Math.Sin(startRadians); // Y軸反転（WPF座標系）
-            var endX = centerX + radius * Math.Cos(endRadians);
-            var endY = centerY - radius * Math.Sin(endRadians); // Y軸反転（WPF座標系）
-            
-            // 円弧のPath要素を作成
-            var pathGeometry = new PathGeometry();
-            var pathFigure = new PathFigure
-            {
-                StartPoint = new Point(startX, startY)
-            };
-            
-            var arcSegment = new ArcSegment
-            {
-                Point = new Point(endX, endY),
-                Size = new Size(radius, radius),
-                SweepDirection = SweepDirection.Clockwise,
-                IsLargeArc = false
-            };
-            
-            pathFigure.Segments.Add(arcSegment);
-            pathGeometry.Figures.Add(pathFigure);
-            
-            return new System.Windows.Shapes.Path
-            {
-                Data = pathGeometry,
-                Stroke = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0)), // ハイライト色
-                StrokeThickness = MOUSE_DIRECTION_STROKE_THICKNESS,
-                Opacity = 0.0
-            };
-        }
+        // CreateDirectionArcメソッドはDirectionArcGenerator.csに移動済み
 
-        /// <summary>
-        /// キーボードキー背景グラデーションを作成
-        /// </summary>
-        private static Brush CreateKeyboardKeyBackground()
-        {
-            return new LinearGradientBrush(
-                new GradientStopCollection
-                {
-                    new GradientStop(Color.FromRgb(0x2A, 0x2A, 0x2A), 0),
-                    new GradientStop(Color.FromRgb(0x1A, 0x1A, 0x1A), 1)
-                },
-                new Point(0, 0),
-                new Point(1, 1)
-            );
-        }
-
-        /// <summary>
-        /// マウス本体背景グラデーションを作成
-        /// </summary>
-        private static Brush CreateMouseBodyBackground()
-        {
-            return new LinearGradientBrush(
-                new GradientStopCollection
-                {
-                    new GradientStop(Color.FromRgb(0x2A, 0x2A, 0x2A), 0),
-                    new GradientStop(Color.FromRgb(0x1A, 0x1A, 0x1A), 1)
-                },
-                new Point(0, 0),
-                new Point(1, 1)
-            );
-        }
-
-        /// <summary>
-        /// マウスボタン背景グラデーションを作成
-        /// </summary>
-        private static Brush CreateMouseButtonBackground()
-        {
-            return new LinearGradientBrush(
-                new GradientStopCollection
-                {
-                    new GradientStop(Color.FromRgb(0x40, 0x40, 0x40), 0),
-                    new GradientStop(Color.FromRgb(0x2A, 0x2A, 0x2A), 1)
-                },
-                new Point(0, 0),
-                new Point(0, 1)
-            );
-        }
+        // ブラシ作成メソッドはBrushFactory.csに移動済み
 
         /// <summary>
         /// Canvas背景色を設定
@@ -443,7 +299,7 @@ namespace KeyOverlayFPS.Layout
             {
                 if (colorString.Equals("Transparent", StringComparison.OrdinalIgnoreCase))
                 {
-                    canvas.Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
+                    canvas.Background = BrushFactory.CreateTransparentBackground();
                 }
                 else
                 {
@@ -454,7 +310,7 @@ namespace KeyOverlayFPS.Layout
             catch
             {
                 // 色変換エラー時は透明背景を使用
-                canvas.Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
+                canvas.Background = BrushFactory.CreateTransparentBackground();
             }
         }
 
@@ -463,15 +319,7 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         private static Brush GetBrushFromColor(string colorString)
         {
-            try
-            {
-                var color = (Color)ColorConverter.ConvertFromString(colorString);
-                return new SolidColorBrush(color);
-            }
-            catch
-            {
-                return Brushes.White;
-            }
+            return BrushFactory.CreateBrushFromString(colorString, Brushes.White);
         }
 
         /// <summary>
