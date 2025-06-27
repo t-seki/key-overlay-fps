@@ -10,7 +10,7 @@ global:
     width: 26
     height: 26
   fontSize: 10
-  fontFamily: "Arial"
+  fontFamily: ""
   backgroundColor: "#2A2A2A"
   highlightColor: "#00FF00"
   foregroundColor: "#FFFFFF"

@@ -15,6 +15,7 @@ using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Colors;
 using KeyOverlayFPS.Input;
+using KeyOverlayFPS.Layout;
 using System.Windows.Shapes;
 
 namespace KeyOverlayFPS
@@ -103,6 +104,11 @@ namespace KeyOverlayFPS
         private DispatcherTimer? _directionHideTimer;
         private const double DIRECTION_HIGHLIGHT_DURATION = 100; // ミリ秒
         
+        // 動的レイアウトシステム
+        private LayoutConfig? _currentLayout;
+        private KeyEventBinder? _eventBinder;
+        private Canvas? _dynamicCanvas;
+        
         // マウス方向可視化の設定
         private const double MOUSE_DIRECTION_CIRCLE_RADIUS = 15.0; // 半径（調整可能）
         private const double MOUSE_DIRECTION_STROKE_THICKNESS = 3.0; // 線幅
@@ -131,11 +137,11 @@ namespace KeyOverlayFPS
             // 旧設定システムで初期化（安定動作）
             LoadLegacySettings();
             
+            // 動的レイアウトシステムを初期化
+            InitializeDynamicLayoutSystem();
+            
             // コンテキストメニューを設定
             SetupContextMenu();
-            
-            // 設定を適用
-            ApplyLegacySettings();
             
             // タイマー初期化
             _timer = new DispatcherTimer
@@ -154,11 +160,145 @@ namespace KeyOverlayFPS
             // アプリケーション終了時に設定を保存
             Application.Current.Exit += (s, e) => SaveLegacySettings();
             
-            // キーボードキーの背景色を初期化
-            InitializeKeyboardKeyBackgrounds();
+            // 設定を適用（動的レイアウトシステムが初期化された後）
+            ApplyLegacySettings();
+        }
+        
+        /// <summary>
+        /// 動的レイアウトシステムの初期化
+        /// </summary>
+        private void InitializeDynamicLayoutSystem()
+        {
+            try
+            {
+                // プロファイルに応じたレイアウトファイルを読み込み
+                string layoutPath = GetLayoutPath(_keyboardHandler.CurrentProfile);
+                
+                if (File.Exists(layoutPath))
+                {
+                    _currentLayout = LayoutManager.ImportLayout(layoutPath);
+                }
+                else
+                {
+                    // デフォルトレイアウトを使用
+                    _currentLayout = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard 
+                        ? LayoutManager.CreateDefaultFPSLayout()
+                        : LayoutManager.CreateDefault65KeyboardLayout();
+                }
+                
+                // UIを動的生成
+                _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
+                
+                // 既存のCanvasと置き換え
+                Content = _dynamicCanvas;
+                
+                // ウィンドウ背景を設定
+                Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
+                
+                // 要素名を登録
+                UIGenerator.RegisterElementNames(_dynamicCanvas, this);
+                
+                // イベントバインディング
+                _eventBinder = new KeyEventBinder(_dynamicCanvas, _currentLayout, _keyboardHandler, _mouseTracker);
+                _eventBinder.BindAllEvents();
+                
+                // マウス移動イベントの登録
+                _mouseTracker.MouseMoved += OnMouseMoved;
+                
+                // 方向インジケーターのキャッシュを構築
+                BuildDirectionIndicatorCache();
+                
+                // 方向表示を非表示にするタイマーを初期化
+                _directionHideTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(DIRECTION_HIGHLIGHT_DURATION)
+                };
+                _directionHideTimer.Tick += OnDirectionHideTimer_Tick;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"動的レイアウトシステム初期化エラー: {ex.Message}");
+                // エラー時はデフォルトレイアウトにフォールバック
+                _currentLayout = LayoutManager.CreateDefault65KeyboardLayout();
+                _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
+                Content = _dynamicCanvas;
+            }
+        }
+        
+        /// <summary>
+        /// プロファイルに応じたレイアウトファイルパスを取得
+        /// </summary>
+        private string GetLayoutPath(KeyboardProfile profile)
+        {
+            return profile switch
+            {
+                KeyboardProfile.FPSKeyboard => "/home/tseki/dev/key-overlay-fps/layouts/fps_keyboard.yaml",
+                _ => "/home/tseki/dev/key-overlay-fps/layouts/65_keyboard.yaml"
+            };
+        }
+        
+        /// <summary>
+        /// 方向インジケーターのキャッシュを構築
+        /// </summary>
+        private void BuildDirectionIndicatorCache()
+        {
+            var directionCanvas = _eventBinder?.FindElement<Canvas>("MouseDirectionCanvas");
+            if (directionCanvas == null) return;
+
+            _directionIndicators.Clear();
             
-            // マウス移動可視化の初期化
-            InitializeMouseVisualization();
+            foreach (UIElement child in directionCanvas.Children)
+            {
+                if (child is System.Windows.Shapes.Path path && path.Name?.StartsWith("Direction") == true)
+                {
+                    var directionName = path.Name.Substring("Direction".Length);
+                    if (Enum.TryParse<MouseDirection>(directionName, out var direction))
+                    {
+                        _directionIndicators[direction] = path;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// マウス移動イベントハンドラー（新バージョン）
+        /// </summary>
+        private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
+        {
+            // 指定方向のインジケータをハイライト表示
+            if (_directionIndicators.TryGetValue(e.Direction, out var indicator))
+            {
+                // 現在表示中の方向をリセット
+                ResetDirectionIndicators();
+                
+                // 新しい方向をハイライト
+                indicator.Opacity = 0.9;
+                
+                // タイマーをリセットして再開
+                _directionHideTimer?.Stop();
+                _directionHideTimer?.Start();
+            }
+        }
+
+        /// <summary>
+        /// 方向インジケーター非表示タイマー
+        /// </summary>
+        private void OnDirectionHideTimer_Tick(object? sender, EventArgs e)
+        {
+            // 方向表示を非表示にする
+            ResetDirectionIndicators();
+            _directionHideTimer?.Stop();
+        }
+
+        /// <summary>
+        /// 方向インジケーターをリセット
+        /// </summary>
+        private void ResetDirectionIndicators()
+        {
+            foreach (var indicator in _directionIndicators.Values)
+            {
+                indicator.Opacity = 0.0;
+            }
         }
         
         private void InitializeKeyboardKeyBackgrounds()
@@ -290,38 +430,6 @@ namespace KeyOverlayFPS
                 StrokeThickness = MOUSE_DIRECTION_STROKE_THICKNESS,
                 Opacity = 0.0
             };
-        }
-        
-        private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
-        {
-            // 指定方向のインジケータをハイライト表示
-            if (_directionIndicators.TryGetValue(e.Direction, out var indicator))
-            {
-                // 現在表示中の方向をリセット
-                ResetDirectionIndicators();
-                
-                // 新しい方向をハイライト
-                indicator.Opacity = 0.9;
-                
-                // タイマーをリセットして再開
-                _directionHideTimer?.Stop();
-                _directionHideTimer?.Start();
-            }
-        }
-        
-        private void OnDirectionHideTimer_Tick(object? sender, EventArgs e)
-        {
-            // 方向表示を非表示にする
-            ResetDirectionIndicators();
-            _directionHideTimer?.Stop();
-        }
-        
-        private void ResetDirectionIndicators()
-        {
-            foreach (var indicator in _directionIndicators.Values)
-            {
-                indicator.Opacity = 0.0;
-            }
         }
 
         private void SetupContextMenu()
@@ -460,7 +568,17 @@ namespace KeyOverlayFPS
         private MenuItem CreateLayoutManagementMenu()
         {
             var layoutMenuItem = new MenuItem { Header = "レイアウト管理" };
-            layoutMenuItem.Click += (s, e) => OpenLayoutEditor();
+            
+            var layoutEditorItem = new MenuItem { Header = "レイアウトエディター" };
+            layoutEditorItem.Click += (s, e) => OpenLayoutEditor();
+            
+            var testDynamicItem = new MenuItem { Header = "動的レイアウトテスト" };
+            testDynamicItem.Click += (s, e) => TestDynamicLayoutProgram.RunTest();
+            
+            layoutMenuItem.Items.Add(layoutEditorItem);
+            layoutMenuItem.Items.Add(new Separator());
+            layoutMenuItem.Items.Add(testDynamicItem);
+            
             return layoutMenuItem;
         }
         

@@ -1,7 +1,7 @@
-<Window x:Class="KeyOverlayFPS.MainWindow"
+<Window x:Class="KeyOverlayFPS.TestDynamicLayoutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="KeyOverlayFPS" 
+        Title="Dynamic Layout Test" 
         Width="580" 
         Height="160"
         WindowStyle="None"
@@ -11,7 +11,7 @@
         ResizeMode="NoResize"
         Background="Transparent">
     
-    <!-- 動的に生成されるCanvas - C#コードで完全置き換え -->
+    <!-- 動的に生成されるCanvas -->
     <Canvas x:Name="DynamicCanvas" Margin="8" Background="Transparent" />
     
 </Window>
