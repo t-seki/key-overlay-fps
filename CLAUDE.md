@@ -17,6 +17,7 @@ KeyOverlayFPS is a Windows WPF application that provides real-time keyboard and 
 ### Commit Standards
 
 - ALWAYS Conventional Commits must be followed.
+- ALWAYS write commit messages in Japanese.
 
 ### Code Style and Standards
 
@@ -36,3 +37,4 @@ KeyOverlayFPS is a Windows WPF application that provides real-time keyboard and 
    - Log errors with System.Diagnostics.Debug for development
 
 [... rest of the existing content remains unchanged ...]
+
