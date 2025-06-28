@@ -22,12 +22,12 @@ namespace KeyOverlayFPS.Constants
             /// <summary>
             /// 65%キーボードレイアウトファイルパス
             /// </summary>
-            public static string Keyboard65Layout => Path.Combine(LayoutsDirectory, "65_keyboard.yaml");
+            public static string Keyboard65Layout => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LayoutsDirectory, "65_keyboard.yaml");
             
             /// <summary>
             /// FPSキーボードレイアウトファイルパス
             /// </summary>
-            public static string FpsLayout => Path.Combine(LayoutsDirectory, "fps_keyboard.yaml");
+            public static string FpsLayout => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LayoutsDirectory, "fps_keyboard.yaml");
             
             /// <summary>
             /// 設定ファイル格納ディレクトリ

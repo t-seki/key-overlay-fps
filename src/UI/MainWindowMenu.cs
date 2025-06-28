@@ -264,17 +264,23 @@ namespace KeyOverlayFPS.UI
         {
             if (_window.ContextMenu == null) return;
             
-            foreach (MenuItem mainItem in _window.ContextMenu.Items)
+            foreach (var item in _window.ContextMenu.Items)
             {
+                if (item is not MenuItem mainItem) continue;
+                
                 if (mainItem.Header?.ToString() == "表示オプション")
                 {
-                    foreach (MenuItem item in mainItem.Items)
+                    foreach (var subItem in mainItem.Items)
                     {
-                        if (item.Header?.ToString() == "表示スケール")
+                        if (subItem is not MenuItem menuItem) continue;
+                        
+                        if (menuItem.Header?.ToString() == "表示スケール")
                         {
                             int index = 0;
-                            foreach (MenuItem scaleItem in item.Items)
+                            foreach (var scaleSubItem in menuItem.Items)
                             {
+                                if (scaleSubItem is not MenuItem scaleItem) continue;
+                                
                                 if (index < ApplicationConstants.ScaleOptions.Values.Length)
                                 {
                                     var scale = ApplicationConstants.ScaleOptions.Values[index];

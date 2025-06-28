@@ -15,4 +15,11 @@
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="../layouts/**/*.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>layouts/%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -138,19 +138,13 @@ namespace KeyOverlayFPS
                 // プロファイルに応じたレイアウトファイルを読み込み
                 string layoutPath = GetLayoutPath(_keyboardHandler.CurrentProfile);
 
-                if (File.Exists(layoutPath))
+                if (!File.Exists(layoutPath))
                 {
-                    Logger.Info($"レイアウトファイルが存在、読み込み中: {layoutPath}");
-                    _currentLayout = LayoutManager.ImportLayout(layoutPath);
+                    throw new FileNotFoundException($"必須レイアウトファイルが見つかりません: {layoutPath}");
                 }
-                else
-                {
-                    Logger.Info($"レイアウトファイルが存在しない、デフォルトレイアウトを使用: {layoutPath}");
-                    // デフォルトレイアウトを使用
-                    _currentLayout = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard
-                        ? LayoutManager.CreateDefaultFPSLayout()
-                        : LayoutManager.CreateDefault65KeyboardLayout();
-                }
+
+                Logger.Info($"レイアウトファイルを読み込み中: {layoutPath}");
+                _currentLayout = LayoutManager.ImportLayout(layoutPath);
 
 
                 // UIを動的生成
@@ -452,11 +446,19 @@ namespace KeyOverlayFPS
             }
         }
 
-        private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        /// <summary>
+        /// ドラッグ操作を開始
+        /// </summary>
+        private void StartDrag(MouseButtonEventArgs e)
         {
             _isDragging = true;
             _dragStartPoint = e.GetPosition(this);
             CaptureMouse();
+        }
+        
+        private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            StartDrag(e);
         }
 
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
@@ -494,9 +496,7 @@ namespace KeyOverlayFPS
 
         private void KeyBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            _isDragging = true;
-            _dragStartPoint = e.GetPosition(this);
-            CaptureMouse();
+            StartDrag(e);
             e.Handled = true;
         }
 

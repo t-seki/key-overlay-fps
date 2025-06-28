@@ -92,54 +92,46 @@ keys:
         }
 
         [Test]
-        public void CreateDefault65KeyboardLayout_ReturnsValidLayout()
+        public void ImportLayout_ShouldCreateValidLayout_ForSixtyFiveKeyboard()
         {
-            var layout = LayoutManager.CreateDefault65KeyboardLayout();
+            // Arrange
+            // テスト実行ディレクトリから4階層上がってプロジェクトルートに到達
+            var projectRoot = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory))))!;
+            var layoutPath = Path.Combine(projectRoot, "layouts", "65_keyboard.yaml");
 
-            Assert.IsNotNull(layout);
-            Assert.IsNotNull(layout.Global);
-            Assert.IsNotNull(layout.Keys);
-            Assert.Greater(layout.Keys.Count, 0);
+            // Act
+            var layout = LayoutManager.ImportLayout(layoutPath);
 
-            // 主要キーの存在確認
-            Assert.IsTrue(layout.Keys.ContainsKey("KeyA"));
-            Assert.IsTrue(layout.Keys.ContainsKey("KeySpace"));
-            Assert.IsTrue(layout.Keys.ContainsKey("KeyEnter"));
-
-            // サイズの異なるキーの確認
-            Assert.IsNotNull(layout.Keys["KeySpace"].Size);
-            Assert.AreEqual(164, layout.Keys["KeySpace"].Size.Width);
-            Assert.AreEqual(26, layout.Keys["KeySpace"].Size.Height);
-
-            Assert.IsNotNull(layout.Keys["KeyShift"].Size);
-            Assert.AreEqual(58, layout.Keys["KeyShift"].Size.Width);
+            // Assert
+            Assert.That(layout, Is.Not.Null);
+            Assert.That(layout.Profile.Name, Is.EqualTo("65%キーボード"));
+            Assert.That(layout.Window.Width, Is.EqualTo(580));
+            Assert.That(layout.Window.Height, Is.EqualTo(160));
+            Assert.That(layout.Keys.Count, Is.GreaterThan(60)); // 65%キーボードなので60キー以上
+            Assert.That(layout.Mouse, Is.Not.Null);
+            Assert.That(layout.Mouse.IsVisible, Is.True);
         }
 
         [Test]
-        public void CreateDefaultFPSLayout_ReturnsValidLayout()
+        public void ImportLayout_ShouldCreateValidLayout_ForFPSKeyboard()
         {
-            var layout = LayoutManager.CreateDefaultFPSLayout();
+            // Arrange
+            // テスト実行ディレクトリから4階層上がってプロジェクトルートに到達
+            var projectRoot = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory))))!;
+            var layoutPath = Path.Combine(projectRoot, "layouts", "fps_keyboard.yaml");
 
-            Assert.IsNotNull(layout);
-            Assert.IsNotNull(layout.Global);
-            Assert.IsNotNull(layout.Keys);
+            // Act
+            var layout = LayoutManager.ImportLayout(layoutPath);
 
-            // FPS用ウィンドウサイズ確認
-            Assert.AreEqual(520, layout.Global.WindowWidth);
-            Assert.AreEqual(160, layout.Global.WindowHeight);
-
-            // FPSで必要なキーが表示状態
-            Assert.IsTrue(layout.Keys["KeyW"].IsVisible);
-            Assert.IsTrue(layout.Keys["KeyA"].IsVisible);
-            Assert.IsTrue(layout.Keys["KeyS"].IsVisible);
-            Assert.IsTrue(layout.Keys["KeyD"].IsVisible);
-            Assert.IsTrue(layout.Keys["KeySpace"].IsVisible);
-
-            // FPSで不要なキーが非表示状態
-            Assert.IsFalse(layout.Keys["KeyHome"].IsVisible);
-
-            // マウス位置がFPS用に調整されている
-            Assert.AreEqual(290, layout.Mouse.Position.X);
+            // Assert
+            Assert.That(layout, Is.Not.Null);
+            Assert.That(layout.Profile.Name, Is.EqualTo("FPSキーボード"));
+            Assert.That(layout.Window.Width, Is.EqualTo(520));
+            Assert.That(layout.Window.Height, Is.EqualTo(160));
+            Assert.That(layout.Keys.Count, Is.GreaterThan(20)); // FPSキーボードなので20キー以上
+            Assert.That(layout.Mouse, Is.Not.Null);
+            Assert.That(layout.Mouse.IsVisible, Is.True);
+            Assert.That(layout.Mouse.Position.X, Is.EqualTo(290)); // FPS用位置
         }
 
         [Test]
