@@ -38,10 +38,6 @@ namespace KeyOverlayFPS.Initialization
         /// </summary>
         public MainWindowMenu? Menu { get; set; }
         
-        /// <summary>
-        /// 現在のレイアウト設定
-        /// </summary>
-        public LayoutConfig? CurrentLayout { get; set; }
         
         /// <summary>
         /// イベントバインダー

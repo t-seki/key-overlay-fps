@@ -11,6 +11,7 @@ namespace KeyOverlayFPS.Tests
     {
         private string _testDirectory = null!;
         private string _testFilePath = null!;
+        private LayoutManager _layoutManager = null!;
 
         [SetUp]
         public void SetUp()
@@ -18,6 +19,7 @@ namespace KeyOverlayFPS.Tests
             _testDirectory = Path.Combine(Path.GetTempPath(), "KeyOverlayFPS_Tests", Guid.NewGuid().ToString());
             Directory.CreateDirectory(_testDirectory);
             _testFilePath = Path.Combine(_testDirectory, "test_layout.yaml");
+            _layoutManager = new LayoutManager();
         }
 
         [TearDown]
@@ -49,7 +51,7 @@ namespace KeyOverlayFPS.Tests
             var originalLayout = CreateTestLayout();
             LayoutManager.ExportLayout(originalLayout, _testFilePath);
 
-            var importedLayout = LayoutManager.ImportLayout(_testFilePath);
+            var importedLayout = _layoutManager.ImportLayout(_testFilePath);
 
             Assert.IsNotNull(importedLayout);
             Assert.AreEqual(originalLayout.Global.FontSize, importedLayout.Global.FontSize);
@@ -64,7 +66,7 @@ namespace KeyOverlayFPS.Tests
         {
             var nonExistentPath = Path.Combine(_testDirectory, "non_existent.yaml");
 
-            Assert.Throws<FileNotFoundException>(() => LayoutManager.ImportLayout(nonExistentPath));
+            Assert.Throws<FileNotFoundException>(() => _layoutManager.ImportLayout(nonExistentPath));
         }
 
         [Test]
@@ -72,7 +74,7 @@ namespace KeyOverlayFPS.Tests
         {
             File.WriteAllText(_testFilePath, "invalid yaml content: [[[");
 
-            Assert.Throws<InvalidOperationException>(() => LayoutManager.ImportLayout(_testFilePath));
+            Assert.Throws<InvalidOperationException>(() => _layoutManager.ImportLayout(_testFilePath));
         }
 
         [Test]
@@ -88,7 +90,7 @@ keys:
 ";
             File.WriteAllText(_testFilePath, invalidYaml);
 
-            Assert.Throws<InvalidOperationException>(() => LayoutManager.ImportLayout(_testFilePath));
+            Assert.Throws<InvalidOperationException>(() => _layoutManager.ImportLayout(_testFilePath));
         }
 
         [Test]
@@ -100,7 +102,7 @@ keys:
             var layoutPath = Path.Combine(projectRoot, "layouts", "65_keyboard.yaml");
 
             // Act
-            var layout = LayoutManager.ImportLayout(layoutPath);
+            var layout = _layoutManager.ImportLayout(layoutPath);
 
             // Assert
             Assert.That(layout, Is.Not.Null);
@@ -121,7 +123,7 @@ keys:
             var layoutPath = Path.Combine(projectRoot, "layouts", "fps_keyboard.yaml");
 
             // Act
-            var layout = LayoutManager.ImportLayout(layoutPath);
+            var layout = _layoutManager.ImportLayout(layoutPath);
 
             // Assert
             Assert.That(layout, Is.Not.Null);
@@ -140,7 +142,7 @@ keys:
             var originalLayout = CreateComplexTestLayout();
 
             LayoutManager.ExportLayout(originalLayout, _testFilePath);
-            var importedLayout = LayoutManager.ImportLayout(_testFilePath);
+            var importedLayout = _layoutManager.ImportLayout(_testFilePath);
 
             AssertLayoutsEqual(originalLayout, importedLayout);
         }

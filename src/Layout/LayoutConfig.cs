@@ -298,6 +298,11 @@ namespace KeyOverlayFPS.Layout
         /// ウィンドウ高さ
         /// </summary>
         public double WindowHeight { get; set; } = 160;
+
+        /// <summary>
+        /// Shift表示変更機能の有効/無効
+        /// </summary>
+        public bool ShiftDisplayEnabled { get; set; } = true;
     }
 
 

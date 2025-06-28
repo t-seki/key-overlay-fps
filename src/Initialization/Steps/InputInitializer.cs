@@ -27,7 +27,7 @@ namespace KeyOverlayFPS.Initialization.Steps
             
             // 入力処理管理システムを初期化
             context.Input = new MainWindowInput(window, context.Settings, context.KeyboardHandler, 
-                context.MouseTracker, context.EventBinder, keyboardKeyBackgroundBrush);
+                context.MouseTracker, context.EventBinder, window.LayoutManager, keyboardKeyBackgroundBrush);
             
             // 入力処理アクションを初期化
             context.Input.UpdateAllTextForegroundAction = window.UpdateAllTextForeground;

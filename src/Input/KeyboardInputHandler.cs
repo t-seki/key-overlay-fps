@@ -50,24 +50,13 @@ namespace KeyOverlayFPS.Input
         private const short KEY_PRESSED_MASK = unchecked((short)0x8000);
         
 
-        private LayoutConfig? _layoutConfig;
-        private readonly Dictionary<KeyboardProfile, (double Left, double Top)> _mousePositions;
-        private readonly Dictionary<KeyboardProfile, bool> _shiftDisplayEnabled;
+        private readonly Layout.LayoutManager _layoutManager;
         
         public KeyboardProfile CurrentProfile { get; set; } = KeyboardProfile.FullKeyboard65;
 
-        public KeyboardInputHandler()
+        public KeyboardInputHandler(Layout.LayoutManager layoutManager)
         {
-            _mousePositions = new Dictionary<KeyboardProfile, (double Left, double Top)>
-            {
-                { KeyboardProfile.FullKeyboard65, (475, 20) },  // 元の位置
-                { KeyboardProfile.FPSKeyboard, (290, 20) }      // FPS用位置
-            };
-            _shiftDisplayEnabled = new Dictionary<KeyboardProfile, bool>
-            {
-                { KeyboardProfile.FullKeyboard65, true },   // 65%キーボードはShift表示変更有効
-                { KeyboardProfile.FPSKeyboard, false }      // FPSキーボードはShift表示変更無効
-            };
+            _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
         }
 
         /// <summary>
@@ -79,20 +68,13 @@ namespace KeyOverlayFPS.Input
             return (GetAsyncKeyState(virtualKeyCode) & KEY_PRESSED_MASK) != 0;
         }
 
-        /// <summary>
-        /// LayoutConfigを設定
-        /// </summary>
-        public void SetLayoutConfig(LayoutConfig? layoutConfig)
-        {
-            _layoutConfig = layoutConfig;
-        }
 
         /// <summary>
         /// キー設定を取得
         /// </summary>
         public KeyConfig? GetKeyConfig(string keyName)
         {
-            if (_layoutConfig?.Keys?.TryGetValue(keyName, out var keyDefinition) == true)
+            if (_layoutManager.CurrentLayout?.Keys?.TryGetValue(keyName, out var keyDefinition) == true)
             {
                 return ConvertToKeyConfig(keyName, keyDefinition);
             }
@@ -105,9 +87,9 @@ namespace KeyOverlayFPS.Input
         public IReadOnlyDictionary<string, KeyConfig> GetAllKeyConfigurations()
         {
             var result = new Dictionary<string, KeyConfig>();
-            if (_layoutConfig?.Keys != null)
+            if (_layoutManager.CurrentLayout?.Keys != null)
             {
-                foreach (var kvp in _layoutConfig.Keys)
+                foreach (var kvp in _layoutManager.CurrentLayout.Keys)
                 {
                     result[kvp.Key] = ConvertToKeyConfig(kvp.Key, kvp.Value);
                 }
@@ -128,21 +110,6 @@ namespace KeyOverlayFPS.Input
             );
         }
 
-        /// <summary>
-        /// プロファイル別マウス位置を取得
-        /// </summary>
-        public (double Left, double Top) GetMousePosition(KeyboardProfile profile)
-        {
-            return _mousePositions.TryGetValue(profile, out var position) ? position : (475, 20);
-        }
-
-        /// <summary>
-        /// プロファイル別Shift表示設定を取得
-        /// </summary>
-        public bool IsShiftDisplayEnabled(KeyboardProfile profile)
-        {
-            return _shiftDisplayEnabled.TryGetValue(profile, out var enabled) && enabled;
-        }
 
         /// <summary>
         /// プロファイル別のキー要素名リストを取得

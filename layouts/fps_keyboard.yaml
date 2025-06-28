@@ -21,6 +21,7 @@ global:
   mouseMoveThreshold: 5.0
   windowWidth: 520
   windowHeight: 160
+  shiftDisplayEnabled: false
 
 window:
   width: 520

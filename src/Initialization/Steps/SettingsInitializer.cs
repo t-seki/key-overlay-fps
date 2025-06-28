@@ -15,7 +15,7 @@ namespace KeyOverlayFPS.Initialization.Steps
         public void Execute(MainWindow window, InitializationContext context)
         {
             // キーボード入力ハンドラーを初期化
-            context.KeyboardHandler = new KeyboardInputHandler();
+            context.KeyboardHandler = new KeyboardInputHandler(window.LayoutManager);
             
             // マウストラッカーを初期化
             context.MouseTracker = new MouseTracker();

@@ -21,6 +21,7 @@ namespace KeyOverlayFPS.UI
         private readonly KeyboardInputHandler _keyboardHandler;
         private readonly MouseTracker _mouseTracker;
         private readonly KeyEventBinder? _eventBinder;
+        private readonly LayoutManager _layoutManager;
         private readonly Brush _inactiveBrush;
 
         // タイマー管理
@@ -50,6 +51,7 @@ namespace KeyOverlayFPS.UI
             KeyboardInputHandler keyboardHandler,
             MouseTracker mouseTracker,
             KeyEventBinder? eventBinder,
+            LayoutManager layoutManager,
             Brush inactiveBrush)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
@@ -57,6 +59,7 @@ namespace KeyOverlayFPS.UI
             _keyboardHandler = keyboardHandler ?? throw new ArgumentNullException(nameof(keyboardHandler));
             _mouseTracker = mouseTracker ?? throw new ArgumentNullException(nameof(mouseTracker));
             _eventBinder = eventBinder;
+            _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
             _inactiveBrush = inactiveBrush ?? throw new ArgumentNullException(nameof(inactiveBrush));
 
             // タイマー初期化
@@ -144,7 +147,7 @@ namespace KeyOverlayFPS.UI
             var textBlock = keyBorder.Child as TextBlock;
             if (textBlock != null)
             {
-                bool shouldShowShiftText = isShiftPressed && _keyboardHandler.IsShiftDisplayEnabled(_keyboardHandler.CurrentProfile);
+                bool shouldShowShiftText = isShiftPressed && _layoutManager.IsShiftDisplayEnabled();
 
                 if (shouldShowShiftText && keyConfig.HasShiftVariant)
                 {

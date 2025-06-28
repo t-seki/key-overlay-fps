@@ -46,7 +46,7 @@ namespace KeyOverlayFPS
         private Point _dragStartPoint;
         
         // 動的レイアウトシステム
-        public LayoutConfig? CurrentLayout { get; set; }
+        public LayoutManager LayoutManager { get; }
         public KeyEventBinder? EventBinder { get; set; }
         public Canvas? DynamicCanvas { get; set; }
         
@@ -54,6 +54,7 @@ namespace KeyOverlayFPS
 
         public MainWindow()
         {
+            LayoutManager = new LayoutManager();
             try
             {
                 var initializer = new WindowInitializer();
@@ -138,6 +139,17 @@ namespace KeyOverlayFPS
         private void SwitchProfile(KeyboardProfile profile)
         {
             Input.KeyboardHandler.CurrentProfile = profile;
+            
+            // プロファイルに対応する新しいYAMLファイルを読み込み
+            try
+            {
+                LayoutManager.LoadLayout(profile);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"レイアウトファイル読み込みエラー: {ex.Message}");
+            }
+            
             ApplyProfileLayout();
             UpdateMousePositions();
             Settings.SaveSettings();
@@ -280,7 +292,7 @@ namespace KeyOverlayFPS
         
         internal void UpdateMousePositions()
         {
-            var position = Input.KeyboardHandler.GetMousePosition(Input.KeyboardHandler.CurrentProfile);
+            var position = LayoutManager.GetMousePosition();
             
             // 全マウス要素の位置を一括更新
             foreach (var (elementName, offset) in MouseElements.Offsets)

@@ -23,18 +23,11 @@ namespace KeyOverlayFPS.Initialization.Steps
                 throw new InitializationException(Name, "MouseTrackerが初期化されていません");
 
             // プロファイルに応じたレイアウトファイルを読み込み
-            string layoutPath = GetLayoutPath(context.KeyboardHandler.CurrentProfile);
-
-            if (!File.Exists(layoutPath))
-            {
-                throw new FileNotFoundException($"必須レイアウトファイルが見つかりません: {layoutPath}");
-            }
-
-            Logger.Info($"レイアウトファイルを読み込み中: {layoutPath}");
-            context.CurrentLayout = LayoutManager.ImportLayout(layoutPath);
+            Logger.Info($"レイアウトを読み込み中: {context.KeyboardHandler.CurrentProfile}");
+            window.LayoutManager.LoadLayout(context.KeyboardHandler.CurrentProfile);
 
             // UIを動的生成
-            context.DynamicCanvas = UIGenerator.GenerateCanvas(context.CurrentLayout, window);
+            context.DynamicCanvas = UIGenerator.GenerateCanvas(window.LayoutManager.CurrentLayout!, window);
 
             // 既存のCanvasと置き換え
             window.Content = context.DynamicCanvas;
@@ -45,32 +38,16 @@ namespace KeyOverlayFPS.Initialization.Steps
             // 要素名を登録
             UIGenerator.RegisterElementNames(context.DynamicCanvas, window);
 
-            // KeyboardInputHandlerにLayoutConfigを設定
-            context.KeyboardHandler.SetLayoutConfig(context.CurrentLayout);
-
             // イベントバインディング
-            context.EventBinder = new KeyEventBinder(context.DynamicCanvas, context.CurrentLayout, 
+            context.EventBinder = new KeyEventBinder(context.DynamicCanvas, window.LayoutManager.CurrentLayout!, 
                 context.KeyboardHandler, context.MouseTracker);
             context.EventBinder.BindAllEvents();
 
             // MainWindowのプロパティに設定
-            window.CurrentLayout = context.CurrentLayout;
             window.EventBinder = context.EventBinder;
             window.DynamicCanvas = context.DynamicCanvas;
 
             Logger.Info("動的レイアウトシステム初期化完了");
-        }
-        
-        /// <summary>
-        /// プロファイルに応じたレイアウトファイルパスを取得
-        /// </summary>
-        private string GetLayoutPath(KeyboardProfile profile)
-        {
-            return profile switch
-            {
-                KeyboardProfile.FPSKeyboard => ApplicationConstants.Paths.FpsLayout,
-                _ => ApplicationConstants.Paths.Keyboard65Layout
-            };
         }
     }
 }

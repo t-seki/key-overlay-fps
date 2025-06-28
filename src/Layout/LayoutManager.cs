@@ -5,14 +5,83 @@ using System.Linq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using KeyOverlayFPS.Input;
+using KeyOverlayFPS.Constants;
 
 namespace KeyOverlayFPS.Layout
 {
     /// <summary>
     /// レイアウト管理クラス
     /// </summary>
-    public static class LayoutManager
+    public class LayoutManager
     {
+        private LayoutConfig? _currentLayout;
+
+        /// <summary>
+        /// レイアウト変更イベント
+        /// </summary>
+        public event EventHandler<LayoutConfig?>? LayoutChanged;
+
+        /// <summary>
+        /// 現在のレイアウト設定
+        /// </summary>
+        public LayoutConfig? CurrentLayout
+        {
+            get => _currentLayout;
+            private set
+            {
+                if (_currentLayout != value)
+                {
+                    _currentLayout = value;
+                    LayoutChanged?.Invoke(this, value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// プロファイルに応じたレイアウトを読み込み
+        /// </summary>
+        /// <param name="profile">キーボードプロファイル</param>
+        public void LoadLayout(KeyboardProfile profile)
+        {
+            string layoutPath = GetLayoutPath(profile);
+            if (File.Exists(layoutPath))
+            {
+                CurrentLayout = ImportLayout(layoutPath);
+            }
+            else
+            {
+                throw new FileNotFoundException($"レイアウトファイルが見つかりません: {layoutPath}");
+            }
+        }
+
+        /// <summary>
+        /// マウス位置を取得
+        /// </summary>
+        public (double Left, double Top) GetMousePosition()
+        {
+            return (CurrentLayout?.Mouse?.Position?.X ?? 475, CurrentLayout?.Mouse?.Position?.Y ?? 20);
+        }
+
+        /// <summary>
+        /// Shift表示設定を取得
+        /// </summary>
+        public bool IsShiftDisplayEnabled()
+        {
+            return CurrentLayout?.Global?.ShiftDisplayEnabled ?? true;
+        }
+
+        /// <summary>
+        /// プロファイルに応じたレイアウトファイルパスを取得
+        /// </summary>
+        private static string GetLayoutPath(KeyboardProfile profile)
+        {
+            return profile switch
+            {
+                KeyboardProfile.FPSKeyboard => ApplicationConstants.Paths.FpsLayout,
+                _ => ApplicationConstants.Paths.Keyboard65Layout
+            };
+        }
+
         private static readonly ISerializer Serializer = new SerializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
@@ -52,7 +121,7 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         /// <param name="filePath">読み込み元ファイルパス</param>
         /// <returns>レイアウト設定</returns>
-        public static LayoutConfig ImportLayout(string filePath)
+        public LayoutConfig ImportLayout(string filePath)
         {
             try
             {
