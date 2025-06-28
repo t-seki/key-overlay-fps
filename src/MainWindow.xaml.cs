@@ -37,6 +37,9 @@ namespace KeyOverlayFPS
         // 設定管理
         private readonly MainWindowSettings _settings;
         
+        // メニュー管理
+        private readonly MainWindowMenu _menu;
+        
         private readonly DispatcherTimer _timer;
         private readonly Brush _inactiveBrush;
         private readonly Brush _keyboardKeyDefaultBrush;
@@ -78,6 +81,10 @@ namespace KeyOverlayFPS
                 _settings = new MainWindowSettings(this, _settingsManager);
                 _settings.SettingsChanged += OnSettingsChanged;
                 
+                // メニュー管理システムを初期化
+                _menu = new MainWindowMenu(this, _settings, _keyboardHandler);
+                InitializeMenuActions();
+                
                 // イベント委譲アクションを初期化
                 InitializeEventActions();
                 
@@ -90,11 +97,6 @@ namespace KeyOverlayFPS
                 Logger.Info("動的レイアウトシステム初期化開始");
                 InitializeDynamicLayoutSystem();
                 Logger.Info("動的レイアウトシステム初期化完了");
-            
-                // コンテキストメニューを設定
-                Logger.Info("コンテキストメニュー設定開始");
-                SetupContextMenu();
-                Logger.Info("コンテキストメニュー設定完了");
                 
                 // タイマー初期化
                 Logger.Info("タイマー初期化開始");
@@ -113,6 +115,11 @@ namespace KeyOverlayFPS
                 MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
                 this.MouseWheel += MainWindow_MouseWheel;
                 Logger.Info("イベントハンドラー設定完了");
+                
+                // コンテキストメニュー設定
+                Logger.Info("コンテキストメニュー設定開始");
+                _menu.SetupContextMenu();
+                Logger.Info("コンテキストメニュー設定完了");
                 
                 // アプリケーション終了時に設定を保存
                 Logger.Info("終了時処理設定");
@@ -291,143 +298,6 @@ namespace KeyOverlayFPS
             }
         }
 
-        private void SetupContextMenu()
-        {
-            var contextMenu = new ContextMenu();
-            
-            contextMenu.Items.Add(CreateBackgroundColorMenu());
-            contextMenu.Items.Add(CreateForegroundColorMenu());
-            contextMenu.Items.Add(CreateHighlightColorMenu());
-            contextMenu.Items.Add(CreateViewOptionsMenu());
-            contextMenu.Items.Add(CreateProfileMenu());
-            contextMenu.Items.Add(new Separator());
-            contextMenu.Items.Add(CreateExitMenu());
-            
-            ContextMenu = contextMenu;
-        }
-        
-        private MenuItem CreateBackgroundColorMenu()
-        {
-            var backgroundMenuItem = new MenuItem { Header = "背景色" };
-            
-            foreach (var (name, color, transparent) in SimpleColorManager.BackgroundMenuOptions)
-            {
-                var menuItem = new MenuItem { Header = name };
-                menuItem.Click += (s, e) => SetBackgroundColor(color, transparent);
-                backgroundMenuItem.Items.Add(menuItem);
-            }
-            
-            return backgroundMenuItem;
-        }
-        
-        private MenuItem CreateForegroundColorMenu()
-        {
-            var foregroundMenuItem = new MenuItem { Header = "文字色" };
-            
-            foreach (var (name, color) in SimpleColorManager.ForegroundMenuOptions)
-            {
-                var menuItem = new MenuItem { Header = name };
-                menuItem.Click += (s, e) => SetForegroundColor(color);
-                foregroundMenuItem.Items.Add(menuItem);
-            }
-            
-            return foregroundMenuItem;
-        }
-        
-        private MenuItem CreateHighlightColorMenu()
-        {
-            var highlightMenuItem = new MenuItem { Header = "ハイライト色" };
-            
-            foreach (var (name, color) in SimpleColorManager.HighlightMenuOptions)
-            {
-                var menuItem = new MenuItem { Header = name };
-                menuItem.Click += (s, e) => SetHighlightColor(color);
-                highlightMenuItem.Items.Add(menuItem);
-            }
-            
-            return highlightMenuItem;
-        }
-        
-        private MenuItem CreateViewOptionsMenu()
-        {
-            var viewMenuItem = new MenuItem { Header = "表示オプション" };
-            
-            var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = Topmost };
-            topmostMenuItem.Click += (s, e) => ToggleTopmost();
-            
-            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _settings.IsMouseVisible };
-            mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibility();
-            
-            var scaleMenuItem = CreateDisplayScaleMenu();
-            
-            viewMenuItem.Items.Add(topmostMenuItem);
-            viewMenuItem.Items.Add(mouseVisibilityMenuItem);
-            viewMenuItem.Items.Add(scaleMenuItem);
-            
-            return viewMenuItem;
-        }
-        
-        private MenuItem CreateDisplayScaleMenu()
-        {
-            var scaleMenuItem = new MenuItem { Header = "表示サイズ" };
-            
-            for (int i = 0; i < ApplicationConstants.ScaleOptions.Values.Length; i++)
-            {
-                var scale = ApplicationConstants.ScaleOptions.Values[i];
-                var label = ApplicationConstants.ScaleOptions.Labels[i];
-                
-                var menuItem = new MenuItem 
-                { 
-                    Header = label, 
-                    IsCheckable = true, 
-                    IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01 
-                };
-                menuItem.Click += (s, e) => 
-                {
-                    SetDisplayScale(scale);
-                    UpdateMenuCheckedState(scaleMenuItem, menuItem);
-                };
-                scaleMenuItem.Items.Add(menuItem);
-            }
-            
-            return scaleMenuItem;
-        }
-        
-        private MenuItem CreateProfileMenu()
-        {
-            var profileMenuItem = new MenuItem { Header = "プロファイル" };
-            
-            var profileOptions = new[]
-            {
-                ("65%キーボード", KeyboardProfile.FullKeyboard65, "FullKeyboard65"),
-                ("FPSキーボード", KeyboardProfile.FPSKeyboard, "FPSKeyboard")
-            };
-            
-            foreach (var (name, profile, settingName) in profileOptions)
-            {
-                var menuItem = new MenuItem 
-                { 
-                    Header = name, 
-                    IsCheckable = true, 
-                    IsChecked = _keyboardHandler.CurrentProfile.ToString() == settingName 
-                };
-                menuItem.Click += (s, e) => 
-                {
-                    SwitchProfile(profile);
-                    UpdateMenuCheckedState(profileMenuItem, menuItem);
-                };
-                profileMenuItem.Items.Add(menuItem);
-            }
-            
-            return profileMenuItem;
-        }
-        
-        private MenuItem CreateExitMenu()
-        {
-            var exitMenuItem = new MenuItem { Header = "終了" };
-            exitMenuItem.Click += (s, e) => Application.Current.Shutdown();
-            return exitMenuItem;
-        }
         
         private void SetBackgroundColor(Color color, bool transparent)
         {
@@ -495,16 +365,6 @@ namespace KeyOverlayFPS
             }
         }
         
-        private static void UpdateMenuCheckedState(MenuItem parentMenu, MenuItem selectedItem)
-        {
-            foreach (MenuItem item in parentMenu.Items.OfType<MenuItem>())
-            {
-                if (item.IsCheckable)
-                {
-                    item.IsChecked = item == selectedItem;
-                }
-            }
-        }
         
         private void SwitchProfile(KeyboardProfile profile)
         {
@@ -512,6 +372,7 @@ namespace KeyOverlayFPS
             ApplyProfileLayout();
             UpdateMousePositions();
             _settings.SaveSettings();
+            _menu.UpdateMenuCheckedState();
         }
         
         private void ApplyProfileLayout()
@@ -921,6 +782,20 @@ namespace KeyOverlayFPS
         }
         
         /// <summary>
+        /// メニューアクションを初期化
+        /// </summary>
+        private void InitializeMenuActions()
+        {
+            _menu.SetBackgroundColorAction = SetBackgroundColor;
+            _menu.SetForegroundColorAction = SetForegroundColor;
+            _menu.SetHighlightColorAction = SetHighlightColor;
+            _menu.ToggleTopmostAction = ToggleTopmost;
+            _menu.ToggleMouseVisibilityAction = ToggleMouseVisibility;
+            _menu.SetDisplayScaleAction = SetDisplayScale;
+            _menu.SwitchProfileAction = SwitchProfile;
+        }
+        
+        /// <summary>
         /// イベント委譲アクションを初期化
         /// </summary>
         private void InitializeEventActions()
@@ -938,8 +813,8 @@ namespace KeyOverlayFPS
         /// </summary>
         private void OnSettingsChanged(object? sender, EventArgs e)
         {
-            // UI更新が必要な場合の処理
-            // 現在は自動的に設定が適用されるため、特別な処理は不要
+            // メニューのチェック状態を更新
+            _menu.UpdateMenuCheckedState();
         }
     }
 }
