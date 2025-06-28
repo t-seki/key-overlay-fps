@@ -278,7 +278,7 @@ namespace KeyOverlayFPS
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();
                     // ウィンドウサイズ調整
-                    Width = ApplicationConstants.WindowSizes.FullKeyboardWidth * _settings.DisplayScale;
+                    Width = (_settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth) * _settings.DisplayScale;
                     Height = ApplicationConstants.WindowSizes.FullKeyboardHeight * _settings.DisplayScale;
                     break;
                     

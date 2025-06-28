@@ -33,7 +33,7 @@ keys:
     position: { x: 5, y: 5 }
     size: { width: 26, height: 26 }
     text: "Esc"
-    virtualKey: 0x1B
+    virtualKey: VK_ESCAPE
     fontSize: 8
     isVisible: true
 
@@ -43,90 +43,90 @@ keys:
     size: { width: 26, height: 26 }
     text: "1"
     shiftText: "!"
-    virtualKey: 0x31
+    virtualKey: VK_1
     isVisible: true
   Key2:
     position: { x: 61, y: 5 }
     size: { width: 26, height: 26 }
     text: "2"
     shiftText: "@"
-    virtualKey: 0x32
+    virtualKey: VK_2
     isVisible: true
   Key3:
     position: { x: 89, y: 5 }
     size: { width: 26, height: 26 }
     text: "3"
     shiftText: "#"
-    virtualKey: 0x33
+    virtualKey: VK_3
     isVisible: true
   Key4:
     position: { x: 117, y: 5 }
     size: { width: 26, height: 26 }
     text: "4"
     shiftText: "$"
-    virtualKey: 0x34
+    virtualKey: VK_4
     isVisible: true
   Key5:
     position: { x: 145, y: 5 }
     size: { width: 26, height: 26 }
     text: "5"
     shiftText: "%"
-    virtualKey: 0x35
+    virtualKey: VK_5
     isVisible: true
   Key6:
     position: { x: 173, y: 5 }
     size: { width: 26, height: 26 }
     text: "6"
     shiftText: "^"
-    virtualKey: 0x36
+    virtualKey: VK_6
     isVisible: true
   Key7:
     position: { x: 201, y: 5 }
     size: { width: 26, height: 26 }
     text: "7"
     shiftText: "&"
-    virtualKey: 0x37
+    virtualKey: VK_7
     isVisible: true
   Key8:
     position: { x: 229, y: 5 }
     size: { width: 26, height: 26 }
     text: "8"
     shiftText: "*"
-    virtualKey: 0x38
+    virtualKey: VK_8
     isVisible: true
   Key9:
     position: { x: 257, y: 5 }
     size: { width: 26, height: 26 }
     text: "9"
     shiftText: "("
-    virtualKey: 0x39
+    virtualKey: VK_9
     isVisible: true
   Key0:
     position: { x: 285, y: 5 }
     size: { width: 26, height: 26 }
     text: "0"
     shiftText: ")"
-    virtualKey: 0x30
+    virtualKey: VK_0
     isVisible: true
   KeyMinus:
     position: { x: 313, y: 5 }
     size: { width: 26, height: 26 }
     text: "-"
     shiftText: "_"
-    virtualKey: 0xBD
+    virtualKey: VK_OEM_MINUS
     isVisible: true
   KeyEquals:
     position: { x: 341, y: 5 }
     size: { width: 26, height: 26 }
     text: "="
     shiftText: "+"
-    virtualKey: 0xBB
+    virtualKey: VK_OEM_PLUS
     isVisible: true
   KeyBackspace:
     position: { x: 369, y: 5 }
     size: { width: 60, height: 26 }
     text: "BS"
-    virtualKey: 0x08
+    virtualKey: VK_BACK
     fontSize: 8
     isVisible: true
 
@@ -135,89 +135,89 @@ keys:
     position: { x: 5, y: 33 }
     size: { width: 36, height: 26 }
     text: "Tab"
-    virtualKey: 0x09
+    virtualKey: VK_TAB
     fontSize: 9
     isVisible: true
   KeyQ:
     position: { x: 43, y: 33 }
     size: { width: 26, height: 26 }
     text: "Q"
-    virtualKey: 0x51
+    virtualKey: VK_Q
     isVisible: true
   KeyW:
     position: { x: 71, y: 33 }
     size: { width: 26, height: 26 }
     text: "W"
-    virtualKey: 0x57
+    virtualKey: VK_W
     isVisible: true
   KeyE:
     position: { x: 99, y: 33 }
     size: { width: 26, height: 26 }
     text: "E"
-    virtualKey: 0x45
+    virtualKey: VK_E
     isVisible: true
   KeyR:
     position: { x: 127, y: 33 }
     size: { width: 26, height: 26 }
     text: "R"
-    virtualKey: 0x52
+    virtualKey: VK_R
     isVisible: true
   KeyT:
     position: { x: 155, y: 33 }
     size: { width: 26, height: 26 }
     text: "T"
-    virtualKey: 0x54
+    virtualKey: VK_T
     isVisible: true
   KeyY:
     position: { x: 183, y: 33 }
     size: { width: 26, height: 26 }
     text: "Y"
-    virtualKey: 0x59
+    virtualKey: VK_Y
     isVisible: true
   KeyU:
     position: { x: 211, y: 33 }
     size: { width: 26, height: 26 }
     text: "U"
-    virtualKey: 0x55
+    virtualKey: VK_U
     isVisible: true
   KeyI:
     position: { x: 239, y: 33 }
     size: { width: 26, height: 26 }
     text: "I"
-    virtualKey: 0x49
+    virtualKey: VK_I
     isVisible: true
   KeyO:
     position: { x: 267, y: 33 }
     size: { width: 26, height: 26 }
     text: "O"
-    virtualKey: 0x4F
+    virtualKey: VK_O
     isVisible: true
   KeyP:
     position: { x: 295, y: 33 }
     size: { width: 26, height: 26 }
     text: "P"
-    virtualKey: 0x50
+    virtualKey: VK_P
     isVisible: true
   KeyOpenBracket:
     position: { x: 323, y: 33 }
     size: { width: 26, height: 26 }
     text: "["
     shiftText: "{"
-    virtualKey: 0xDB
+    virtualKey: VK_OEM_4
     isVisible: true
   KeyCloseBracket:
     position: { x: 351, y: 33 }
     size: { width: 26, height: 26 }
     text: "]"
     shiftText: "}"
-    virtualKey: 0xDD
+    virtualKey: VK_OEM_6
     isVisible: true
   KeyBackslash:
     position: { x: 379, y: 33 }
     size: { width: 50, height: 26 }
     text: "\\"
     shiftText: "|"
-    virtualKey: 0xDC
+    virtualKey: VK_OEM_5
     isVisible: true
 
   # ASDF行
@@ -225,82 +225,82 @@ keys:
     position: { x: 5, y: 61 }
     size: { width: 46, height: 26 }
     text: "Caps"
-    virtualKey: 0x14
+    virtualKey: VK_CAPITAL
     fontSize: 8
     isVisible: true
   KeyA:
     position: { x: 53, y: 61 }
     size: { width: 26, height: 26 }
     text: "A"
-    virtualKey: 0x41
+    virtualKey: VK_A
     isVisible: true
   KeyS:
     position: { x: 81, y: 61 }
     size: { width: 26, height: 26 }
     text: "S"
-    virtualKey: 0x53
+    virtualKey: VK_S
     isVisible: true
   KeyD:
     position: { x: 109, y: 61 }
     size: { width: 26, height: 26 }
     text: "D"
-    virtualKey: 0x44
+    virtualKey: VK_D
     isVisible: true
   KeyF:
     position: { x: 137, y: 61 }
     size: { width: 26, height: 26 }
     text: "F"
-    virtualKey: 0x46
+    virtualKey: VK_F
     isVisible: true
   KeyG:
     position: { x: 165, y: 61 }
     size: { width: 26, height: 26 }
     text: "G"
-    virtualKey: 0x47
+    virtualKey: VK_G
     isVisible: true
   KeyH:
     position: { x: 193, y: 61 }
     size: { width: 26, height: 26 }
     text: "H"
-    virtualKey: 0x48
+    virtualKey: VK_H
     isVisible: true
   KeyJ:
     position: { x: 221, y: 61 }
     size: { width: 26, height: 26 }
     text: "J"
-    virtualKey: 0x4A
+    virtualKey: VK_J
     isVisible: true
   KeyK:
     position: { x: 249, y: 61 }
     size: { width: 26, height: 26 }
     text: "K"
-    virtualKey: 0x4B
+    virtualKey: VK_K
     isVisible: true
   KeyL:
     position: { x: 277, y: 61 }
     size: { width: 26, height: 26 }
     text: "L"
-    virtualKey: 0x4C
+    virtualKey: VK_L
     isVisible: true
   KeySemicolon:
     position: { x: 305, y: 61 }
     size: { width: 26, height: 26 }
     text: ";"
     shiftText: ":"
-    virtualKey: 0xBA
+    virtualKey: VK_OEM_1
     isVisible: true
   KeyQuote:
     position: { x: 333, y: 61 }
     size: { width: 26, height: 26 }
     text: "'"
     shiftText: "\""
-    virtualKey: 0xDE
+    virtualKey: VK_OEM_7
     isVisible: true
   KeyEnter:
     position: { x: 361, y: 61 }
     size: { width: 68, height: 26 }
     text: "Enter"
-    virtualKey: 0x0D
+    virtualKey: VK_RETURN
     fontSize: 9
     isVisible: true
 
@@ -309,84 +309,84 @@ keys:
     position: { x: 5, y: 89 }
     size: { width: 58, height: 26 }
     text: "Shift"
-    virtualKey: 0xA0
+    virtualKey: VK_LSHIFT
     fontSize: 9
     isVisible: true
   KeyZ:
     position: { x: 65, y: 89 }
     size: { width: 26, height: 26 }
     text: "Z"
-    virtualKey: 0x5A
+    virtualKey: VK_Z
     isVisible: true
   KeyX:
     position: { x: 93, y: 89 }
     size: { width: 26, height: 26 }
     text: "X"
-    virtualKey: 0x58
+    virtualKey: VK_X
     isVisible: true
   KeyC:
     position: { x: 121, y: 89 }
     size: { width: 26, height: 26 }
     text: "C"
-    virtualKey: 0x43
+    virtualKey: VK_C
     isVisible: true
   KeyV:
     position: { x: 149, y: 89 }
     size: { width: 26, height: 26 }
     text: "V"
-    virtualKey: 0x56
+    virtualKey: VK_V
     isVisible: true
   KeyB:
     position: { x: 177, y: 89 }
     size: { width: 26, height: 26 }
     text: "B"
-    virtualKey: 0x42
+    virtualKey: VK_B
     isVisible: true
   KeyN:
     position: { x: 205, y: 89 }
     size: { width: 26, height: 26 }
     text: "N"
-    virtualKey: 0x4E
+    virtualKey: VK_N
     isVisible: true
   KeyM:
     position: { x: 233, y: 89 }
     size: { width: 26, height: 26 }
     text: "M"
-    virtualKey: 0x4D
+    virtualKey: VK_M
     isVisible: true
   KeyComma:
     position: { x: 261, y: 89 }
     size: { width: 26, height: 26 }
     text: ","
     shiftText: "<"
-    virtualKey: 0xBC
+    virtualKey: VK_OEM_COMMA
     isVisible: true
   KeyPeriod:
     position: { x: 289, y: 89 }
     size: { width: 26, height: 26 }
     text: "."
     shiftText: ">"
-    virtualKey: 0xBE
+    virtualKey: VK_OEM_PERIOD
     isVisible: true
   KeySlash:
     position: { x: 317, y: 89 }
     size: { width: 26, height: 26 }
     text: "/"
     shiftText: "?"
-    virtualKey: 0xBF
+    virtualKey: VK_OEM_2
     isVisible: true
   KeyRightShift:
     position: { x: 345, y: 89 }
     size: { width: 56, height: 26 }
     text: "Shift"
-    virtualKey: 0xA1
+    virtualKey: VK_RSHIFT
     fontSize: 8
     isVisible: true
   KeyUpArrow:
     position: { x: 403, y: 89 }
     size: { width: 26, height: 26 }
     text: "↑"
-    virtualKey: 0x26
+    virtualKey: VK_UP
     isVisible: true
 
   # 最下段
@@ -394,35 +394,35 @@ keys:
     position: { x: 5, y: 117 }
     size: { width: 32, height: 26 }
     text: "Ctrl"
-    virtualKey: 0xA2
+    virtualKey: VK_LCONTROL
     fontSize: 8
     isVisible: true
   KeyWin:
     position: { x: 39, y: 117 }
     size: { width: 32, height: 26 }
     text: "Win"
-    virtualKey: 0x5B
+    virtualKey: VK_LWIN
     fontSize: 8
     isVisible: true
   KeyAlt:
     position: { x: 73, y: 117 }
     size: { width: 32, height: 26 }
     text: "Alt"
-    virtualKey: 0xA4
+    virtualKey: VK_LMENU
     fontSize: 8
     isVisible: true
   KeySpace:
     position: { x: 107, y: 117 }
     size: { width: 164, height: 26 }
     text: "Space"
-    virtualKey: 0x20
+    virtualKey: VK_SPACE
     fontSize: 8
     isVisible: true
   KeyRightAlt:
     position: { x: 273, y: 117 }
     size: { width: 32, height: 26 }
     text: "Alt"
-    virtualKey: 0xA5
+    virtualKey: VK_RMENU
     fontSize: 8
     isVisible: true
   KeyFn:
@@ -436,20 +436,20 @@ keys:
     position: { x: 341, y: 117 }
     size: { width: 32, height: 26 }
     text: "Ctrl"
-    virtualKey: 0xA3
+    virtualKey: VK_RCONTROL
     fontSize: 8
     isVisible: true
   KeyLeftArrow:
     position: { x: 375, y: 117 }
     size: { width: 26, height: 26 }
     text: "←"
-    virtualKey: 0x25
+    virtualKey: VK_LEFT
     isVisible: true
   KeyDownArrow:
     position: { x: 403, y: 117 }
     size: { width: 26, height: 26 }
     text: "↓"
-    virtualKey: 0x28
+    virtualKey: VK_DOWN
     isVisible: true
 
   # ナビゲーションキー
@@ -457,35 +457,35 @@ keys:
     position: { x: 431, y: 5 }
     size: { width: 26, height: 26 }
     text: "Home"
-    virtualKey: 0x24
+    virtualKey: VK_HOME
     fontSize: 7
     isVisible: true
   KeyDelete:
     position: { x: 431, y: 33 }
     size: { width: 26, height: 26 }
     text: "Del"
-    virtualKey: 0x2E
+    virtualKey: VK_DELETE
     fontSize: 8
     isVisible: true
   KeyPageUp:
     position: { x: 431, y: 61 }
     size: { width: 26, height: 26 }
     text: "PgUp"
-    virtualKey: 0x21
+    virtualKey: VK_PRIOR
     fontSize: 7
     isVisible: true
   KeyPageDown:
     position: { x: 431, y: 89 }
     size: { width: 26, height: 26 }
     text: "PgDn"
-    virtualKey: 0x22
+    virtualKey: VK_NEXT
     fontSize: 7
     isVisible: true
   KeyRightArrow:
     position: { x: 431, y: 117 }
     size: { width: 26, height: 26 }
     text: "→"
-    virtualKey: 0x27
+    virtualKey: VK_RIGHT
     isVisible: true
 
 mouse:
@@ -501,25 +501,25 @@ mouse:
     MouseLeft:
       offset: { x: 3, y: 3 }
       size: { width: 25, height: 35 }
-      virtualKey: 1
+      virtualKey: VK_LBUTTON
       isVisible: true
     MouseRight:
       offset: { x: 32, y: 3 }
       size: { width: 25, height: 35 }
-      virtualKey: 2
+      virtualKey: VK_RBUTTON
       isVisible: true
     MouseWheelButton:
       offset: { x: 25, y: 10 }
       size: { width: 10, height: 22 }
-      virtualKey: 3
+      virtualKey: VK_MBUTTON
       isVisible: true
     MouseButton4:
       offset: { x: 0, y: 64 }
       size: { width: 10, height: 18 }
-      virtualKey: 5
+      virtualKey: VK_XBUTTON1
       isVisible: true
     MouseButton5:
       offset: { x: 0, y: 42 }
       size: { width: 10, height: 18 }
-      virtualKey: 6
+      virtualKey: VK_XBUTTON2
       isVisible: true

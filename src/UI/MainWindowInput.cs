@@ -92,7 +92,7 @@ namespace KeyOverlayFPS.UI
             _mouseTracker.Update();
 
             // キーボード入力更新
-            bool isShiftPressed = KeyboardInputHandler.IsKeyPressed(0x10); // VK_SHIFT
+            bool isShiftPressed = KeyboardInputHandler.IsKeyPressed(VirtualKeyCodes.VK_SHIFT);
             UpdateKeys(isShiftPressed);
             
             // マウス入力（表示時のみ更新）
@@ -157,11 +157,11 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private void UpdateMouseKeys()
         {
-            UpdateMouseKey("MouseLeft", 0x01);      // VK_LBUTTON
-            UpdateMouseKey("MouseRight", 0x02);     // VK_RBUTTON  
-            UpdateMouseKey("MouseWheelButton", 0x04); // VK_MBUTTON
-            UpdateMouseKey("MouseButton4", 0x05);   // VK_XBUTTON1
-            UpdateMouseKey("MouseButton5", 0x06);   // VK_XBUTTON2
+            UpdateMouseKey("MouseLeft", VirtualKeyCodes.VK_LBUTTON);
+            UpdateMouseKey("MouseRight", VirtualKeyCodes.VK_RBUTTON);
+            UpdateMouseKey("MouseWheelButton", VirtualKeyCodes.VK_MBUTTON);
+            UpdateMouseKey("MouseButton4", VirtualKeyCodes.VK_XBUTTON1);
+            UpdateMouseKey("MouseButton5", VirtualKeyCodes.VK_XBUTTON2);
         }
 
         /// <summary>

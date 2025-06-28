@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using KeyOverlayFPS.Input;
 
 namespace KeyOverlayFPS.Layout
 {
@@ -18,6 +19,7 @@ namespace KeyOverlayFPS.Layout
 
         private static readonly IDeserializer Deserializer = new DeserializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .WithTypeConverter(new VirtualKeyCodeConverter())
             .Build();
 
         /// <summary>
@@ -117,35 +119,35 @@ namespace KeyOverlayFPS.Layout
                     {
                         Offset = new PositionConfig { X = 3, Y = 3 },
                         Size = new SizeConfig { Width = 25, Height = 35 },
-                        VirtualKey = 1,
+                        VirtualKey = VirtualKeyCodes.VK_LBUTTON,
                         IsVisible = true
                     },
                     ["MouseRight"] = new ButtonConfig
                     {
                         Offset = new PositionConfig { X = 32, Y = 3 },
                         Size = new SizeConfig { Width = 25, Height = 35 },
-                        VirtualKey = 2,
+                        VirtualKey = VirtualKeyCodes.VK_RBUTTON,
                         IsVisible = true
                     },
                     ["MouseWheelButton"] = new ButtonConfig
                     {
                         Offset = new PositionConfig { X = 25, Y = 10 },
                         Size = new SizeConfig { Width = 10, Height = 22 },
-                        VirtualKey = 3,
+                        VirtualKey = VirtualKeyCodes.VK_MBUTTON,
                         IsVisible = true
                     },
                     ["MouseButton4"] = new ButtonConfig
                     {
                         Offset = new PositionConfig { X = 0, Y = 42 },
                         Size = new SizeConfig { Width = 10, Height = 18 },
-                        VirtualKey = 5,
+                        VirtualKey = VirtualKeyCodes.VK_XBUTTON1,
                         IsVisible = true
                     },
                     ["MouseButton5"] = new ButtonConfig
                     {
                         Offset = new PositionConfig { X = 0, Y = 64 },
                         Size = new SizeConfig { Width = 10, Height = 18 },
-                        VirtualKey = 6,
+                        VirtualKey = VirtualKeyCodes.VK_XBUTTON2,
                         IsVisible = true
                     }
                 }
@@ -157,89 +159,89 @@ namespace KeyOverlayFPS.Layout
                 Position = new PositionConfig { X = 5, Y = 5 }, 
                 Size = new SizeConfig { Width = 26, Height = 26 },
                 Text = "Esc",
-                VirtualKey = 0x1B,
+                VirtualKey = VirtualKeyCodes.VK_ESCAPE,
                 FontSize = 8,
                 IsVisible = true
             };
             
             // 数字キー行 - 新しいKeyDefinition構造で定義
-            AddKeyDefinition(layout, "Key1", 33, 5, 26, 26, "1", "!", 0x31);
-            AddKeyDefinition(layout, "Key2", 61, 5, 26, 26, "2", "@", 0x32);
-            AddKeyDefinition(layout, "Key3", 89, 5, 26, 26, "3", "#", 0x33);
-            AddKeyDefinition(layout, "Key4", 117, 5, 26, 26, "4", "$", 0x34);
-            AddKeyDefinition(layout, "Key5", 145, 5, 26, 26, "5", "%", 0x35);
-            AddKeyDefinition(layout, "Key6", 173, 5, 26, 26, "6", "^", 0x36);
-            AddKeyDefinition(layout, "Key7", 201, 5, 26, 26, "7", "&", 0x37);
-            AddKeyDefinition(layout, "Key8", 229, 5, 26, 26, "8", "*", 0x38);
-            AddKeyDefinition(layout, "Key9", 257, 5, 26, 26, "9", "(", 0x39);
-            AddKeyDefinition(layout, "Key0", 285, 5, 26, 26, "0", ")", 0x30);
-            AddKeyDefinition(layout, "KeyMinus", 313, 5, 26, 26, "-", "_", 0xBD);
-            AddKeyDefinition(layout, "KeyEquals", 341, 5, 26, 26, "=", "+", 0xBB);
-            AddKeyDefinition(layout, "KeyBackspace", 369, 5, 60, 26, "BS", null, 0x08, 8);
+            AddKeyDefinition(layout, "Key1", 33, 5, 26, 26, "1", "!", VirtualKeyCodes.VK_1);
+            AddKeyDefinition(layout, "Key2", 61, 5, 26, 26, "2", "@", VirtualKeyCodes.VK_2);
+            AddKeyDefinition(layout, "Key3", 89, 5, 26, 26, "3", "#", VirtualKeyCodes.VK_3);
+            AddKeyDefinition(layout, "Key4", 117, 5, 26, 26, "4", "$", VirtualKeyCodes.VK_4);
+            AddKeyDefinition(layout, "Key5", 145, 5, 26, 26, "5", "%", VirtualKeyCodes.VK_5);
+            AddKeyDefinition(layout, "Key6", 173, 5, 26, 26, "6", "^", VirtualKeyCodes.VK_6);
+            AddKeyDefinition(layout, "Key7", 201, 5, 26, 26, "7", "&", VirtualKeyCodes.VK_7);
+            AddKeyDefinition(layout, "Key8", 229, 5, 26, 26, "8", "*", VirtualKeyCodes.VK_8);
+            AddKeyDefinition(layout, "Key9", 257, 5, 26, 26, "9", "(", VirtualKeyCodes.VK_9);
+            AddKeyDefinition(layout, "Key0", 285, 5, 26, 26, "0", ")", VirtualKeyCodes.VK_0);
+            AddKeyDefinition(layout, "KeyMinus", 313, 5, 26, 26, "-", "_", VirtualKeyCodes.VK_OEM_MINUS);
+            AddKeyDefinition(layout, "KeyEquals", 341, 5, 26, 26, "=", "+", VirtualKeyCodes.VK_OEM_PLUS);
+            AddKeyDefinition(layout, "KeyBackspace", 369, 5, 60, 26, "BS", null, VirtualKeyCodes.VK_BACK, 8);
             
             // QWERTY行
-            AddKeyDefinition(layout, "KeyTab", 5, 33, 36, 26, "Tab", null, 0x09, 9);
-            AddKeyDefinition(layout, "KeyQ", 43, 33, 26, 26, "Q", null, 0x51);
-            AddKeyDefinition(layout, "KeyW", 71, 33, 26, 26, "W", null, 0x57);
-            AddKeyDefinition(layout, "KeyE", 99, 33, 26, 26, "E", null, 0x45);
-            AddKeyDefinition(layout, "KeyR", 127, 33, 26, 26, "R", null, 0x52);
-            AddKeyDefinition(layout, "KeyT", 155, 33, 26, 26, "T", null, 0x54);
-            AddKeyDefinition(layout, "KeyY", 183, 33, 26, 26, "Y", null, 0x59);
-            AddKeyDefinition(layout, "KeyU", 211, 33, 26, 26, "U", null, 0x55);
-            AddKeyDefinition(layout, "KeyI", 239, 33, 26, 26, "I", null, 0x49);
-            AddKeyDefinition(layout, "KeyO", 267, 33, 26, 26, "O", null, 0x4F);
-            AddKeyDefinition(layout, "KeyP", 295, 33, 26, 26, "P", null, 0x50);
-            AddKeyDefinition(layout, "KeyOpenBracket", 323, 33, 26, 26, "[", "{", 0xDB);
-            AddKeyDefinition(layout, "KeyCloseBracket", 351, 33, 26, 26, "]", "}", 0xDD);
-            AddKeyDefinition(layout, "KeyBackslash", 379, 33, 50, 26, "\\", "|", 0xDC);
+            AddKeyDefinition(layout, "KeyTab", 5, 33, 36, 26, "Tab", null, VirtualKeyCodes.VK_TAB, 9);
+            AddKeyDefinition(layout, "KeyQ", 43, 33, 26, 26, "Q", null, VirtualKeyCodes.VK_Q);
+            AddKeyDefinition(layout, "KeyW", 71, 33, 26, 26, "W", null, VirtualKeyCodes.VK_W);
+            AddKeyDefinition(layout, "KeyE", 99, 33, 26, 26, "E", null, VirtualKeyCodes.VK_E);
+            AddKeyDefinition(layout, "KeyR", 127, 33, 26, 26, "R", null, VirtualKeyCodes.VK_R);
+            AddKeyDefinition(layout, "KeyT", 155, 33, 26, 26, "T", null, VirtualKeyCodes.VK_T);
+            AddKeyDefinition(layout, "KeyY", 183, 33, 26, 26, "Y", null, VirtualKeyCodes.VK_Y);
+            AddKeyDefinition(layout, "KeyU", 211, 33, 26, 26, "U", null, VirtualKeyCodes.VK_U);
+            AddKeyDefinition(layout, "KeyI", 239, 33, 26, 26, "I", null, VirtualKeyCodes.VK_I);
+            AddKeyDefinition(layout, "KeyO", 267, 33, 26, 26, "O", null, VirtualKeyCodes.VK_O);
+            AddKeyDefinition(layout, "KeyP", 295, 33, 26, 26, "P", null, VirtualKeyCodes.VK_P);
+            AddKeyDefinition(layout, "KeyOpenBracket", 323, 33, 26, 26, "[", "{", VirtualKeyCodes.VK_OEM_4);
+            AddKeyDefinition(layout, "KeyCloseBracket", 351, 33, 26, 26, "]", "}", VirtualKeyCodes.VK_OEM_6);
+            AddKeyDefinition(layout, "KeyBackslash", 379, 33, 50, 26, "\\", "|", VirtualKeyCodes.VK_OEM_5);
             
             // ASDF行
-            AddKeyDefinition(layout, "KeyCapsLock", 5, 61, 46, 26, "Caps", null, 0x14, 8);
-            AddKeyDefinition(layout, "KeyA", 53, 61, 26, 26, "A", null, 0x41);
-            AddKeyDefinition(layout, "KeyS", 81, 61, 26, 26, "S", null, 0x53);
-            AddKeyDefinition(layout, "KeyD", 109, 61, 26, 26, "D", null, 0x44);
-            AddKeyDefinition(layout, "KeyF", 137, 61, 26, 26, "F", null, 0x46);
-            AddKeyDefinition(layout, "KeyG", 165, 61, 26, 26, "G", null, 0x47);
-            AddKeyDefinition(layout, "KeyH", 193, 61, 26, 26, "H", null, 0x48);
-            AddKeyDefinition(layout, "KeyJ", 221, 61, 26, 26, "J", null, 0x4A);
-            AddKeyDefinition(layout, "KeyK", 249, 61, 26, 26, "K", null, 0x4B);
-            AddKeyDefinition(layout, "KeyL", 277, 61, 26, 26, "L", null, 0x4C);
-            AddKeyDefinition(layout, "KeySemicolon", 305, 61, 26, 26, ";", ":", 0xBA);
-            AddKeyDefinition(layout, "KeyQuote", 333, 61, 26, 26, "'", "\"", 0xDE);
-            AddKeyDefinition(layout, "KeyEnter", 361, 61, 68, 26, "Enter", null, 0x0D, 9);
+            AddKeyDefinition(layout, "KeyCapsLock", 5, 61, 46, 26, "Caps", null, VirtualKeyCodes.VK_CAPITAL, 8);
+            AddKeyDefinition(layout, "KeyA", 53, 61, 26, 26, "A", null, VirtualKeyCodes.VK_A);
+            AddKeyDefinition(layout, "KeyS", 81, 61, 26, 26, "S", null, VirtualKeyCodes.VK_S);
+            AddKeyDefinition(layout, "KeyD", 109, 61, 26, 26, "D", null, VirtualKeyCodes.VK_D);
+            AddKeyDefinition(layout, "KeyF", 137, 61, 26, 26, "F", null, VirtualKeyCodes.VK_F);
+            AddKeyDefinition(layout, "KeyG", 165, 61, 26, 26, "G", null, VirtualKeyCodes.VK_G);
+            AddKeyDefinition(layout, "KeyH", 193, 61, 26, 26, "H", null, VirtualKeyCodes.VK_H);
+            AddKeyDefinition(layout, "KeyJ", 221, 61, 26, 26, "J", null, VirtualKeyCodes.VK_J);
+            AddKeyDefinition(layout, "KeyK", 249, 61, 26, 26, "K", null, VirtualKeyCodes.VK_K);
+            AddKeyDefinition(layout, "KeyL", 277, 61, 26, 26, "L", null, VirtualKeyCodes.VK_L);
+            AddKeyDefinition(layout, "KeySemicolon", 305, 61, 26, 26, ";", ":", VirtualKeyCodes.VK_OEM_1);
+            AddKeyDefinition(layout, "KeyQuote", 333, 61, 26, 26, "'", "\"", VirtualKeyCodes.VK_OEM_7);
+            AddKeyDefinition(layout, "KeyEnter", 361, 61, 68, 26, "Enter", null, VirtualKeyCodes.VK_RETURN, 9);
             
             // ZXCV行
-            AddKeyDefinition(layout, "KeyShift", 5, 89, 58, 26, "Shift", null, 0xA0, 9);
-            AddKeyDefinition(layout, "KeyZ", 65, 89, 26, 26, "Z", null, 0x5A);
-            AddKeyDefinition(layout, "KeyX", 93, 89, 26, 26, "X", null, 0x58);
-            AddKeyDefinition(layout, "KeyC", 121, 89, 26, 26, "C", null, 0x43);
-            AddKeyDefinition(layout, "KeyV", 149, 89, 26, 26, "V", null, 0x56);
-            AddKeyDefinition(layout, "KeyB", 177, 89, 26, 26, "B", null, 0x42);
-            AddKeyDefinition(layout, "KeyN", 205, 89, 26, 26, "N", null, 0x4E);
-            AddKeyDefinition(layout, "KeyM", 233, 89, 26, 26, "M", null, 0x4D);
-            AddKeyDefinition(layout, "KeyComma", 261, 89, 26, 26, ",", "<", 0xBC);
-            AddKeyDefinition(layout, "KeyPeriod", 289, 89, 26, 26, ".", ">", 0xBE);
-            AddKeyDefinition(layout, "KeySlash", 317, 89, 26, 26, "/", "?", 0xBF);
-            AddKeyDefinition(layout, "KeyRightShift", 345, 89, 56, 26, "Shift", null, 0xA1, 8);
-            AddKeyDefinition(layout, "KeyUpArrow", 403, 89, 26, 26, "↑", null, 0x26);
+            AddKeyDefinition(layout, "KeyShift", 5, 89, 58, 26, "Shift", null, VirtualKeyCodes.VK_LSHIFT, 9);
+            AddKeyDefinition(layout, "KeyZ", 65, 89, 26, 26, "Z", null, VirtualKeyCodes.VK_Z);
+            AddKeyDefinition(layout, "KeyX", 93, 89, 26, 26, "X", null, VirtualKeyCodes.VK_X);
+            AddKeyDefinition(layout, "KeyC", 121, 89, 26, 26, "C", null, VirtualKeyCodes.VK_C);
+            AddKeyDefinition(layout, "KeyV", 149, 89, 26, 26, "V", null, VirtualKeyCodes.VK_V);
+            AddKeyDefinition(layout, "KeyB", 177, 89, 26, 26, "B", null, VirtualKeyCodes.VK_B);
+            AddKeyDefinition(layout, "KeyN", 205, 89, 26, 26, "N", null, VirtualKeyCodes.VK_N);
+            AddKeyDefinition(layout, "KeyM", 233, 89, 26, 26, "M", null, VirtualKeyCodes.VK_M);
+            AddKeyDefinition(layout, "KeyComma", 261, 89, 26, 26, ",", "<", VirtualKeyCodes.VK_OEM_COMMA);
+            AddKeyDefinition(layout, "KeyPeriod", 289, 89, 26, 26, ".", ">", VirtualKeyCodes.VK_OEM_PERIOD);
+            AddKeyDefinition(layout, "KeySlash", 317, 89, 26, 26, "/", "?", VirtualKeyCodes.VK_OEM_2);
+            AddKeyDefinition(layout, "KeyRightShift", 345, 89, 56, 26, "Shift", null, VirtualKeyCodes.VK_RSHIFT, 8);
+            AddKeyDefinition(layout, "KeyUpArrow", 403, 89, 26, 26, "↑", null, VirtualKeyCodes.VK_UP);
             
             // 最下段
-            AddKeyDefinition(layout, "KeyCtrl", 5, 117, 32, 26, "Ctrl", null, 0xA2, 8);
-            AddKeyDefinition(layout, "KeyWin", 39, 117, 32, 26, "Win", null, 0x5B, 8);
-            AddKeyDefinition(layout, "KeyAlt", 73, 117, 32, 26, "Alt", null, 0xA4, 8);
-            AddKeyDefinition(layout, "KeySpace", 107, 117, 164, 26, "Space", null, 0x20, 8);
-            AddKeyDefinition(layout, "KeyRightAlt", 273, 117, 32, 26, "Alt", null, 0xA5, 8);
+            AddKeyDefinition(layout, "KeyCtrl", 5, 117, 32, 26, "Ctrl", null, VirtualKeyCodes.VK_LCONTROL, 8);
+            AddKeyDefinition(layout, "KeyWin", 39, 117, 32, 26, "Win", null, VirtualKeyCodes.VK_LWIN, 8);
+            AddKeyDefinition(layout, "KeyAlt", 73, 117, 32, 26, "Alt", null, VirtualKeyCodes.VK_LMENU, 8);
+            AddKeyDefinition(layout, "KeySpace", 107, 117, 164, 26, "Space", null, VirtualKeyCodes.VK_SPACE, 8);
+            AddKeyDefinition(layout, "KeyRightAlt", 273, 117, 32, 26, "Alt", null, VirtualKeyCodes.VK_RMENU, 8);
             AddKeyDefinition(layout, "KeyFn", 307, 117, 32, 26, "Fn", null, 0, 8);
-            AddKeyDefinition(layout, "KeyRightCtrl", 341, 117, 32, 26, "Ctrl", null, 0xA3, 8);
-            AddKeyDefinition(layout, "KeyLeftArrow", 375, 117, 26, 26, "←", null, 0x25);
-            AddKeyDefinition(layout, "KeyDownArrow", 403, 117, 26, 26, "↓", null, 0x28);
+            AddKeyDefinition(layout, "KeyRightCtrl", 341, 117, 32, 26, "Ctrl", null, VirtualKeyCodes.VK_RCONTROL, 8);
+            AddKeyDefinition(layout, "KeyLeftArrow", 375, 117, 26, 26, "←", null, VirtualKeyCodes.VK_LEFT);
+            AddKeyDefinition(layout, "KeyDownArrow", 403, 117, 26, 26, "↓", null, VirtualKeyCodes.VK_DOWN);
             
             // ナビゲーションキー
-            AddKeyDefinition(layout, "KeyHome", 431, 5, 26, 26, "Home", null, 0x24, 7);
-            AddKeyDefinition(layout, "KeyDelete", 431, 33, 26, 26, "Del", null, 0x2E, 8);
-            AddKeyDefinition(layout, "KeyPageUp", 431, 61, 26, 26, "PgUp", null, 0x21, 7);
-            AddKeyDefinition(layout, "KeyPageDown", 431, 89, 26, 26, "PgDn", null, 0x22, 7);
-            AddKeyDefinition(layout, "KeyRightArrow", 431, 117, 26, 26, "→", null, 0x27);
+            AddKeyDefinition(layout, "KeyHome", 431, 5, 26, 26, "Home", null, VirtualKeyCodes.VK_HOME, 7);
+            AddKeyDefinition(layout, "KeyDelete", 431, 33, 26, 26, "Del", null, VirtualKeyCodes.VK_DELETE, 8);
+            AddKeyDefinition(layout, "KeyPageUp", 431, 61, 26, 26, "PgUp", null, VirtualKeyCodes.VK_PRIOR, 7);
+            AddKeyDefinition(layout, "KeyPageDown", 431, 89, 26, 26, "PgDn", null, VirtualKeyCodes.VK_NEXT, 7);
+            AddKeyDefinition(layout, "KeyRightArrow", 431, 117, 26, 26, "→", null, VirtualKeyCodes.VK_RIGHT);
             
             return layout;
         }

@@ -49,14 +49,21 @@ namespace KeyOverlayFPS.Input
         // キー状態検出用定数
         private const short KEY_PRESSED_MASK = unchecked((short)0x8000);
         
-        // よく使用されるキーコード
-        public const int VK_LSHIFT = 0xA0;
-        public const int VK_RSHIFT = 0xA1;
-        public const int VK_LBUTTON = 0x01;
-        public const int VK_RBUTTON = 0x02;
-        public const int VK_MBUTTON = 0x04;
-        public const int VK_XBUTTON1 = 0x05;
-        public const int VK_XBUTTON2 = 0x06;
+        // 旧定数（削除予定: VirtualKeyCodesクラスを使用してください）
+        [Obsolete("VirtualKeyCodes.VK_LSHIFTを使用してください")]
+        public const int VK_LSHIFT = VirtualKeyCodes.VK_LSHIFT;
+        [Obsolete("VirtualKeyCodes.VK_RSHIFTを使用してください")]
+        public const int VK_RSHIFT = VirtualKeyCodes.VK_RSHIFT;
+        [Obsolete("VirtualKeyCodes.VK_LBUTTONを使用してください")]
+        public const int VK_LBUTTON = VirtualKeyCodes.VK_LBUTTON;
+        [Obsolete("VirtualKeyCodes.VK_RBUTTONを使用してください")]
+        public const int VK_RBUTTON = VirtualKeyCodes.VK_RBUTTON;
+        [Obsolete("VirtualKeyCodes.VK_MBUTTONを使用してください")]
+        public const int VK_MBUTTON = VirtualKeyCodes.VK_MBUTTON;
+        [Obsolete("VirtualKeyCodes.VK_XBUTTON1を使用してください")]
+        public const int VK_XBUTTON1 = VirtualKeyCodes.VK_XBUTTON1;
+        [Obsolete("VirtualKeyCodes.VK_XBUTTON2を使用してください")]
+        public const int VK_XBUTTON2 = VirtualKeyCodes.VK_XBUTTON2;
 
         private LayoutConfig? _layoutConfig;
         private readonly Dictionary<KeyboardProfile, (double Left, double Top)> _mousePositions;
