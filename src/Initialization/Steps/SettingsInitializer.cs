@@ -1,5 +1,6 @@
 using KeyOverlayFPS.UI;
 using KeyOverlayFPS.Input;
+using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Initialization.Steps
@@ -15,6 +16,9 @@ namespace KeyOverlayFPS.Initialization.Steps
         {
             // キーボード入力ハンドラーを初期化
             context.KeyboardHandler = new KeyboardInputHandler();
+            
+            // マウストラッカーを初期化
+            context.MouseTracker = new MouseTracker();
             
             // MainWindow設定管理を初期化
             context.Settings = new MainWindowSettings(window, context.SettingsManager);

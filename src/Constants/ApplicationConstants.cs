@@ -166,7 +166,7 @@ namespace KeyOverlayFPS.Constants
             /// <summary>
             /// 方向表示の線幅
             /// </summary>
-            public const double StrokeThickness = 5.0;
+            public const double StrokeThickness = 4.0;
             
             /// <summary>
             /// 方向分割数（32方向）

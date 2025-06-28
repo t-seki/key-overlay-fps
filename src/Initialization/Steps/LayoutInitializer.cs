@@ -19,6 +19,8 @@ namespace KeyOverlayFPS.Initialization.Steps
         {
             if (context.KeyboardHandler == null)
                 throw new InitializationException(Name, "KeyboardHandlerが初期化されていません");
+            if (context.MouseTracker == null)
+                throw new InitializationException(Name, "MouseTrackerが初期化されていません");
 
             // プロファイルに応じたレイアウトファイルを読み込み
             string layoutPath = GetLayoutPath(context.KeyboardHandler.CurrentProfile);
@@ -48,7 +50,7 @@ namespace KeyOverlayFPS.Initialization.Steps
 
             // イベントバインディング
             context.EventBinder = new KeyEventBinder(context.DynamicCanvas, context.CurrentLayout, 
-                context.KeyboardHandler, new MouseTracker());
+                context.KeyboardHandler, context.MouseTracker);
             context.EventBinder.BindAllEvents();
 
             // MainWindowのプロパティに設定

@@ -3,6 +3,7 @@ using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Input;
 using KeyOverlayFPS.UI;
 using KeyOverlayFPS.Layout;
+using KeyOverlayFPS.MouseVisualization;
 using System.Windows.Controls;
 
 namespace KeyOverlayFPS.Initialization
@@ -56,6 +57,11 @@ namespace KeyOverlayFPS.Initialization
         /// 入力処理管理
         /// </summary>
         public MainWindowInput? Input { get; set; }
+        
+        /// <summary>
+        /// マウス移動可視化トラッカー
+        /// </summary>
+        public MouseTracker? MouseTracker { get; set; }
         
         /// <summary>
         /// コンポーネントを取得

@@ -38,6 +38,11 @@ namespace KeyOverlayFPS.UI
         /// UI更新アクション
         /// </summary>
         public Action? UpdateAllTextForegroundAction { get; set; }
+        
+        /// <summary>
+        /// キーボード入力ハンドラーへのアクセス
+        /// </summary>
+        public KeyboardInputHandler KeyboardHandler => _keyboardHandler;
 
         public MainWindowInput(
             Window window,

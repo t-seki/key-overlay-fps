@@ -195,7 +195,6 @@ namespace KeyOverlayFPS.UI
             _fullKeyboardMenuItem.Click += (s, e) => 
             {
                 SwitchProfileAction?.Invoke(KeyboardProfile.FullKeyboard65);
-                UpdateMenuCheckedState();
             };
             
             // FPSキーボード
@@ -208,7 +207,6 @@ namespace KeyOverlayFPS.UI
             _fpsKeyboardMenuItem.Click += (s, e) => 
             {
                 SwitchProfileAction?.Invoke(KeyboardProfile.FPSKeyboard);
-                UpdateMenuCheckedState();
             };
             
             profileMenuItem.Items.Add(_fullKeyboardMenuItem);

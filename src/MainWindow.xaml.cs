@@ -32,9 +32,6 @@ namespace KeyOverlayFPS
         public Action<object, MouseButtonEventArgs>? KeyBorderLeftButtonDownAction { get; private set; }
         public Action<object, MouseButtonEventArgs>? KeyBorderRightButtonDownAction { get; private set; }
         
-        // キーボード入力ハンドラー
-        private readonly KeyboardInputHandler _keyboardHandler = new KeyboardInputHandler();
-
         // 設定管理
         public MainWindowSettings Settings { get; set; } = null!;
         
@@ -47,12 +44,6 @@ namespace KeyOverlayFPS
         // ドラッグ操作関連
         private bool _isDragging = false;
         private Point _dragStartPoint;
-        
-        // 設定管理システム
-        private readonly SettingsManager _settingsManager = SettingsManager.Instance;
-        
-        // マウス移動可視化
-        private readonly MouseTracker _mouseTracker = new();
         
         // 動的レイアウトシステム
         public LayoutConfig? CurrentLayout { get; set; }
@@ -75,63 +66,7 @@ namespace KeyOverlayFPS
             }
         }
         
-        /// <summary>
-        /// 動的レイアウトシステムの初期化
-        /// </summary>
-        private void InitializeDynamicLayoutSystem()
-        {
-            try
-            {
-                // プロファイルに応じたレイアウトファイルを読み込み
-                string layoutPath = GetLayoutPath(_keyboardHandler.CurrentProfile);
-
-                if (!File.Exists(layoutPath))
-                {
-                    throw new FileNotFoundException($"必須レイアウトファイルが見つかりません: {layoutPath}");
-                }
-
-                Logger.Info($"レイアウトファイルを読み込み中: {layoutPath}");
-                CurrentLayout = LayoutManager.ImportLayout(layoutPath);
-
-
-                // UIを動的生成
-                DynamicCanvas = UIGenerator.GenerateCanvas(CurrentLayout, this);
-
-                // 既存のCanvasと置き換え
-                Content = DynamicCanvas;
-
-                // ウィンドウ背景を設定
-                Background = BrushFactory.CreateTransparentBackground();
-
-                // 要素名を登録
-                UIGenerator.RegisterElementNames(DynamicCanvas, this);
-
-                // KeyboardInputHandlerにLayoutConfigを設定
-                _keyboardHandler.SetLayoutConfig(CurrentLayout);
-
-                // イベントバインディング
-                EventBinder = new KeyEventBinder(DynamicCanvas, CurrentLayout, _keyboardHandler, _mouseTracker);
-                EventBinder.BindAllEvents();
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("動的レイアウトシステム初期化でエラーが発生", ex);
-                throw;
-            }
-        }
         
-        /// <summary>
-        /// プロファイルに応じたレイアウトファイルパスを取得
-        /// </summary>
-        private string GetLayoutPath(KeyboardProfile profile)
-        {
-            return profile switch
-            {
-                KeyboardProfile.FPSKeyboard => ApplicationConstants.Paths.FpsLayout,
-                _ => ApplicationConstants.Paths.Keyboard65Layout
-            };
-        }
                 
         private void SetBackgroundColor(Color color, bool transparent)
         {
@@ -183,7 +118,7 @@ namespace KeyOverlayFPS
                 
                 // プロファイルに応じたウィンドウサイズ調整
                 double baseWidth, baseHeight;
-                if (_keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard)
+                if (Input.KeyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard)
                 {
                     baseWidth = Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth;
                     baseHeight = ApplicationConstants.WindowSizes.FpsKeyboardHeight;
@@ -202,7 +137,7 @@ namespace KeyOverlayFPS
         
         private void SwitchProfile(KeyboardProfile profile)
         {
-            _keyboardHandler.CurrentProfile = profile;
+            Input.KeyboardHandler.CurrentProfile = profile;
             ApplyProfileLayout();
             UpdateMousePositions();
             Settings.SaveSettings();
@@ -214,7 +149,7 @@ namespace KeyOverlayFPS
             var canvas = Content as Canvas;
             if (canvas == null) return;
             
-            switch (_keyboardHandler.CurrentProfile)
+            switch (Input.KeyboardHandler.CurrentProfile)
             {
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();
@@ -345,7 +280,7 @@ namespace KeyOverlayFPS
         
         internal void UpdateMousePositions()
         {
-            var position = _keyboardHandler.GetMousePosition(_keyboardHandler.CurrentProfile);
+            var position = Input.KeyboardHandler.GetMousePosition(Input.KeyboardHandler.CurrentProfile);
             
             // 全マウス要素の位置を一括更新
             foreach (var (elementName, offset) in MouseElements.Offsets)
@@ -475,13 +410,6 @@ namespace KeyOverlayFPS
             menu.SwitchProfileAction = SwitchProfile;
         }
         
-        /// <summary>
-        /// 入力処理アクションを初期化
-        /// </summary>
-        private void InitializeInputActions()
-        {
-            Input.UpdateAllTextForegroundAction = UpdateAllTextForeground;
-        }
         
         /// <summary>
         /// イベント委譲アクションを初期化
