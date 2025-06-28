@@ -15,6 +15,7 @@ using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.UI;
 using KeyOverlayFPS.Utils;
+using KeyOverlayFPS.Initialization;
 using System.Windows.Shapes;
 
 namespace KeyOverlayFPS
@@ -35,13 +36,13 @@ namespace KeyOverlayFPS
         private readonly KeyboardInputHandler _keyboardHandler = new KeyboardInputHandler();
 
         // 設定管理
-        private readonly MainWindowSettings _settings;
+        public MainWindowSettings Settings { get; set; } = null!;
         
         // メニュー管理
-        private readonly MainWindowMenu _menu;
+        public MainWindowMenu Menu { get; set; } = null!;
         
         // 入力処理管理
-        private MainWindowInput _input;
+        public MainWindowInput Input { get; set; } = null!;
         
         // ドラッグ操作関連
         private bool _isDragging = false;
@@ -54,9 +55,9 @@ namespace KeyOverlayFPS
         private readonly MouseTracker _mouseTracker = new();
         
         // 動的レイアウトシステム
-        private LayoutConfig? _currentLayout;
-        private KeyEventBinder? _eventBinder;
-        private Canvas? _dynamicCanvas;
+        public LayoutConfig? CurrentLayout { get; set; }
+        public KeyEventBinder? EventBinder { get; set; }
+        public Canvas? DynamicCanvas { get; set; }
         
         // マウス方向可視化設定はApplicationConstants.MouseVisualizationに移動済み
 
@@ -64,66 +65,12 @@ namespace KeyOverlayFPS
         {
             try
             {
-                InitializeComponent();
-                
-                // 設定管理システムを初期化
-                _settings = new MainWindowSettings(this, _settingsManager);
-                _settings.SettingsChanged += OnSettingsChanged;
-                
-                // メニュー管理システムを初期化
-                _menu = new MainWindowMenu(this, _settings, _keyboardHandler);
-                InitializeMenuActions();
-                
-                // イベント委譲アクションを初期化
-                InitializeEventActions();
-                
-                // 設定システム初期化
-                Logger.Info("設定システム初期化開始");
-                _settings.Initialize();
-                Logger.Info("設定システム初期化完了");
-                
-                // 動的レイアウトシステムを初期化
-                Logger.Info("動的レイアウトシステム初期化開始");
-                InitializeDynamicLayoutSystem();
-                Logger.Info("動的レイアウトシステム初期化完了");
-                
-                // 入力処理管理システムを初期化
-                Logger.Info("入力処理システム初期化開始");
-                // ブラシを統一ファクトリーから初期化
-                var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
-                _input = new MainWindowInput(this, _settings, _keyboardHandler, _mouseTracker, _eventBinder, keyboardKeyBackgroundBrush);
-                InitializeInputActions();
-                _input.Start();
-                Logger.Info("入力処理システム初期化完了");
-
-                // イベントハンドラー設定
-                Logger.Info("イベントハンドラー設定開始");
-                MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
-                MouseMove += MainWindow_MouseMove;
-                MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
-                this.MouseWheel += MainWindow_MouseWheel;
-                Logger.Info("イベントハンドラー設定完了");
-                
-                // コンテキストメニュー設定
-                Logger.Info("コンテキストメニュー設定開始");
-                _menu.SetupContextMenu();
-                Logger.Info("コンテキストメニュー設定完了");
-                
-                // アプリケーション終了時に設定を保存
-                Logger.Info("終了時処理設定");
-                Application.Current.Exit += (s, e) => _settingsManager.Save();
-                
-                // 設定適用
-                Logger.Info("設定適用開始");
-                ApplyProfileLayout();
-                ApplyDisplayScale();
-                UpdateMousePositions();
-                UpdateAllTextForeground();
-                Logger.Info("設定適用完了");
+                var initializer = new WindowInitializer();
+                initializer.Initialize(this);
             }
             catch (Exception ex)
             {
-                Logger.Error("MainWindow コンストラクタでエラーが発生", ex);
+                Logger.Error("MainWindow 初期化でエラーが発生", ex);
                 throw;
             }
         }
@@ -144,27 +91,27 @@ namespace KeyOverlayFPS
                 }
 
                 Logger.Info($"レイアウトファイルを読み込み中: {layoutPath}");
-                _currentLayout = LayoutManager.ImportLayout(layoutPath);
+                CurrentLayout = LayoutManager.ImportLayout(layoutPath);
 
 
                 // UIを動的生成
-                _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
+                DynamicCanvas = UIGenerator.GenerateCanvas(CurrentLayout, this);
 
                 // 既存のCanvasと置き換え
-                Content = _dynamicCanvas;
+                Content = DynamicCanvas;
 
                 // ウィンドウ背景を設定
                 Background = BrushFactory.CreateTransparentBackground();
 
                 // 要素名を登録
-                UIGenerator.RegisterElementNames(_dynamicCanvas, this);
+                UIGenerator.RegisterElementNames(DynamicCanvas, this);
 
                 // KeyboardInputHandlerにLayoutConfigを設定
-                _keyboardHandler.SetLayoutConfig(_currentLayout);
+                _keyboardHandler.SetLayoutConfig(CurrentLayout);
 
                 // イベントバインディング
-                _eventBinder = new KeyEventBinder(_dynamicCanvas, _currentLayout, _keyboardHandler, _mouseTracker);
-                _eventBinder.BindAllEvents();
+                EventBinder = new KeyEventBinder(DynamicCanvas, CurrentLayout, _keyboardHandler, _mouseTracker);
+                EventBinder.BindAllEvents();
 
             }
             catch (Exception ex)
@@ -188,28 +135,28 @@ namespace KeyOverlayFPS
                 
         private void SetBackgroundColor(Color color, bool transparent)
         {
-            _settings.SetBackgroundColor(color, transparent);
+            Settings.SetBackgroundColor(color, transparent);
         }
         
         private void SetForegroundColor(Color color)
         {
-            _settings.SetForegroundColor(color);
+            Settings.SetForegroundColor(color);
             UpdateAllTextForeground();
         }
         
         private void SetHighlightColor(Color color)
         {
-            _settings.SetHighlightColor(color);
+            Settings.SetHighlightColor(color);
         }
         
         private void ToggleTopmost()
         {
-            _settings.ToggleTopmost();
+            Settings.ToggleTopmost();
         }
         
         private void ToggleMouseVisibility()
         {
-            _settings.ToggleMouseVisibility();
+            Settings.ToggleMouseVisibility();
             UpdateMouseVisibility();
         }
         
@@ -221,34 +168,34 @@ namespace KeyOverlayFPS
         
         private void SetDisplayScale(double scale)
         {
-            _settings.SetDisplayScale(scale);
+            Settings.SetDisplayScale(scale);
             ApplyDisplayScale();
         }
         
-        private void ApplyDisplayScale()
+        internal void ApplyDisplayScale()
         {
             var canvas = Content as Canvas;
             if (canvas != null)
             {
                 // Canvas全体にスケール変換を適用
-                var transform = new ScaleTransform(_settings.DisplayScale, _settings.DisplayScale);
+                var transform = new ScaleTransform(Settings.DisplayScale, Settings.DisplayScale);
                 canvas.RenderTransform = transform;
                 
                 // プロファイルに応じたウィンドウサイズ調整
                 double baseWidth, baseHeight;
                 if (_keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard)
                 {
-                    baseWidth = _settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth;
+                    baseWidth = Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth;
                     baseHeight = ApplicationConstants.WindowSizes.FpsKeyboardHeight;
                 }
                 else
                 {
-                    baseWidth = _settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth;
+                    baseWidth = Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth;
                     baseHeight = ApplicationConstants.WindowSizes.FullKeyboardHeight;
                 }
                 
-                Width = baseWidth * _settings.DisplayScale;
-                Height = baseHeight * _settings.DisplayScale;
+                Width = baseWidth * Settings.DisplayScale;
+                Height = baseHeight * Settings.DisplayScale;
             }
         }
         
@@ -258,11 +205,11 @@ namespace KeyOverlayFPS
             _keyboardHandler.CurrentProfile = profile;
             ApplyProfileLayout();
             UpdateMousePositions();
-            _settings.SaveSettings();
-            _menu.UpdateMenuCheckedState();
+            Settings.SaveSettings();
+            Menu.UpdateMenuCheckedState();
         }
         
-        private void ApplyProfileLayout()
+        internal void ApplyProfileLayout()
         {
             var canvas = Content as Canvas;
             if (canvas == null) return;
@@ -272,15 +219,15 @@ namespace KeyOverlayFPS
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();
                     // ウィンドウサイズ調整
-                    Width = (_settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth) * _settings.DisplayScale;
-                    Height = ApplicationConstants.WindowSizes.FullKeyboardHeight * _settings.DisplayScale;
+                    Width = (Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth) * Settings.DisplayScale;
+                    Height = ApplicationConstants.WindowSizes.FullKeyboardHeight * Settings.DisplayScale;
                     break;
                     
                 case KeyboardProfile.FPSKeyboard:
                     ShowFPSKeyboardLayout();
                     // ウィンドウサイズ調整（FPS用サイズ、マウス表示考慮）
-                    Width = (_settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth) * _settings.DisplayScale;
-                    Height = ApplicationConstants.WindowSizes.FpsKeyboardHeight * _settings.DisplayScale;
+                    Width = (Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth) * Settings.DisplayScale;
+                    Height = ApplicationConstants.WindowSizes.FpsKeyboardHeight * Settings.DisplayScale;
                     break;
             }
         }
@@ -379,12 +326,12 @@ namespace KeyOverlayFPS
             if (element is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
             {
                 // マウス移動可視化キャンバス
-                element.Visibility = _settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                element.Visibility = Settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
             }
             else
             {
                 // マウス本体や他のマウス要素
-                element.Visibility = _settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                element.Visibility = Settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
             }
         }
         
@@ -393,10 +340,10 @@ namespace KeyOverlayFPS
         /// </summary>
         private T? GetCachedElement<T>(string name) where T : FrameworkElement
         {
-            return _eventBinder?.FindElement<T>(name);
+            return EventBinder?.FindElement<T>(name);
         }
         
-        private void UpdateMousePositions()
+        internal void UpdateMousePositions()
         {
             var position = _keyboardHandler.GetMousePosition(_keyboardHandler.CurrentProfile);
             
@@ -412,7 +359,7 @@ namespace KeyOverlayFPS
             }
         }
 
-        private void UpdateAllTextForeground()
+        internal void UpdateAllTextForeground()
         {
             // Canvas内のすべてのTextBlockを探してフォアグラウンド色を更新
             var canvas = Content as Canvas;
@@ -432,7 +379,7 @@ namespace KeyOverlayFPS
         {
             if (border.Child is TextBlock textBlock)
             {
-                textBlock.Foreground = _settings.ForegroundBrush;
+                textBlock.Foreground = Settings.ForegroundBrush;
             }
             else if (border.Child is StackPanel stackPanel)
             {
@@ -440,7 +387,7 @@ namespace KeyOverlayFPS
                 {
                     if (child is TextBlock tb)
                     {
-                        tb.Foreground = _settings.ForegroundBrush;
+                        tb.Foreground = Settings.ForegroundBrush;
                     }
                 }
             }
@@ -456,12 +403,12 @@ namespace KeyOverlayFPS
             CaptureMouse();
         }
         
-        private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        internal void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             StartDrag(e);
         }
 
-        private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+        internal void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
             if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
             {
@@ -474,7 +421,7 @@ namespace KeyOverlayFPS
             }
         }
 
-        private void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        internal void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (_isDragging)
             {
@@ -509,23 +456,23 @@ namespace KeyOverlayFPS
             e.Handled = true;
         }
         
-        private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
+        internal void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            _input.HandleMouseWheel(e.Delta);
+            Input.HandleMouseWheel(e.Delta);
         }
         
         /// <summary>
         /// メニューアクションを初期化
         /// </summary>
-        private void InitializeMenuActions()
+        internal void InitializeMenuActions(MainWindowMenu menu)
         {
-            _menu.SetBackgroundColorAction = SetBackgroundColor;
-            _menu.SetForegroundColorAction = SetForegroundColor;
-            _menu.SetHighlightColorAction = SetHighlightColor;
-            _menu.ToggleTopmostAction = ToggleTopmost;
-            _menu.ToggleMouseVisibilityAction = ToggleMouseVisibility;
-            _menu.SetDisplayScaleAction = SetDisplayScale;
-            _menu.SwitchProfileAction = SwitchProfile;
+            menu.SetBackgroundColorAction = SetBackgroundColor;
+            menu.SetForegroundColorAction = SetForegroundColor;
+            menu.SetHighlightColorAction = SetHighlightColor;
+            menu.ToggleTopmostAction = ToggleTopmost;
+            menu.ToggleMouseVisibilityAction = ToggleMouseVisibility;
+            menu.SetDisplayScaleAction = SetDisplayScale;
+            menu.SwitchProfileAction = SwitchProfile;
         }
         
         /// <summary>
@@ -533,13 +480,13 @@ namespace KeyOverlayFPS
         /// </summary>
         private void InitializeInputActions()
         {
-            _input.UpdateAllTextForegroundAction = UpdateAllTextForeground;
+            Input.UpdateAllTextForegroundAction = UpdateAllTextForeground;
         }
         
         /// <summary>
         /// イベント委譲アクションを初期化
         /// </summary>
-        private void InitializeEventActions()
+        internal void InitializeEventActions()
         {
             CanvasLeftButtonDownAction = MainWindow_MouseLeftButtonDown;
             CanvasMoveAction = MainWindow_MouseMove;
@@ -552,10 +499,10 @@ namespace KeyOverlayFPS
         /// <summary>
         /// 設定変更時のイベントハンドラー
         /// </summary>
-        private void OnSettingsChanged(object? sender, EventArgs e)
+        internal void OnSettingsChanged(object? sender, EventArgs e)
         {
             // メニューのチェック状態を更新
-            _menu.UpdateMenuCheckedState();
+            Menu.UpdateMenuCheckedState();
         }
     }
 }

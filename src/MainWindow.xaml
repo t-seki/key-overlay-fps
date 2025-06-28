@@ -12,6 +12,6 @@
         Background="Transparent">
     
     <!-- 動的に生成されるCanvas - C#コードで完全置き換え -->
-    <Canvas x:Name="DynamicCanvas" Margin="8" Background="Transparent" />
+    <Canvas Margin="8" Background="Transparent" />
     
 </Window>

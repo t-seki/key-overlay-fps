@@ -52,7 +52,7 @@ namespace KeyOverlayFPS.Constants
             /// <summary>
             /// マウス方向表示の自動非表示時間（ミリ秒）
             /// </summary>
-            public const double DirectionHideDelay = 100;
+            public const double DirectionHideDelay = 200;
             
             /// <summary>
             /// スクロール表示の持続フレーム数
@@ -166,7 +166,7 @@ namespace KeyOverlayFPS.Constants
             /// <summary>
             /// 方向表示の線幅
             /// </summary>
-            public const double StrokeThickness = 3.0;
+            public const double StrokeThickness = 5.0;
             
             /// <summary>
             /// 方向分割数（32方向）
