@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using YamlDotNet.Serialization;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Colors;
@@ -33,8 +32,6 @@ namespace KeyOverlayFPS
         private readonly Brush _inactiveBrush;
         private readonly Brush _keyboardKeyDefaultBrush;
         
-        // UIエレメントキャッシュ
-        private readonly Dictionary<string, FrameworkElement> _elementCache = new();
         // スクロール表示色（ハイライト色と同じ）
         private bool _isDragging = false;
         private Point _dragStartPoint;
@@ -281,53 +278,6 @@ namespace KeyOverlayFPS
                 indicator.Opacity = 0.0;
             }
         }
-        
-        private void InitializeKeyboardKeyBackgrounds()
-        {
-            var canvas = Content as Canvas;
-            if (canvas == null) return;
-            
-            foreach (UIElement child in canvas.Children)
-            {
-                if (child is Border border && !string.IsNullOrEmpty(border.Name) && !IsMouseElement(border.Name))
-                {
-                    // マウス要素以外のBorderの背景をキーボードキー用背景に設定
-                    border.Background = _keyboardKeyDefaultBrush;
-                }
-            }
-        }
-        
-        private void InitializeMouseVisualization()
-        {
-            var canvas = GetCachedElement<Canvas>("MouseDirectionCanvas");
-            if (canvas == null) return;
-            
-            // Canvasサイズを設定
-            canvas.Width = ApplicationConstants.MouseVisualization.CanvasSize;
-            canvas.Height = ApplicationConstants.MouseVisualization.CanvasSize;
-            
-            // 基準円と中心点を作成
-            DirectionArcGenerator.CreateBaseCircleAndCenter(canvas);
-            
-            // 32方向の円弧を一括生成
-            var indicators = DirectionArcGenerator.CreateAllDirectionArcs(canvas);
-            foreach (var (direction, path) in indicators)
-            {
-                _directionIndicators[direction] = path;
-            }
-            
-            // マウストラッカーのイベントハンドラを登録
-            _mouseTracker.MouseMoved += OnMouseMoved;
-            
-            // 方向表示を非表示にするタイマーを初期化
-            _directionHideTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.DirectionHideDelay)
-            };
-            _directionHideTimer.Tick += OnDirectionHideTimer_Tick;
-        }
-        
-        // CreateDirectionArcメソッドはDirectionArcGenerator.csに移動済み
 
         private void SetupContextMenu()
         {
@@ -693,19 +643,11 @@ namespace KeyOverlayFPS
         private static bool IsMouseElement(string elementName) => MouseElements.Names.Contains(elementName);
         
         /// <summary>
-        /// キャッシュ付きでUIエレメントを取得
+        /// UIエレメントを取得（KeyEventBinderのキャッシュを使用）
         /// </summary>
         private T? GetCachedElement<T>(string name) where T : FrameworkElement
         {
-            if (!_elementCache.TryGetValue(name, out var element))
-            {
-                element = FindName(name) as T;
-                if (element != null)
-                {
-                    _elementCache[name] = element;
-                }
-            }
-            return element as T;
+            return _eventBinder?.FindElement<T>(name);
         }
         
         private void UpdateMousePositions()

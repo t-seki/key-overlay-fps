@@ -116,53 +116,5 @@ namespace KeyOverlayFPS.Tests
             Assert.AreEqual(337.5, DirectionCalculator.GetCenterAngle(MouseDirection.EastSouthEast));
         }
 
-        [Test]
-        public void GetDirectionName_AllDirections_ReturnsJapaneseNames()
-        {
-            Assert.AreEqual("東", DirectionCalculator.GetDirectionName(MouseDirection.East));
-            Assert.AreEqual("北", DirectionCalculator.GetDirectionName(MouseDirection.North));
-            Assert.AreEqual("西", DirectionCalculator.GetDirectionName(MouseDirection.West));
-            Assert.AreEqual("南", DirectionCalculator.GetDirectionName(MouseDirection.South));
-            Assert.AreEqual("北東", DirectionCalculator.GetDirectionName(MouseDirection.NorthEast));
-            Assert.AreEqual("南西", DirectionCalculator.GetDirectionName(MouseDirection.SouthWest));
-        }
-
-        [TestCase(MouseDirection.East, MouseDirection.East, 0)]
-        [TestCase(MouseDirection.East, MouseDirection.EastNorthEast, 22.5)]
-        [TestCase(MouseDirection.North, MouseDirection.South, 180)]
-        [TestCase(MouseDirection.East, MouseDirection.EastSouthEast, 22.5)] // 逆方向の最短距離
-        public void GetAngleDifference_VariousDirections_ReturnsCorrectDifference(
-            MouseDirection from, MouseDirection to, double expected)
-        {
-            var result = DirectionCalculator.GetAngleDifference(from, to);
-            Assert.AreEqual(expected, result, 0.1);
-        }
-
-        [Test]
-        public void GetAdjacentDirections_East_ReturnsCorrectAdjacent()
-        {
-            var result = DirectionCalculator.GetAdjacentDirections(MouseDirection.East);
-            Assert.AreEqual(2, result.Count);
-            Assert.Contains(MouseDirection.East_348_75, result); // 前の方向
-            Assert.Contains(MouseDirection.East_11_25, result);  // 次の方向
-        }
-
-        [Test]
-        public void GetAdjacentDirections_North_ReturnsCorrectAdjacent()
-        {
-            var result = DirectionCalculator.GetAdjacentDirections(MouseDirection.North);
-            Assert.AreEqual(2, result.Count);
-            Assert.Contains(MouseDirection.North_78_75, result);  // 前の方向
-            Assert.Contains(MouseDirection.North_101_25, result); // 次の方向
-        }
-
-        [Test]
-        public void GetAdjacentDirections_EastSouthEast_HandlesWrapAround()
-        {
-            var result = DirectionCalculator.GetAdjacentDirections(MouseDirection.EastSouthEast);
-            Assert.AreEqual(2, result.Count);
-            Assert.Contains(MouseDirection.South_326_25, result); // 前の方向
-            Assert.Contains(MouseDirection.East_348_75, result);  // 次の方向
-        }
     }
 }

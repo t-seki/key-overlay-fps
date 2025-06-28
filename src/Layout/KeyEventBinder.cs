@@ -292,58 +292,5 @@ namespace KeyOverlayFPS.Layout
 
         #endregion
 
-        /// <summary>
-        /// イベントハンドラーを解除
-        /// </summary>
-        public void UnbindAllEvents()
-        {
-            // Canvas イベント解除
-            _canvas.MouseRightButtonDown -= Canvas_MouseRightButtonDown;
-            _canvas.MouseLeftButtonDown -= Canvas_MouseLeftButtonDown;
-            _canvas.MouseMove -= Canvas_MouseMove;
-            _canvas.MouseLeftButtonUp -= Canvas_MouseLeftButtonUp;
-            _canvas.MouseWheel -= Canvas_MouseWheel;
-
-            // キーボードイベント解除
-            if (_layout.Keys != null)
-            {
-                foreach (var (keyName, keyDef) in _layout.Keys)
-                {
-                    if (!keyDef.IsVisible) continue;
-
-                    var keyBorder = FindElement<Border>(keyName);
-                    if (keyBorder != null)
-                    {
-                        keyBorder.MouseLeftButtonDown -= KeyBorder_MouseLeftButtonDown;
-                        keyBorder.MouseRightButtonDown -= KeyBorder_MouseRightButtonDown;
-                    }
-                }
-            }
-
-            // マウスイベント解除
-            if (_layout.Mouse?.Buttons != null)
-            {
-                foreach (var (buttonName, buttonConfig) in _layout.Mouse.Buttons)
-                {
-                    if (!buttonConfig.IsVisible) continue;
-
-                    var buttonBorder = FindElement<Border>(buttonName);
-                    if (buttonBorder != null)
-                    {
-                        buttonBorder.MouseLeftButtonDown -= MouseButton_MouseLeftButtonDown;
-                        buttonBorder.MouseRightButtonDown -= MouseButton_MouseRightButtonDown;
-                    }
-                }
-            }
-
-            // マウストラッカーイベント解除
-            if (_mouseTracker != null)
-            {
-                _mouseTracker.MouseMoved -= OnMouseMoved;
-            }
-
-            // キャッシュクリア
-            _elementCache.Clear();
-        }
     }
 }
