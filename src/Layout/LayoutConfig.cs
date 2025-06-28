@@ -35,11 +35,6 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         public WindowSettings Window { get; set; } = new();
 
-        /// <summary>
-        /// 個別要素設定（グローバル設定を上書き可能）- 後方互換性用
-        /// </summary>
-        [YamlIgnore]
-        public Dictionary<string, ElementConfig> Elements { get; set; } = new();
     }
 
     /// <summary>
@@ -305,41 +300,6 @@ namespace KeyOverlayFPS.Layout
         public double WindowHeight { get; set; } = 160;
     }
 
-    /// <summary>
-    /// 個別要素設定
-    /// </summary>
-    public class ElementConfig
-    {
-        /// <summary>
-        /// X座標
-        /// </summary>
-        public double X { get; set; }
-
-        /// <summary>
-        /// Y座標
-        /// </summary>
-        public double Y { get; set; }
-
-        /// <summary>
-        /// 表示テキスト
-        /// </summary>
-        public string? Text { get; set; }
-
-        /// <summary>
-        /// サイズ（nullの場合はグローバル設定使用）
-        /// </summary>
-        public SizeConfig? Size { get; set; }
-
-        /// <summary>
-        /// フォントサイズ（nullの場合はグローバル設定使用）
-        /// </summary>
-        public int? FontSize { get; set; }
-
-        /// <summary>
-        /// 表示可否
-        /// </summary>
-        public bool IsVisible { get; set; } = true;
-    }
 
     /// <summary>
     /// サイズ設定

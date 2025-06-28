@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -320,8 +317,6 @@ namespace KeyOverlayFPS
             contextMenu.Items.Add(CreateViewOptionsMenu());
             contextMenu.Items.Add(CreateProfileMenu());
             contextMenu.Items.Add(new Separator());
-            contextMenu.Items.Add(CreateLayoutManagementMenu());
-            contextMenu.Items.Add(new Separator());
             contextMenu.Items.Add(CreateExitMenu());
             
             ContextMenu = contextMenu;
@@ -443,183 +438,9 @@ namespace KeyOverlayFPS
             return profileMenuItem;
         }
         
-        private MenuItem CreateLayoutManagementMenu()
-        {
-            var layoutMenuItem = new MenuItem { Header = "レイアウト管理" };
-            
-            var layoutEditorItem = new MenuItem { Header = "レイアウトエディター" };
-            layoutEditorItem.Click += (s, e) => OpenLayoutEditor();
-            
-            layoutMenuItem.Items.Add(layoutEditorItem);
-            
-            return layoutMenuItem;
-        }
         
-        private void OpenLayoutEditor()
-        {
-            try
-            {
-                var layoutEditor = new KeyOverlayFPS.Layout.LayoutEditorWindow();
-                var result = layoutEditor.ShowDialog();
-                
-                if (result == true && layoutEditor.Result != null)
-                {
-                    // レイアウトを実際のUIに適用
-                    if (ApplyLayoutToMainWindow(layoutEditor.Result))
-                    {
-                        MessageBox.Show("レイアウトが適用されました。", "適用完了", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("レイアウトの適用中にエラーが発生しました。デフォルト設定に戻します。", "適用エラー", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"レイアウトエディターの起動に失敗しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
         
-        /// <summary>
-        /// レイアウト設定をMainWindowに適用
-        /// </summary>
-        /// <param name="layout">適用するレイアウト設定</param>
-        /// <returns>成功時true、失敗時false</returns>
-        private bool ApplyLayoutToMainWindow(KeyOverlayFPS.Layout.LayoutConfig layout)
-        {
-            if (layout == null) return false;
-            
-            try
-            {
-                // 1. タイマーを一時停止（スレッドセーフのため）
-                bool wasTimerEnabled = _timer.IsEnabled;
-                if (wasTimerEnabled)
-                {
-                    _timer.Stop();
-                }
-                
-                // 2. ウィンドウサイズを適用
-                if (layout.Global != null)
-                {
-                    Width = layout.Global.WindowWidth;
-                    Height = layout.Global.WindowHeight;
-                }
-                
-                // 3. 各要素の設定を適用
-                if (layout.Elements != null && layout.Global != null)
-                {
-                    foreach (var element in layout.Elements)
-                    {
-                        var elementName = element.Key;
-                        var config = element.Value;
-                        
-                        if (!ApplyElementConfig(elementName, config, layout.Global))
-                        {
-                            // 個別要素の適用に失敗した場合でも続行
-                            System.Diagnostics.Debug.WriteLine($"Warning: Failed to apply config for element: {elementName}");
-                        }
-                    }
-                }
-                
-                // 4. タイマーを再開
-                if (wasTimerEnabled)
-                {
-                    _timer.Start();
-                }
-                
-                return true;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error applying layout: {ex.Message}");
-                
-                // エラー時もタイマーを確実に再開
-                if (!_timer.IsEnabled)
-                {
-                    _timer.Start();
-                }
-                
-                return false;
-            }
-        }
         
-        /// <summary>
-        /// 個別要素にレイアウト設定を適用
-        /// </summary>
-        /// <param name="elementName">要素名</param>
-        /// <param name="config">要素設定</param>
-        /// <param name="globalSettings">グローバル設定</param>
-        /// <returns>成功時true、失敗時false</returns>
-        private bool ApplyElementConfig(string elementName, KeyOverlayFPS.Layout.ElementConfig config, KeyOverlayFPS.Layout.GlobalSettings globalSettings)
-        {
-            if (config == null || globalSettings == null) return false;
-            
-            try
-            {
-                // Border要素を取得
-                var borderElement = FindName(elementName) as Border;
-                if (borderElement == null) return false;
-                
-                // 表示/非表示を設定
-                borderElement.Visibility = config.IsVisible ? Visibility.Visible : Visibility.Collapsed;
-                
-                // 位置を設定
-                Canvas.SetLeft(borderElement, config.X);
-                Canvas.SetTop(borderElement, config.Y);
-                
-                // サイズを設定（個別設定優先、なければグローバル設定）
-                var size = config.Size ?? globalSettings.KeySize;
-                if (size != null)
-                {
-                    borderElement.Width = size.Width;
-                    borderElement.Height = size.Height;
-                }
-                
-                // TextBlock要素を取得してテキスト・フォント設定を適用
-                var textElement = FindName(elementName + "Text") as TextBlock;
-                if (textElement != null)
-                {
-                    // テキストを設定
-                    if (!string.IsNullOrEmpty(config.Text))
-                    {
-                        textElement.Text = config.Text;
-                    }
-                    
-                    // フォントサイズを設定（個別設定優先、なければグローバル設定）
-                    var fontSize = config.FontSize ?? globalSettings.FontSize;
-                    textElement.FontSize = fontSize;
-                    
-                    // フォントファミリーを設定
-                    if (!string.IsNullOrEmpty(globalSettings.FontFamily))
-                    {
-                        textElement.FontFamily = new System.Windows.Media.FontFamily(globalSettings.FontFamily);
-                    }
-                    
-                    // 前景色を設定
-                    if (!string.IsNullOrEmpty(globalSettings.ForegroundColor))
-                    {
-                        try
-                        {
-                            var color = (Color)ColorConverter.ConvertFromString(globalSettings.ForegroundColor);
-                            textElement.Foreground = new SolidColorBrush(color);
-                        }
-                        catch
-                        {
-                            // 色変換エラー時はデフォルトを使用
-                            textElement.Foreground = Brushes.White;
-                        }
-                    }
-                }
-                
-                return true;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error applying element config for {elementName}: {ex.Message}");
-                return false;
-            }
-        }
         
         private MenuItem CreateExitMenu()
         {

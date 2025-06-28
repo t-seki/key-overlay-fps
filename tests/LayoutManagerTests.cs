@@ -40,7 +40,7 @@ namespace KeyOverlayFPS.Tests
             var content = File.ReadAllText(_testFilePath);
             Assert.IsNotEmpty(content);
             Assert.IsTrue(content.Contains("global:"));
-            Assert.IsTrue(content.Contains("elements:"));
+            Assert.IsTrue(content.Contains("keys:"));
         }
 
         [Test]
@@ -56,7 +56,7 @@ namespace KeyOverlayFPS.Tests
             Assert.AreEqual(originalLayout.Global.KeySize.Width, importedLayout.Global.KeySize.Width);
             Assert.AreEqual(originalLayout.Global.KeySize.Height, importedLayout.Global.KeySize.Height);
             Assert.AreEqual(originalLayout.Global.BackgroundColor, importedLayout.Global.BackgroundColor);
-            Assert.AreEqual(originalLayout.Elements.Count, importedLayout.Elements.Count);
+            Assert.AreEqual(originalLayout.Keys.Count, importedLayout.Keys.Count);
         }
 
         [Test]
@@ -81,10 +81,10 @@ namespace KeyOverlayFPS.Tests
             var invalidYaml = @"
 global:
   fontSize: -1  # 無効な値
-elements:
+keys:
   KeyA:
-    x: 10
-    y: 20
+    position: { x: 10, y: 20 }
+    text: ""A""
 ";
             File.WriteAllText(_testFilePath, invalidYaml);
 
@@ -98,22 +98,21 @@ elements:
 
             Assert.IsNotNull(layout);
             Assert.IsNotNull(layout.Global);
-            Assert.IsNotNull(layout.Elements);
-            Assert.Greater(layout.Elements.Count, 0);
+            Assert.IsNotNull(layout.Keys);
+            Assert.Greater(layout.Keys.Count, 0);
 
             // 主要キーの存在確認
-            Assert.IsTrue(layout.Elements.ContainsKey("KeyA"));
-            Assert.IsTrue(layout.Elements.ContainsKey("KeySpace"));
-            Assert.IsTrue(layout.Elements.ContainsKey("KeyEnter"));
-            Assert.IsTrue(layout.Elements.ContainsKey("MouseBody"));
+            Assert.IsTrue(layout.Keys.ContainsKey("KeyA"));
+            Assert.IsTrue(layout.Keys.ContainsKey("KeySpace"));
+            Assert.IsTrue(layout.Keys.ContainsKey("KeyEnter"));
 
             // サイズの異なるキーの確認
-            Assert.IsNotNull(layout.Elements["KeySpace"].Size);
-            Assert.AreEqual(164, layout.Elements["KeySpace"].Size.Width);
-            Assert.AreEqual(26, layout.Elements["KeySpace"].Size.Height);
+            Assert.IsNotNull(layout.Keys["KeySpace"].Size);
+            Assert.AreEqual(164, layout.Keys["KeySpace"].Size.Width);
+            Assert.AreEqual(26, layout.Keys["KeySpace"].Size.Height);
 
-            Assert.IsNotNull(layout.Elements["KeyShift"].Size);
-            Assert.AreEqual(58, layout.Elements["KeyShift"].Size.Width);
+            Assert.IsNotNull(layout.Keys["KeyShift"].Size);
+            Assert.AreEqual(58, layout.Keys["KeyShift"].Size.Width);
         }
 
         [Test]
@@ -123,25 +122,24 @@ elements:
 
             Assert.IsNotNull(layout);
             Assert.IsNotNull(layout.Global);
-            Assert.IsNotNull(layout.Elements);
+            Assert.IsNotNull(layout.Keys);
 
             // FPS用ウィンドウサイズ確認
             Assert.AreEqual(520, layout.Global.WindowWidth);
             Assert.AreEqual(160, layout.Global.WindowHeight);
 
             // FPSで必要なキーが表示状態
-            Assert.IsTrue(layout.Elements["KeyW"].IsVisible);
-            Assert.IsTrue(layout.Elements["KeyA"].IsVisible);
-            Assert.IsTrue(layout.Elements["KeyS"].IsVisible);
-            Assert.IsTrue(layout.Elements["KeyD"].IsVisible);
-            Assert.IsTrue(layout.Elements["KeySpace"].IsVisible);
+            Assert.IsTrue(layout.Keys["KeyW"].IsVisible);
+            Assert.IsTrue(layout.Keys["KeyA"].IsVisible);
+            Assert.IsTrue(layout.Keys["KeyS"].IsVisible);
+            Assert.IsTrue(layout.Keys["KeyD"].IsVisible);
+            Assert.IsTrue(layout.Keys["KeySpace"].IsVisible);
 
             // FPSで不要なキーが非表示状態
-            Assert.IsFalse(layout.Elements["KeyHome"].IsVisible);
-            Assert.IsFalse(layout.Elements["KeyPageUp"].IsVisible);
+            Assert.IsFalse(layout.Keys["KeyHome"].IsVisible);
 
             // マウス位置がFPS用に調整されている
-            Assert.AreEqual(290, layout.Elements["MouseBody"].X);
+            Assert.AreEqual(290, layout.Mouse.Position.X);
         }
 
         [Test]
@@ -177,17 +175,27 @@ elements:
                     BackgroundColor = "#123456",
                     HighlightColor = "#789ABC"
                 },
-                Elements = new Dictionary<string, ElementConfig>
+                Keys = new Dictionary<string, KeyDefinition>
                 {
-                    ["KeyA"] = new ElementConfig { X = 10, Y = 20, Text = "A" },
-                    ["KeySpace"] = new ElementConfig 
+                    ["KeyA"] = new KeyDefinition 
                     { 
-                        X = 50, 
-                        Y = 100, 
-                        Text = "Space", 
+                        Position = new PositionConfig { X = 10, Y = 20 }, 
+                        Text = "A",
+                        VirtualKey = 0x41
+                    },
+                    ["KeySpace"] = new KeyDefinition 
+                    { 
+                        Position = new PositionConfig { X = 50, Y = 100 }, 
+                        Text = "Space",
                         Size = new SizeConfig { Width = 100, Height = 30 },
-                        FontSize = 8
+                        FontSize = 8,
+                        VirtualKey = 0x20
                     }
+                },
+                Mouse = new MouseSettings
+                {
+                    Position = new PositionConfig { X = 290, Y = 20 },
+                    IsVisible = true
                 }
             };
         }
@@ -212,19 +220,44 @@ elements:
                     WindowWidth = 600,
                     WindowHeight = 200
                 },
-                Elements = new Dictionary<string, ElementConfig>
+                Keys = new Dictionary<string, KeyDefinition>
                 {
-                    ["KeyA"] = new ElementConfig { X = 15, Y = 25, Text = "A", IsVisible = true },
-                    ["KeySpace"] = new ElementConfig 
+                    ["KeyA"] = new KeyDefinition 
                     { 
-                        X = 60, 
-                        Y = 120, 
-                        Text = "Space", 
+                        Position = new PositionConfig { X = 15, Y = 25 }, 
+                        Text = "A", 
+                        IsVisible = true,
+                        VirtualKey = 0x41
+                    },
+                    ["KeySpace"] = new KeyDefinition 
+                    { 
+                        Position = new PositionConfig { X = 60, Y = 120 }, 
+                        Text = "Space",
                         Size = new SizeConfig { Width = 150, Height = 32 },
                         FontSize = 9,
-                        IsVisible = true
+                        IsVisible = true,
+                        VirtualKey = 0x20
                     },
-                    ["KeyHidden"] = new ElementConfig { X = 0, Y = 0, Text = "Hidden", IsVisible = false }
+                    ["KeyHidden"] = new KeyDefinition 
+                    { 
+                        Position = new PositionConfig { X = 0, Y = 0 }, 
+                        Text = "Hidden", 
+                        IsVisible = false,
+                        VirtualKey = 0x48
+                    }
+                },
+                Mouse = new MouseSettings
+                {
+                    Position = new PositionConfig { X = 290, Y = 20 },
+                    IsVisible = true,
+                    Movement = new MouseMovementConfig
+                    {
+                        CircleSize = 25,
+                        CircleColor = "#FFFF00",
+                        HighlightColor = "#FF00FF",
+                        HighlightDuration = 200,
+                        Threshold = 3.0
+                    }
                 }
             };
         }
@@ -247,30 +280,45 @@ elements:
             Assert.AreEqual(expected.Global.WindowWidth, actual.Global.WindowWidth);
             Assert.AreEqual(expected.Global.WindowHeight, actual.Global.WindowHeight);
 
-            // Elements
-            Assert.AreEqual(expected.Elements.Count, actual.Elements.Count);
+            // Keys
+            Assert.AreEqual(expected.Keys.Count, actual.Keys.Count);
             
-            foreach (var (key, expectedElement) in expected.Elements)
+            foreach (var (key, expectedKey) in expected.Keys)
             {
-                Assert.IsTrue(actual.Elements.ContainsKey(key), $"Key '{key}' not found in actual elements");
-                var actualElement = actual.Elements[key];
+                Assert.IsTrue(actual.Keys.ContainsKey(key), $"Key '{key}' not found in actual keys");
+                var actualKey = actual.Keys[key];
                 
-                Assert.AreEqual(expectedElement.X, actualElement.X, $"X coordinate mismatch for {key}");
-                Assert.AreEqual(expectedElement.Y, actualElement.Y, $"Y coordinate mismatch for {key}");
-                Assert.AreEqual(expectedElement.Text, actualElement.Text, $"Text mismatch for {key}");
-                Assert.AreEqual(expectedElement.IsVisible, actualElement.IsVisible, $"Visibility mismatch for {key}");
-                Assert.AreEqual(expectedElement.FontSize, actualElement.FontSize, $"FontSize mismatch for {key}");
+                Assert.AreEqual(expectedKey.Position.X, actualKey.Position.X, $"X position mismatch for {key}");
+                Assert.AreEqual(expectedKey.Position.Y, actualKey.Position.Y, $"Y position mismatch for {key}");
+                Assert.AreEqual(expectedKey.Text, actualKey.Text, $"Text mismatch for {key}");
+                Assert.AreEqual(expectedKey.IsVisible, actualKey.IsVisible, $"Visibility mismatch for {key}");
+                Assert.AreEqual(expectedKey.FontSize, actualKey.FontSize, $"FontSize mismatch for {key}");
+                Assert.AreEqual(expectedKey.VirtualKey, actualKey.VirtualKey, $"VirtualKey mismatch for {key}");
                 
-                if (expectedElement.Size == null)
+                if (expectedKey.Size == null)
                 {
-                    Assert.IsNull(actualElement.Size, $"Size should be null for {key}");
+                    Assert.IsNull(actualKey.Size, $"Size should be null for {key}");
                 }
                 else
                 {
-                    Assert.IsNotNull(actualElement.Size, $"Size should not be null for {key}");
-                    Assert.AreEqual(expectedElement.Size.Width, actualElement.Size.Width, $"Size width mismatch for {key}");
-                    Assert.AreEqual(expectedElement.Size.Height, actualElement.Size.Height, $"Size height mismatch for {key}");
+                    Assert.IsNotNull(actualKey.Size, $"Size should not be null for {key}");
+                    Assert.AreEqual(expectedKey.Size.Width, actualKey.Size.Width, $"Size width mismatch for {key}");
+                    Assert.AreEqual(expectedKey.Size.Height, actualKey.Size.Height, $"Size height mismatch for {key}");
                 }
+            }
+
+            // Mouse settings
+            Assert.AreEqual(expected.Mouse.Position.X, actual.Mouse.Position.X);
+            Assert.AreEqual(expected.Mouse.Position.Y, actual.Mouse.Position.Y);
+            Assert.AreEqual(expected.Mouse.IsVisible, actual.Mouse.IsVisible);
+            
+            if (expected.Mouse.Movement != null && actual.Mouse.Movement != null)
+            {
+                Assert.AreEqual(expected.Mouse.Movement.CircleSize, actual.Mouse.Movement.CircleSize);
+                Assert.AreEqual(expected.Mouse.Movement.CircleColor, actual.Mouse.Movement.CircleColor);
+                Assert.AreEqual(expected.Mouse.Movement.HighlightColor, actual.Mouse.Movement.HighlightColor);
+                Assert.AreEqual(expected.Mouse.Movement.HighlightDuration, actual.Mouse.Movement.HighlightDuration);
+                Assert.AreEqual(expected.Mouse.Movement.Threshold, actual.Mouse.Movement.Threshold);
             }
         }
     }

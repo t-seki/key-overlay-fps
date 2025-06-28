@@ -268,6 +268,8 @@ namespace KeyOverlayFPS.Layout
             // FPS用にウィンドウサイズを調整
             layout.Window.Width = 520;
             layout.Window.Height = 160;
+            layout.Global.WindowWidth = 520;
+            layout.Global.WindowHeight = 160;
             
             // マウス位置をFPS用に調整
             layout.Mouse.Position.X = 290;
