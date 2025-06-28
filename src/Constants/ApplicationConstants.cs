@@ -37,10 +37,6 @@ namespace KeyOverlayFPS.Constants
                 "KeyOverlayFPS"
             );
             
-            /// <summary>
-            /// 旧設定ファイルパス（移行用）
-            /// </summary>
-            public static string LegacySettingsFile => Path.Combine(SettingsDirectory, "settings.yaml");
         }
         
         /// <summary>

@@ -15,26 +15,12 @@ using KeyOverlayFPS.Input;
 using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.UI;
+using KeyOverlayFPS.Utils;
 using System.Windows.Shapes;
 
 namespace KeyOverlayFPS
 {
     // 定数はApplicationConstants.csに移動済み
-
-
-    // 設定データクラス
-    public class AppSettings
-    {
-        public string CurrentProfile { get; set; } = "FullKeyboard65";
-        public double DisplayScale { get; set; } = 1.0;
-        public bool IsMouseVisible { get; set; } = true;
-        public bool IsTopmost { get; set; } = true;
-        public string BackgroundColor { get; set; } = "Transparent";
-        public string ForegroundColor { get; set; } = "White";
-        public string HighlightColor { get; set; } = "Green";
-        public double WindowLeft { get; set; } = 100;
-        public double WindowTop { get; set; } = 100;
-    }
 
 
     public partial class MainWindow : Window
@@ -64,14 +50,8 @@ namespace KeyOverlayFPS
         // 表示スケール（0.8, 1.0, 1.2, 1.5）
         private double _displayScale = 1.0;
         
-        // 統一設定システム（将来の拡張用として保持）
-        // private readonly UnifiedSettingsManager _settingsManager = UnifiedSettingsManager.Instance;
-        
-        // 旧設定システム（移行期間用）
-        private readonly string _settingsPath = ApplicationConstants.Paths.LegacySettingsFile;
-        
-        // 旧設定システム（安定動作用）
-        private AppSettings _settings = new AppSettings();
+        // 設定管理システム
+        private readonly SettingsManager _settingsManager = SettingsManager.Instance;
         
         // マウス移動可視化
         private readonly MouseTracker _mouseTracker = new();
@@ -87,40 +67,61 @@ namespace KeyOverlayFPS
 
         public MainWindow()
         {
-            // ブラシを統一ファクトリーから初期化
-            _keyboardKeyDefaultBrush = BrushFactory.CreateKeyboardKeyBackground();
-            _inactiveBrush = _keyboardKeyDefaultBrush;
-            
-            InitializeComponent();
-            
-            // 旧設定システムで初期化（安定動作）
-            LoadLegacySettings();
-            
-            // 動的レイアウトシステムを初期化
-            InitializeDynamicLayoutSystem();
-            
-            // コンテキストメニューを設定
-            SetupContextMenu();
-            
-            // タイマー初期化
-            _timer = new DispatcherTimer
+            try
             {
-                Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.MainTimerInterval)
-            };
-            _timer.Tick += Timer_Tick;
-            _timer.Start();
+                // ブラシを統一ファクトリーから初期化
+                _keyboardKeyDefaultBrush = BrushFactory.CreateKeyboardKeyBackground();
+                _inactiveBrush = _keyboardKeyDefaultBrush;
+                
+                InitializeComponent();
+                
+                // 設定システム初期化
+                Logger.Info("設定システム初期化開始");
+                InitializeSettings();
+                Logger.Info("設定システム初期化完了");
+                
+                // 動的レイアウトシステムを初期化
+                Logger.Info("動的レイアウトシステム初期化開始");
+                InitializeDynamicLayoutSystem();
+                Logger.Info("動的レイアウトシステム初期化完了");
+            
+                // コンテキストメニューを設定
+                Logger.Info("コンテキストメニュー設定開始");
+                SetupContextMenu();
+                Logger.Info("コンテキストメニュー設定完了");
+                
+                // タイマー初期化
+                Logger.Info("タイマー初期化開始");
+                _timer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.MainTimerInterval)
+                };
+                _timer.Tick += Timer_Tick;
+                _timer.Start();
+                Logger.Info("タイマー初期化完了");
 
-            // イベントハンドラー設定
-            MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
-            MouseMove += MainWindow_MouseMove;
-            MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
-            this.MouseWheel += MainWindow_MouseWheel;
-            
-            // アプリケーション終了時に設定を保存
-            Application.Current.Exit += (s, e) => SaveLegacySettings();
-            
-            // 設定を適用（動的レイアウトシステムが初期化された後）
-            ApplyLegacySettings();
+                // イベントハンドラー設定
+                Logger.Info("イベントハンドラー設定開始");
+                MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
+                MouseMove += MainWindow_MouseMove;
+                MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
+                this.MouseWheel += MainWindow_MouseWheel;
+                Logger.Info("イベントハンドラー設定完了");
+                
+                // アプリケーション終了時に設定を保存
+                Logger.Info("終了時処理設定");
+                Application.Current.Exit += (s, e) => _settingsManager.Save();
+                
+                // 設定適用
+                Logger.Info("設定適用開始");
+                ApplySettings();
+                Logger.Info("設定適用完了");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("MainWindow コンストラクタでエラーが発生", ex);
+                throw;
+            }
         }
         
         /// <summary>
@@ -135,18 +136,29 @@ namespace KeyOverlayFPS
                 
                 if (File.Exists(layoutPath))
                 {
+                    Logger.Info($"レイアウトファイルが存在、読み込み中: {layoutPath}");
                     _currentLayout = LayoutManager.ImportLayout(layoutPath);
                 }
                 else
                 {
+                    Logger.Info($"レイアウトファイルが存在しない、デフォルトレイアウトを使用: {layoutPath}");
                     // デフォルトレイアウトを使用
                     _currentLayout = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard 
                         ? LayoutManager.CreateDefaultFPSLayout()
                         : LayoutManager.CreateDefault65KeyboardLayout();
                 }
                 
+                
                 // UIを動的生成
-                _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
+                if (_currentLayout != null)
+                {
+                    _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
+                }
+                else
+                {
+                    Logger.Error("レイアウトがnullのため、UI生成をスキップ");
+                    throw new InvalidOperationException("レイアウトの初期化に失敗しました");
+                }
                 
                 // 既存のCanvasと置き換え
                 Content = _dynamicCanvas;
@@ -176,11 +188,21 @@ namespace KeyOverlayFPS
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"動的レイアウトシステム初期化エラー: {ex.Message}");
-                // エラー時はデフォルトレイアウトにフォールバック
-                _currentLayout = LayoutManager.CreateDefault65KeyboardLayout();
-                _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
-                Content = _dynamicCanvas;
+                Logger.Error("動的レイアウトシステム初期化でエラーが発生", ex);
+                try
+                {
+                    // エラー時はデフォルトレイアウトにフォールバック
+                    Logger.Info("フォールバック: デフォルトレイアウトを使用");
+                    _currentLayout = LayoutManager.CreateDefault65KeyboardLayout();
+                    _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
+                    Content = _dynamicCanvas;
+                    Logger.Info("フォールバック完了");
+                }
+                catch (Exception fallbackEx)
+                {
+                    Logger.Error("フォールバック処理でもエラーが発生", fallbackEx);
+                    throw;
+                }
             }
         }
         
@@ -326,7 +348,7 @@ namespace KeyOverlayFPS
         {
             var backgroundMenuItem = new MenuItem { Header = "背景色" };
             
-            foreach (var (name, color, transparent) in ColorManager.BackgroundMenuOptions)
+            foreach (var (name, color, transparent) in SimpleColorManager.BackgroundMenuOptions)
             {
                 var menuItem = new MenuItem { Header = name };
                 menuItem.Click += (s, e) => SetBackgroundColor(color, transparent);
@@ -340,7 +362,7 @@ namespace KeyOverlayFPS
         {
             var foregroundMenuItem = new MenuItem { Header = "文字色" };
             
-            foreach (var (name, color) in ColorManager.ForegroundMenuOptions)
+            foreach (var (name, color) in SimpleColorManager.ForegroundMenuOptions)
             {
                 var menuItem = new MenuItem { Header = name };
                 menuItem.Click += (s, e) => SetForegroundColor(color);
@@ -354,7 +376,7 @@ namespace KeyOverlayFPS
         {
             var highlightMenuItem = new MenuItem { Header = "ハイライト色" };
             
-            foreach (var (name, color) in ColorManager.HighlightMenuOptions)
+            foreach (var (name, color) in SimpleColorManager.HighlightMenuOptions)
             {
                 var menuItem = new MenuItem { Header = name };
                 menuItem.Click += (s, e) => SetHighlightColor(color);
@@ -368,10 +390,10 @@ namespace KeyOverlayFPS
         {
             var viewMenuItem = new MenuItem { Header = "表示オプション" };
             
-            var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = _settings.IsTopmost };
+            var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = Topmost };
             topmostMenuItem.Click += (s, e) => ToggleTopmost();
             
-            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _settings.IsMouseVisible };
+            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _isMouseVisible };
             mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibility();
             
             var scaleMenuItem = CreateDisplayScaleMenu();
@@ -396,7 +418,7 @@ namespace KeyOverlayFPS
                 { 
                     Header = label, 
                     IsCheckable = true, 
-                    IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01 
+                    IsChecked = Math.Abs(_displayScale - scale) < 0.01 
                 };
                 menuItem.Click += (s, e) => 
                 {
@@ -425,7 +447,7 @@ namespace KeyOverlayFPS
                 { 
                     Header = name, 
                     IsCheckable = true, 
-                    IsChecked = _settings.CurrentProfile == settingName 
+                    IsChecked = _keyboardHandler.CurrentProfile.ToString() == settingName 
                 };
                 menuItem.Click += (s, e) => 
                 {
@@ -459,35 +481,33 @@ namespace KeyOverlayFPS
             {
                 Background = new SolidColorBrush(color);
             }
-            // 背景色を設定に更新
-            _settings.BackgroundColor = GetDirectBackgroundColorName(color);
-            SaveLegacySettings();
+            SaveSettings();
         }
         
         private void SetForegroundColor(Color color)
         {
             _foregroundBrush = new SolidColorBrush(color);
             UpdateAllTextForeground();
-            SaveLegacySettings();
+            SaveSettings();
         }
         
         private void SetHighlightColor(Color color)
         {
             _activeBrush = new SolidColorBrush(color);
-            SaveLegacySettings();
+            SaveSettings();
         }
         
         private void ToggleTopmost()
         {
             Topmost = !Topmost;
-            SaveLegacySettings();
+            SaveSettings();
         }
         
         private void ToggleMouseVisibility()
         {
             _isMouseVisible = !_isMouseVisible;
             UpdateMouseVisibility();
-            SaveLegacySettings();
+            SaveSettings();
         }
         
         private void UpdateMouseVisibility()
@@ -500,7 +520,7 @@ namespace KeyOverlayFPS
         {
             _displayScale = scale;
             ApplyDisplayScale();
-            SaveLegacySettings();
+            SaveSettings();
         }
         
         private void ApplyDisplayScale()
@@ -546,7 +566,7 @@ namespace KeyOverlayFPS
             _keyboardHandler.CurrentProfile = profile;
             ApplyProfileLayout();
             UpdateMousePositions();
-            SaveLegacySettings();
+            SaveSettings();
         }
         
         private void ApplyProfileLayout()
@@ -704,246 +724,50 @@ namespace KeyOverlayFPS
             }
         }
         
-        // InitializeSettingsSyncメソッドは統一設定システム用のため一時的に無効化（LoadLegacySettingsを使用）
-        
-        // SyncLegacySettingsFromUnifiedメソッドは削除 - _settingsプロパティが直接統一設定を参照するため不要
-        
-        // OnSettingsChangedメソッドは統一設定システム用のため一時的に無効化
-        
-        // LoadSettingsメソッドは統一設定システム用のため一時的に無効化（LoadLegacySettingsを使用）
-        
-        // SaveSettingsメソッドは統一設定システム用のため一時的に無効化（SaveLegacySettingsを使用）
-        
-        // UpdateSettingsDirectlyメソッドは統一設定システム用のため一時的に無効化
-        
-        // ApplyWindowSettingsメソッドは統一設定システム用のため一時的に無効化
-        
-        // ApplyDisplaySettingsメソッドは統一設定システム用のため一時的に無効化
-        
-        // ApplyColorSettingsメソッドは統一設定システム用のため一時的に無効化
-        
-        // ApplyProfileSettingsメソッドは統一設定システム用のため一時的に無効化
-        
-        // ApplySettingsメソッドは統一設定システム用のため一時的に無効化（ApplyLegacySettingsを使用）
-        
         /// <summary>
-        /// 循環参照を防ぐための直接色取得メソッド
+        /// 設定システムの初期化
         /// </summary>
-        private Brush GetDirectForegroundBrush(string colorName)
-        {
-            var defaultColors = new Dictionary<string, string>
-            {
-                { "White", "#FFFFFF" },
-                { "Black", "#000000" },
-                { "Gray", "#808080" },
-                { "Blue", "#0000FF" },
-                { "Green", "#008000" },
-                { "Red", "#FF0000" },
-                { "Yellow", "#FFFF00" }
-            };
-            
-            if (defaultColors.TryGetValue(colorName, out var colorValue))
-            {
-                try
-                {
-                    var color = (Color)ColorConverter.ConvertFromString(colorValue);
-                    return new SolidColorBrush(color);
-                }
-                catch
-                {
-                    return Brushes.White;
-                }
-            }
-            return Brushes.White;
-        }
-        
-        private Brush GetDirectHighlightBrush(string colorName)
-        {
-            var defaultColors = new Dictionary<string, string>
-            {
-                { "White", "#B4FFFFFF" },
-                { "Black", "#B4000000" },
-                { "Gray", "#B4808080" },
-                { "Blue", "#B40000FF" },
-                { "Green", "#B4008000" },
-                { "Red", "#B4FF0000" },
-                { "Yellow", "#B4FFFF00" }
-            };
-            
-            if (defaultColors.TryGetValue(colorName, out var colorValue))
-            {
-                try
-                {
-                    var color = (Color)ColorConverter.ConvertFromString(colorValue);
-                    return new SolidColorBrush(color);
-                }
-                catch
-                {
-                    return new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
-                }
-            }
-            return new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
-        }
-        
-        private Color GetDirectBackgroundColor(string colorName)
-        {
-            var defaultColors = new Dictionary<string, string>
-            {
-                { "Transparent", "Transparent" },
-                { "Lime", "#00FF00" },
-                { "Blue", "#0000FF" },
-                { "Black", "#000000" }
-            };
-            
-            if (defaultColors.TryGetValue(colorName, out var colorValue))
-            {
-                if (colorValue.Equals("Transparent", StringComparison.OrdinalIgnoreCase))
-                    return System.Windows.Media.Colors.Transparent;
-                    
-                try
-                {
-                    return (Color)ColorConverter.ConvertFromString(colorValue);
-                }
-                catch
-                {
-                    return System.Windows.Media.Colors.Transparent;
-                }
-            }
-            return System.Windows.Media.Colors.Transparent;
-        }
-        
-        private string GetDirectColorName(Brush brush, string type)
-        {
-            if (brush is SolidColorBrush solidBrush)
-            {
-                var color = solidBrush.Color;
-                
-                // 最も近い色を探す
-                if (type == "Foreground")
-                {
-                    if (color == System.Windows.Media.Colors.White) return "White";
-                    if (color == System.Windows.Media.Colors.Black) return "Black";
-                    if (color == System.Windows.Media.Colors.Gray) return "Gray";
-                    if (color == System.Windows.Media.Colors.Blue) return "Blue";
-                    if (color == System.Windows.Media.Colors.Green) return "Green";
-                    if (color == System.Windows.Media.Colors.Red) return "Red";
-                    if (color == System.Windows.Media.Colors.Yellow) return "Yellow";
-                }
-                else // Highlight
-                {
-                    // アルファ値を考慮して一番近い色を探す
-                    if (color.A == 180 && color.R == 0 && color.G == 255 && color.B == 0) return "Green";
-                    if (color.A == 180 && color.R == 255 && color.G == 255 && color.B == 255) return "White";
-                    if (color.A == 180 && color.R == 0 && color.G == 0 && color.B == 0) return "Black";
-                    if (color.A == 180 && color.R == 128 && color.G == 128 && color.B == 128) return "Gray";
-                    if (color.A == 180 && color.R == 0 && color.G == 0 && color.B == 255) return "Blue";
-                    if (color.A == 180 && color.R == 255 && color.G == 0 && color.B == 0) return "Red";
-                    if (color.A == 180 && color.R == 255 && color.G == 255 && color.B == 0) return "Yellow";
-                }
-            }
-            
-            return type == "Foreground" ? "White" : "Green";
-        }
-        
-        private string GetDirectBackgroundColorName(Color color)
-        {
-            if (color == System.Windows.Media.Colors.Transparent) return "Transparent";
-            if (color == System.Windows.Media.Color.FromRgb(0, 255, 0)) return "Lime";
-            if (color == System.Windows.Media.Colors.Blue) return "Blue";
-            if (color == System.Windows.Media.Colors.Black) return "Black";
-            
-            return "Transparent";
-        }
-        
-        /// <summary>
-        /// 旧設定システムの読み込み（安定動作用）
-        /// </summary>
-        private void LoadLegacySettings()
+        private void InitializeSettings()
         {
             try
             {
-                if (File.Exists(_settingsPath))
-                {
-                    var yaml = File.ReadAllText(_settingsPath);
-                    var deserializer = new DeserializerBuilder().Build();
-                    _settings = deserializer.Deserialize<AppSettings>(yaml) ?? new AppSettings();
-                }
+                _settingsManager.Load();
+                Logger.Info($"設定読み込み完了 - Profile: {_settingsManager.Current.CurrentProfile}, Scale: {_settingsManager.Current.DisplayScale}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"設定読み込みエラー: {ex.Message}");
-                _settings = new AppSettings();
+                Logger.Error("設定システム初期化でエラーが発生", ex);
+                throw;
             }
         }
-        
+
         /// <summary>
-        /// 旧設定システムの保存（安定動作用）
+        /// 設定を適用
         /// </summary>
-        private void SaveLegacySettings()
+        private void ApplySettings()
         {
-            try
+            var settings = _settingsManager.Current;
+            
+            // ウィンドウ設定
+            if (settings.WindowLeft > 0 && settings.WindowTop > 0)
             {
-                // 現在の設定を保存用データに反映
-                _settings.CurrentProfile = _keyboardHandler.CurrentProfile.ToString();
-                _settings.DisplayScale = _displayScale;
-                _settings.IsMouseVisible = _isMouseVisible;
-                _settings.IsTopmost = Topmost;
-                _settings.WindowLeft = Left;
-                _settings.WindowTop = Top;
-                
-                // 色設定の保存
-                _settings.ForegroundColor = GetDirectColorName(_foregroundBrush, "Foreground");
-                _settings.HighlightColor = GetDirectColorName(_activeBrush, "Highlight");
-                
-                // ディレクトリが存在しない場合は作成
-                var directory = System.IO.Path.GetDirectoryName(_settingsPath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-                
-                // YAML形式で保存
-                var serializer = new SerializerBuilder().Build();
-                var yaml = serializer.Serialize(_settings);
-                File.WriteAllText(_settingsPath, yaml);
+                Left = settings.WindowLeft;
+                Top = settings.WindowTop;
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"設定保存エラー: {ex.Message}");
-            }
-        }
-        
-        /// <summary>
-        /// 旧設定システムの適用（安定動作用）
-        /// </summary>
-        private void ApplyLegacySettings()
-        {
+            Topmost = settings.IsTopmost;
+            
+            // 表示設定
+            _displayScale = settings.DisplayScale;
+            _isMouseVisible = settings.IsMouseVisible;
+            
             // プロファイル設定
-            if (Enum.TryParse<KeyboardProfile>(_settings.CurrentProfile, out var profile))
+            if (Enum.TryParse<KeyboardProfile>(settings.CurrentProfile, out var profile))
             {
                 _keyboardHandler.CurrentProfile = profile;
             }
             
-            // 表示設定
-            _displayScale = _settings.DisplayScale;
-            _isMouseVisible = _settings.IsMouseVisible;
-            Topmost = _settings.IsTopmost;
-            
-            // ウィンドウ位置設定
-            if (_settings.WindowLeft > 0 && _settings.WindowTop > 0)
-            {
-                Left = _settings.WindowLeft;
-                Top = _settings.WindowTop;
-            }
-            
-            // 色設定
-            _foregroundBrush = GetDirectForegroundBrush(_settings.ForegroundColor);
-            _activeBrush = GetDirectHighlightBrush(_settings.HighlightColor);
-            
-            // 背景色設定を適用
-            var color = GetDirectBackgroundColor(_settings.BackgroundColor ?? "Transparent");
-            bool transparent = color == System.Windows.Media.Colors.Transparent;
-            SetBackgroundColor(color, transparent);
+            // 色設定の適用
+            ApplyColorSettings(settings);
             
             // レイアウトとスケールを適用
             ApplyProfileLayout();
@@ -951,8 +775,88 @@ namespace KeyOverlayFPS
             UpdateMousePositions();
             UpdateAllTextForeground();
         }
-        
-        // ApplyBackgroundColorFromSettingsメソッドは統一設定システム用のため一時的に無効化
+
+        /// <summary>
+        /// 色設定を適用
+        /// </summary>
+        private void ApplyColorSettings(AppSettings settings)
+        {
+            // 前景色
+            _foregroundBrush = GetBrushFromColorName(settings.ForegroundColor, SimpleColorManager.ForegroundMenuOptions);
+            
+            // ハイライト色
+            _activeBrush = GetBrushFromColorName(settings.HighlightColor, SimpleColorManager.HighlightMenuOptions);
+            
+            // 背景色
+            var backgroundOption = SimpleColorManager.BackgroundMenuOptions
+                .FirstOrDefault(opt => opt.Name.Contains(settings.BackgroundColor) || 
+                                     settings.BackgroundColor.Contains(opt.Name.Replace("透明", "Transparent")));
+            
+            if (backgroundOption != default)
+            {
+                SetBackgroundColor(backgroundOption.Color, backgroundOption.Transparent);
+            }
+        }
+
+        /// <summary>
+        /// 色名からBrushを取得
+        /// </summary>
+        private Brush GetBrushFromColorName(string colorName, (string Name, Color Color)[] options)
+        {
+            var option = options.FirstOrDefault(opt => opt.Name.Contains(colorName) || colorName.Contains(opt.Name));
+            if (option != default)
+            {
+                return new SolidColorBrush(option.Color);
+            }
+            return Brushes.White; // デフォルト
+        }
+
+        /// <summary>
+        /// 設定を保存
+        /// </summary>
+        private void SaveSettings()
+        {
+            var settings = _settingsManager.Current;
+            
+            // 現在の状態を設定に反映
+            settings.WindowLeft = Left;
+            settings.WindowTop = Top;
+            settings.IsTopmost = Topmost;
+            settings.DisplayScale = _displayScale;
+            settings.IsMouseVisible = _isMouseVisible;
+            settings.CurrentProfile = _keyboardHandler.CurrentProfile.ToString();
+            
+            // 色設定の反映
+            settings.ForegroundColor = GetColorNameFromBrush(_foregroundBrush, SimpleColorManager.ForegroundMenuOptions);
+            settings.HighlightColor = GetColorNameFromBrush(_activeBrush, SimpleColorManager.HighlightMenuOptions);
+            
+            _settingsManager.Save();
+        }
+
+        /// <summary>
+        /// BrushからColorNameを取得
+        /// </summary>
+        private string GetColorNameFromBrush(Brush brush, (string Name, Color Color)[] options)
+        {
+            if (brush is SolidColorBrush solidBrush)
+            {
+                var option = options.FirstOrDefault(opt => ColorsAreEqual(opt.Color, solidBrush.Color));
+                if (option != default)
+                {
+                    return option.Name;
+                }
+            }
+            return options.Length > 0 ? options[0].Name : "白"; // デフォルト
+        }
+
+        /// <summary>
+        /// 色比較（アルファ値も含む）
+        /// </summary>
+        private bool ColorsAreEqual(Color color1, Color color2)
+        {
+            return color1.A == color2.A && color1.R == color2.R && 
+                   color1.G == color2.G && color1.B == color2.B;
+        }
         
         
         private void UpdateAllTextForeground()
