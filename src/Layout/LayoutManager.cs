@@ -71,6 +71,21 @@ namespace KeyOverlayFPS.Layout
         }
 
         /// <summary>
+        /// 表示可能なキーの名前リストを取得
+        /// </summary>
+        /// <returns>isVisible: true のキー名リスト</returns>
+        public List<string> GetVisibleKeys()
+        {
+            if (CurrentLayout?.Keys == null)
+                return new List<string>();
+
+            return CurrentLayout.Keys
+                .Where(kvp => kvp.Value.IsVisible)
+                .Select(kvp => kvp.Key)
+                .ToList();
+        }
+
+        /// <summary>
         /// プロファイルに応じたレイアウトファイルパスを取得
         /// </summary>
         private static string GetLayoutPath(KeyboardProfile profile)

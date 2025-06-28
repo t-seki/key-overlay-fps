@@ -111,32 +111,5 @@ namespace KeyOverlayFPS.Input
         }
 
 
-        /// <summary>
-        /// プロファイル別のキー要素名リストを取得
-        /// </summary>
-        public static List<string> GetProfileKeyElements(KeyboardProfile profile)
-        {
-            return profile switch
-            {
-                KeyboardProfile.FullKeyboard65 => new List<string>
-                {
-                    "KeyEscape",
-                    "Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7", "Key8", "Key9", "Key0", "KeyMinus", "KeyEquals", "KeyBackspace",
-                    "KeyTab", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP", "KeyOpenBracket", "KeyCloseBracket", "KeyBackslash",
-                    "KeyCapsLock", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL", "KeySemicolon", "KeyQuote", "KeyEnter",
-                    "KeyShift", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "KeyComma", "KeyPeriod", "KeySlash", "KeyRightShift",
-                    "KeyCtrl", "KeyWin", "KeyAlt", "KeySpace"
-                },
-                KeyboardProfile.FPSKeyboard => new List<string>
-                {
-                    "KeyEscape", "Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7",
-                    "KeyTab", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU",
-                    "KeyCapsLock", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
-                    "KeyShift", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM",
-                    "KeyCtrl", "KeyWin", "KeyAlt", "KeySpace"
-                },
-                _ => new List<string>()
-            };
-        }
     }
 }

@@ -181,7 +181,9 @@ namespace KeyOverlayFPS
         
         private void ShowFullKeyboardLayout()
         {
-            // 全キーを表示
+            // YAMLファイルのisVisible設定に基づいて表示するキーを取得
+            var visibleKeys = LayoutManager.GetVisibleKeys();
+            
             var canvas = Content as Canvas;
             if (canvas == null) return;
             
@@ -193,9 +195,13 @@ namespace KeyOverlayFPS
                     {
                         SetMouseElementVisibility(child);
                     }
-                    else
+                    else if (visibleKeys.Contains(border.Name))
                     {
                         border.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        border.Visibility = Visibility.Collapsed;
                     }
                 }
                 else
@@ -207,8 +213,8 @@ namespace KeyOverlayFPS
         
         private void ShowFPSKeyboardLayout()
         {
-            // FPSに重要なキーのみ表示
-            var fpsKeys = KeyboardInputHandler.GetProfileKeyElements(KeyboardProfile.FPSKeyboard);
+            // YAMLファイルのisVisible設定に基づいて表示するキーを取得
+            var visibleKeys = LayoutManager.GetVisibleKeys();
             
             var canvas = Content as Canvas;
             if (canvas == null) return;
@@ -221,7 +227,7 @@ namespace KeyOverlayFPS
                     {
                         SetMouseElementVisibility(child);
                     }
-                    else if (fpsKeys.Contains(border.Name))
+                    else if (visibleKeys.Contains(border.Name))
                     {
                         // FPSキーは表示
                         border.Visibility = Visibility.Visible;
