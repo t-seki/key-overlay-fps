@@ -99,19 +99,7 @@ namespace KeyOverlayFPS.Settings
             catch (Exception ex)
             {
                 Logger.Error("設定読み込みでエラーが発生", ex);
-                
-                // エラー時はデフォルト設定を使用
-                Logger.Info("エラー時フォールバック: デフォルト設定を使用");
-                _settings = new AppSettings();
-                try
-                {
-                    Save();
-                    Logger.Info("デフォルト設定保存完了");
-                }
-                catch (Exception saveEx)
-                {
-                    Logger.Error("デフォルト設定保存でもエラーが発生", saveEx);
-                }
+                throw;
             }
         }
 

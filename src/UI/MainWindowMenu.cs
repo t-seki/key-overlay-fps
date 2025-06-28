@@ -16,6 +16,12 @@ namespace KeyOverlayFPS.UI
         private readonly Window _window;
         private readonly MainWindowSettings _settings;
         private readonly KeyboardInputHandler _keyboardHandler;
+        
+        // メニューアイテムの参照を保持
+        private MenuItem? _topmostMenuItem;
+        private MenuItem? _mouseVisibilityMenuItem;
+        private MenuItem? _fullKeyboardMenuItem;
+        private MenuItem? _fpsKeyboardMenuItem;
 
         /// <summary>
         /// メニューアクション
@@ -127,16 +133,16 @@ namespace KeyOverlayFPS.UI
         {
             var viewMenuItem = new MenuItem { Header = "表示オプション" };
             
-            var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = _window.Topmost };
-            topmostMenuItem.Click += (s, e) => ToggleTopmostAction?.Invoke();
+            _topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = _window.Topmost };
+            _topmostMenuItem.Click += (s, e) => ToggleTopmostAction?.Invoke();
             
-            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _settings.IsMouseVisible };
-            mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibilityAction?.Invoke();
+            _mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _settings.IsMouseVisible };
+            _mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibilityAction?.Invoke();
             
             var scaleMenuItem = CreateDisplayScaleMenu();
             
-            viewMenuItem.Items.Add(topmostMenuItem);
-            viewMenuItem.Items.Add(mouseVisibilityMenuItem);
+            viewMenuItem.Items.Add(_topmostMenuItem);
+            viewMenuItem.Items.Add(_mouseVisibilityMenuItem);
             viewMenuItem.Items.Add(scaleMenuItem);
             
             return viewMenuItem;
@@ -180,33 +186,33 @@ namespace KeyOverlayFPS.UI
             var profileMenuItem = new MenuItem { Header = "プロファイル" };
             
             // 65%キーボード
-            var fullKeyboardMenuItem = new MenuItem 
+            _fullKeyboardMenuItem = new MenuItem 
             { 
                 Header = "65%キーボード", 
                 IsCheckable = true, 
                 IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FullKeyboard65 
             };
-            fullKeyboardMenuItem.Click += (s, e) => 
+            _fullKeyboardMenuItem.Click += (s, e) => 
             {
                 SwitchProfileAction?.Invoke(KeyboardProfile.FullKeyboard65);
                 UpdateMenuCheckedState();
             };
             
             // FPSキーボード
-            var fpsKeyboardMenuItem = new MenuItem 
+            _fpsKeyboardMenuItem = new MenuItem 
             { 
                 Header = "FPSキーボード", 
                 IsCheckable = true, 
                 IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard 
             };
-            fpsKeyboardMenuItem.Click += (s, e) => 
+            _fpsKeyboardMenuItem.Click += (s, e) => 
             {
                 SwitchProfileAction?.Invoke(KeyboardProfile.FPSKeyboard);
                 UpdateMenuCheckedState();
             };
             
-            profileMenuItem.Items.Add(fullKeyboardMenuItem);
-            profileMenuItem.Items.Add(fpsKeyboardMenuItem);
+            profileMenuItem.Items.Add(_fullKeyboardMenuItem);
+            profileMenuItem.Items.Add(_fpsKeyboardMenuItem);
             
             return profileMenuItem;
         }
@@ -226,75 +232,60 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void UpdateMenuCheckedState()
         {
+            // 直接参照で更新
+            if (_topmostMenuItem != null)
+            {
+                _topmostMenuItem.IsChecked = _window.Topmost;
+            }
+            
+            if (_mouseVisibilityMenuItem != null)
+            {
+                _mouseVisibilityMenuItem.IsChecked = _settings.IsMouseVisible;
+            }
+            
+            if (_fullKeyboardMenuItem != null)
+            {
+                _fullKeyboardMenuItem.IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FullKeyboard65;
+            }
+            
+            if (_fpsKeyboardMenuItem != null)
+            {
+                _fpsKeyboardMenuItem.IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard;
+            }
+            
+            // スケールメニューは複雑なので従来の方法で更新
+            UpdateScaleMenuCheckedState();
+        }
+
+        /// <summary>
+        /// スケールメニューのチェック状態を更新
+        /// </summary>
+        private void UpdateScaleMenuCheckedState()
+        {
             if (_window.ContextMenu == null) return;
             
             foreach (MenuItem mainItem in _window.ContextMenu.Items)
             {
                 if (mainItem.Header?.ToString() == "表示オプション")
                 {
-                    UpdateViewOptionsCheckedState(mainItem);
-                }
-                else if (mainItem.Header?.ToString() == "プロファイル")
-                {
-                    UpdateProfileCheckedState(mainItem);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 表示オプションのチェック状態を更新
-        /// </summary>
-        private void UpdateViewOptionsCheckedState(MenuItem viewMenuItem)
-        {
-            foreach (MenuItem item in viewMenuItem.Items)
-            {
-                switch (item.Header?.ToString())
-                {
-                    case "最前面固定":
-                        item.IsChecked = _window.Topmost;
-                        break;
-                    case "マウス表示":
-                        item.IsChecked = _settings.IsMouseVisible;
-                        break;
-                    case "表示スケール":
-                        UpdateScaleCheckedState(item);
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// スケールのチェック状態を更新
-        /// </summary>
-        private void UpdateScaleCheckedState(MenuItem scaleMenuItem)
-        {
-            int index = 0;
-            foreach (MenuItem item in scaleMenuItem.Items)
-            {
-                if (index < ApplicationConstants.ScaleOptions.Values.Length)
-                {
-                    var scale = ApplicationConstants.ScaleOptions.Values[index];
-                    item.IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01;
-                }
-                index++;
-            }
-        }
-
-        /// <summary>
-        /// プロファイルのチェック状態を更新
-        /// </summary>
-        private void UpdateProfileCheckedState(MenuItem profileMenuItem)
-        {
-            foreach (MenuItem item in profileMenuItem.Items)
-            {
-                switch (item.Header?.ToString())
-                {
-                    case "65%キーボード":
-                        item.IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FullKeyboard65;
-                        break;
-                    case "FPSキーボード":
-                        item.IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard;
-                        break;
+                    foreach (MenuItem item in mainItem.Items)
+                    {
+                        if (item.Header?.ToString() == "表示スケール")
+                        {
+                            int index = 0;
+                            foreach (MenuItem scaleItem in item.Items)
+                            {
+                                if (index < ApplicationConstants.ScaleOptions.Values.Length)
+                                {
+                                    var scale = ApplicationConstants.ScaleOptions.Values[index];
+                                    scaleItem.IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01;
+                                }
+                                index++;
+                            }
+                            break;
+                        }
+                    }
+                    break;
                 }
             }
         }

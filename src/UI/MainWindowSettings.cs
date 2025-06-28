@@ -63,10 +63,10 @@ namespace KeyOverlayFPS.UI
 
                 // ウィンドウ設定を適用
                 ApplyWindowSettings(settings);
-                
+
                 // 色設定を適用
                 ApplyColorSettings(settings);
-                
+
                 // その他の設定を適用
                 _displayScale = settings.DisplayScale;
                 _isMouseVisible = settings.IsMouseVisible;
@@ -75,7 +75,7 @@ namespace KeyOverlayFPS.UI
             {
                 // 設定読み込みエラー時はデフォルト設定を使用
                 System.Diagnostics.Debug.WriteLine($"設定読み込みエラー: {ex.Message}");
-                ApplyDefaultSettings();
+                throw;
             }
         }
 
@@ -199,20 +199,6 @@ namespace KeyOverlayFPS.UI
 
             // ハイライト色設定
             _activeBrush = GetBrushFromColorName(settings.HighlightColor);
-        }
-
-        /// <summary>
-        /// デフォルト設定を適用
-        /// </summary>
-        private void ApplyDefaultSettings()
-        {
-            _window.Left = 100;
-            _window.Top = 100;
-            _window.Topmost = true;
-            _foregroundBrush = Brushes.White;
-            _activeBrush = new SolidColorBrush(ApplicationConstants.Colors.DefaultHighlight);
-            _displayScale = 1.0;
-            _isMouseVisible = true;
         }
 
         /// <summary>

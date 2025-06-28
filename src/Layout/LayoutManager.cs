@@ -145,7 +145,7 @@ namespace KeyOverlayFPS.Layout
                     {
                         Offset = new PositionConfig { X = 0, Y = 64 },
                         Size = new SizeConfig { Width = 10, Height = 18 },
-                        VirtualKey = 4,
+                        VirtualKey = 6,
                         IsVisible = true
                     }
                 }

@@ -402,12 +402,12 @@ mouse:
       virtualKey: 3
       isVisible: true
     MouseButton4:
-      offset: { x: 0, y: 42 }
+      offset: { x: 0, y: 64 }
       size: { width: 10, height: 18 }
       virtualKey: 5
       isVisible: true
     MouseButton5:
-      offset: { x: 0, y: 64 }
+      offset: { x: 0, y: 42 }
       size: { width: 10, height: 18 }
-      virtualKey: 4
+      virtualKey: 6
       isVisible: true

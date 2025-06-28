@@ -212,7 +212,7 @@ namespace KeyOverlayFPS.Layout
 
         private void KeyBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // 親ウィンドウのキーボーダーマウス処理を呼び出し
+            // 親ウィンドウのキーボーダー左クリック処理を呼び出し
             if (_canvas.Parent is MainWindow mainWindow)
             {
                 mainWindow.KeyBorderLeftButtonDownAction?.Invoke(sender, e);

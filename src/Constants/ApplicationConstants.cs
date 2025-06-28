@@ -109,7 +109,12 @@ namespace KeyOverlayFPS.Constants
             /// <summary>
             /// 65%キーボード表示時の幅
             /// </summary>
-            public const double FullKeyboardWidth = 580;
+            public const double FullKeyboardWidth = 510;
+
+            /// <summary>
+            /// 65%キーボード＋マウス表示時の幅
+            /// </summary>
+            public const double FullKeyboardWidthWithMouse = 580;
             
             /// <summary>
             /// 65%キーボード表示時の高さ

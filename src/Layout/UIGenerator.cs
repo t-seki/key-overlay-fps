@@ -91,17 +91,14 @@ namespace KeyOverlayFPS.Layout
             canvas.Children.Add(mouseBody);
 
             // マウスボタンを生成
-            if (layout.Mouse.Buttons != null)
+            foreach (var (buttonName, buttonConfig) in layout.Mouse.Buttons)
             {
-                foreach (var (buttonName, buttonConfig) in layout.Mouse.Buttons)
-                {
-                    if (!buttonConfig.IsVisible) continue;
+                if (!buttonConfig.IsVisible) continue;
 
-                    var button = CreateMouseButton(buttonName, buttonConfig);
-                    Canvas.SetLeft(button, layout.Mouse.Position.X + buttonConfig.Offset.X);
-                    Canvas.SetTop(button, layout.Mouse.Position.Y + buttonConfig.Offset.Y);
-                    canvas.Children.Add(button);
-                }
+                var button = CreateMouseButton(buttonName, buttonConfig);
+                Canvas.SetLeft(button, layout.Mouse.Position.X + buttonConfig.Offset.X);
+                Canvas.SetTop(button, layout.Mouse.Position.Y + buttonConfig.Offset.Y);
+                canvas.Children.Add(button);
             }
 
             // マウス移動可視化キャンバスを生成

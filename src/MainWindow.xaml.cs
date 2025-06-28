@@ -40,25 +40,18 @@ namespace KeyOverlayFPS
         // メニュー管理
         private readonly MainWindowMenu _menu;
         
-        private readonly DispatcherTimer _timer;
-        private readonly Brush _inactiveBrush;
-        private readonly Brush _keyboardKeyDefaultBrush;
+        // 入力処理管理
+        private MainWindowInput _input;
         
         // ドラッグ操作関連
         private bool _isDragging = false;
         private Point _dragStartPoint;
-        
-        // スクロール表示タイマー
-        private int _scrollUpTimer = 0;
-        private int _scrollDownTimer = 0;
         
         // 設定管理システム
         private readonly SettingsManager _settingsManager = SettingsManager.Instance;
         
         // マウス移動可視化
         private readonly MouseTracker _mouseTracker = new();
-        private readonly Dictionary<MouseDirection, System.Windows.Shapes.Path> _directionIndicators = new();
-        private DispatcherTimer? _directionHideTimer;
         
         // 動的レイアウトシステム
         private LayoutConfig? _currentLayout;
@@ -71,10 +64,6 @@ namespace KeyOverlayFPS
         {
             try
             {
-                // ブラシを統一ファクトリーから初期化
-                _keyboardKeyDefaultBrush = BrushFactory.CreateKeyboardKeyBackground();
-                _inactiveBrush = _keyboardKeyDefaultBrush;
-                
                 InitializeComponent();
                 
                 // 設定管理システムを初期化
@@ -98,15 +87,14 @@ namespace KeyOverlayFPS
                 InitializeDynamicLayoutSystem();
                 Logger.Info("動的レイアウトシステム初期化完了");
                 
-                // タイマー初期化
-                Logger.Info("タイマー初期化開始");
-                _timer = new DispatcherTimer
-                {
-                    Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.MainTimerInterval)
-                };
-                _timer.Tick += Timer_Tick;
-                _timer.Start();
-                Logger.Info("タイマー初期化完了");
+                // 入力処理管理システムを初期化
+                Logger.Info("入力処理システム初期化開始");
+                // ブラシを統一ファクトリーから初期化
+                var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
+                _input = new MainWindowInput(this, _settings, _keyboardHandler, _mouseTracker, _eventBinder, keyboardKeyBackgroundBrush);
+                InitializeInputActions();
+                _input.Start();
+                Logger.Info("入力処理システム初期化完了");
 
                 // イベントハンドラー設定
                 Logger.Info("イベントハンドラー設定開始");
@@ -149,7 +137,7 @@ namespace KeyOverlayFPS
             {
                 // プロファイルに応じたレイアウトファイルを読み込み
                 string layoutPath = GetLayoutPath(_keyboardHandler.CurrentProfile);
-                
+
                 if (File.Exists(layoutPath))
                 {
                     Logger.Info($"レイアウトファイルが存在、読み込み中: {layoutPath}");
@@ -159,66 +147,36 @@ namespace KeyOverlayFPS
                 {
                     Logger.Info($"レイアウトファイルが存在しない、デフォルトレイアウトを使用: {layoutPath}");
                     // デフォルトレイアウトを使用
-                    _currentLayout = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard 
+                    _currentLayout = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard
                         ? LayoutManager.CreateDefaultFPSLayout()
                         : LayoutManager.CreateDefault65KeyboardLayout();
                 }
-                
-                
+
+
                 // UIを動的生成
-                if (_currentLayout != null)
-                {
-                    _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
-                }
-                else
-                {
-                    Logger.Error("レイアウトがnullのため、UI生成をスキップ");
-                    throw new InvalidOperationException("レイアウトの初期化に失敗しました");
-                }
-                
+                _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
+
                 // 既存のCanvasと置き換え
                 Content = _dynamicCanvas;
-                
+
                 // ウィンドウ背景を設定
                 Background = BrushFactory.CreateTransparentBackground();
-                
+
                 // 要素名を登録
                 UIGenerator.RegisterElementNames(_dynamicCanvas, this);
-                
+
+                // KeyboardInputHandlerにLayoutConfigを設定
+                _keyboardHandler.SetLayoutConfig(_currentLayout);
+
                 // イベントバインディング
                 _eventBinder = new KeyEventBinder(_dynamicCanvas, _currentLayout, _keyboardHandler, _mouseTracker);
                 _eventBinder.BindAllEvents();
-                
-                // マウス移動イベントの登録
-                _mouseTracker.MouseMoved += OnMouseMoved;
-                
-                // 方向インジケーターのキャッシュを構築
-                BuildDirectionIndicatorCache();
-                
-                // 方向表示を非表示にするタイマーを初期化
-                _directionHideTimer = new DispatcherTimer
-                {
-                    Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.DirectionHideDelay)
-                };
-                _directionHideTimer.Tick += OnDirectionHideTimer_Tick;
+
             }
             catch (Exception ex)
             {
                 Logger.Error("動的レイアウトシステム初期化でエラーが発生", ex);
-                try
-                {
-                    // エラー時はデフォルトレイアウトにフォールバック
-                    Logger.Info("フォールバック: デフォルトレイアウトを使用");
-                    _currentLayout = LayoutManager.CreateDefault65KeyboardLayout();
-                    _dynamicCanvas = UIGenerator.GenerateCanvas(_currentLayout, this);
-                    Content = _dynamicCanvas;
-                    Logger.Info("フォールバック完了");
-                }
-                catch (Exception fallbackEx)
-                {
-                    Logger.Error("フォールバック処理でもエラーが発生", fallbackEx);
-                    throw;
-                }
+                throw;
             }
         }
         
@@ -233,72 +191,7 @@ namespace KeyOverlayFPS
                 _ => ApplicationConstants.Paths.Keyboard65Layout
             };
         }
-        
-        /// <summary>
-        /// 方向インジケーターのキャッシュを構築
-        /// </summary>
-        private void BuildDirectionIndicatorCache()
-        {
-            var directionCanvas = _eventBinder?.FindElement<Canvas>("MouseDirectionCanvas");
-            if (directionCanvas == null) return;
-
-            _directionIndicators.Clear();
-            
-            foreach (UIElement child in directionCanvas.Children)
-            {
-                if (child is System.Windows.Shapes.Path path && path.Name?.StartsWith("Direction") == true)
-                {
-                    var directionName = path.Name.Substring("Direction".Length);
-                    if (Enum.TryParse<MouseDirection>(directionName, out var direction))
-                    {
-                        _directionIndicators[direction] = path;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// マウス移動イベントハンドラー（新バージョン）
-        /// </summary>
-        private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
-        {
-            // 指定方向のインジケータをハイライト表示
-            if (_directionIndicators.TryGetValue(e.Direction, out var indicator))
-            {
-                // 現在表示中の方向をリセット
-                ResetDirectionIndicators();
                 
-                // 新しい方向をハイライト
-                indicator.Opacity = 0.9;
-                
-                // タイマーをリセットして再開
-                _directionHideTimer?.Stop();
-                _directionHideTimer?.Start();
-            }
-        }
-
-        /// <summary>
-        /// 方向インジケーター非表示タイマー
-        /// </summary>
-        private void OnDirectionHideTimer_Tick(object? sender, EventArgs e)
-        {
-            // 方向表示を非表示にする
-            ResetDirectionIndicators();
-            _directionHideTimer?.Stop();
-        }
-
-        /// <summary>
-        /// 方向インジケーターをリセット
-        /// </summary>
-        private void ResetDirectionIndicators()
-        {
-            foreach (var indicator in _directionIndicators.Values)
-            {
-                indicator.Opacity = 0.0;
-            }
-        }
-
-        
         private void SetBackgroundColor(Color color, bool transparent)
         {
             _settings.SetBackgroundColor(color, transparent);
@@ -356,7 +249,7 @@ namespace KeyOverlayFPS
                 }
                 else
                 {
-                    baseWidth = ApplicationConstants.WindowSizes.FullKeyboardWidth;
+                    baseWidth = _settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth;
                     baseHeight = ApplicationConstants.WindowSizes.FullKeyboardHeight;
                 }
                 
@@ -474,8 +367,8 @@ namespace KeyOverlayFPS
                 { "MouseLeft", (3, 3) },
                 { "MouseRight", (32, 3) },
                 { "MouseWheelButton", (25, 10) },
-                { "MouseButton4", (0, 42) },
-                { "MouseButton5", (0, 64) },
+                { "MouseButton4", (0, 64) },
+                { "MouseButton5", (0, 42) },
                 { "ScrollUp", (35, 10) },
                 { "ScrollDown", (35, 24) },
                 { "MouseDirectionCanvas", (15, 50) } // マウス本体中央下に配置
@@ -524,25 +417,6 @@ namespace KeyOverlayFPS
                 }
             }
         }
-        
-        /// <summary>
-        /// 設定システムの初期化
-        /// </summary>
-        private void InitializeSettings()
-        {
-            try
-            {
-                _settingsManager.Load();
-                Logger.Info($"設定読み込み完了 - Profile: {_settingsManager.Current.CurrentProfile}, Scale: {_settingsManager.Current.DisplayScale}");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("設定システム初期化でエラーが発生", ex);
-                throw;
-            }
-        }
-
-
 
         private void UpdateAllTextForeground()
         {
@@ -607,102 +481,7 @@ namespace KeyOverlayFPS
             }
         }
 
-        private void Timer_Tick(object? sender, EventArgs e)
-        {
-            bool isShiftPressed = _keyboardHandler.IsShiftPressed();
-            
-            // キーボードキー更新
-            UpdateKeys(isShiftPressed);
-            
-            // マウス入力（表示時のみ更新）
-            if (_settings.IsMouseVisible)
-            {
-                UpdateMouseKeys();
-                UpdateScrollIndicators();
-                
-                // マウス移動追跡（5.0は閾値）
-                _mouseTracker.Update(5.0);
-            }
-        }
         
-        private void UpdateKeys(bool isShiftPressed)
-        {
-            var activeKeys = KeyboardInputHandler.GetProfileKeyElements(_keyboardHandler.CurrentProfile);
-            bool shouldShowShiftText = isShiftPressed && _keyboardHandler.IsShiftDisplayEnabled(_keyboardHandler.CurrentProfile);
-            
-            foreach (var keyName in activeKeys)
-            {
-                var config = _keyboardHandler.GetKeyConfig(keyName);
-                if (config != null)
-                {
-                    if (config.HasShiftVariant)
-                    {
-                        UpdateKeyStateWithShift(config.Name, config.VirtualKey, config.NormalText, config.ShiftText, shouldShowShiftText);
-                    }
-                    else
-                    {
-                        UpdateKeyStateByName(config.Name, config.VirtualKey);
-                    }
-                }
-            }
-        }
-        
-        private void UpdateMouseKeys()
-        {
-            var mouseKeys = new[]
-            {
-                ("MouseLeft", 1),
-                ("MouseRight", 2),
-                ("MouseWheelButton", 3),
-                ("MouseButton4", 5),
-                ("MouseButton5", 4)
-            };
-            
-            foreach (var (keyName, buttonId) in mouseKeys)
-            {
-                UpdateKeyStateByName(keyName, buttonId);
-            }
-        }
-        
-
-
-        private void UpdateKeyStateByName(string keyName, int keyCode)
-        {
-            if (keyCode == 0) return; // Fnキーなど検出不可のキー
-            
-            var keyBorder = GetCachedElement<Border>(keyName);
-            if (keyBorder != null)
-            {
-                bool isPressed;
-                if (keyName.StartsWith("Mouse"))
-                {
-                    // マウスボタンの場合
-                    isPressed = _keyboardHandler.IsMouseButtonPressed(keyCode);
-                }
-                else
-                {
-                    // キーボードキーの場合
-                    isPressed = KeyboardInputHandler.IsKeyPressed(keyCode);
-                }
-                keyBorder.Background = isPressed ? _settings.ActiveBrush : _inactiveBrush;
-            }
-        }
-
-        private void UpdateKeyStateWithShift(string keyName, int virtualKeyCode, string normalText, string shiftText, bool isShiftPressed)
-        {
-            var keyBorder = GetCachedElement<Border>(keyName);
-            var textBlock = GetCachedElement<TextBlock>(keyName + "Text");
-            
-            if (keyBorder != null && textBlock != null)
-            {
-                bool isPressed = KeyboardInputHandler.IsKeyPressed(virtualKeyCode);
-                keyBorder.Background = isPressed ? _settings.ActiveBrush : _inactiveBrush;
-                
-                // プロファイルのShift表示設定を確認
-                bool shouldShowShiftText = isShiftPressed && _keyboardHandler.IsShiftDisplayEnabled(_keyboardHandler.CurrentProfile);
-                textBlock.Text = shouldShowShiftText ? shiftText : normalText;
-            }
-        }
 
 
         private void Canvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -732,53 +511,7 @@ namespace KeyOverlayFPS
         
         private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (_settings.IsMouseVisible)
-            {
-                // スクロール表示（マウス表示時のみ）
-                if (e.Delta > 0)
-                {
-                    // 上スクロール
-                    _scrollUpTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
-                }
-                else if (e.Delta < 0)
-                {
-                    // 下スクロール
-                    _scrollDownTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
-                }
-            }
-        }
-        
-        private void UpdateScrollIndicators()
-        {
-            // スクロールアップ表示
-            var scrollUpIndicator = GetCachedElement<TextBlock>("ScrollUpIndicator");
-            if (scrollUpIndicator != null)
-            {
-                if (_scrollUpTimer > 0)
-                {
-                    scrollUpIndicator.Foreground = _settings.ActiveBrush; // ハイライト色を使用
-                    _scrollUpTimer--;
-                }
-                else
-                {
-                    scrollUpIndicator.Foreground = _inactiveBrush;
-                }
-            }
-            
-            // スクロールダウン表示
-            var scrollDownIndicator = GetCachedElement<TextBlock>("ScrollDownIndicator");
-            if (scrollDownIndicator != null)
-            {
-                if (_scrollDownTimer > 0)
-                {
-                    scrollDownIndicator.Foreground = _settings.ActiveBrush; // ハイライト色を使用
-                    _scrollDownTimer--;
-                }
-                else
-                {
-                    scrollDownIndicator.Foreground = _inactiveBrush;
-                }
-            }
+            _input.HandleMouseWheel(e.Delta);
         }
         
         /// <summary>
@@ -793,6 +526,14 @@ namespace KeyOverlayFPS
             _menu.ToggleMouseVisibilityAction = ToggleMouseVisibility;
             _menu.SetDisplayScaleAction = SetDisplayScale;
             _menu.SwitchProfileAction = SwitchProfile;
+        }
+        
+        /// <summary>
+        /// 入力処理アクションを初期化
+        /// </summary>
+        private void InitializeInputActions()
+        {
+            _input.UpdateAllTextForegroundAction = UpdateAllTextForeground;
         }
         
         /// <summary>
