@@ -34,25 +34,20 @@ namespace KeyOverlayFPS
         // キーボード入力ハンドラー
         private readonly KeyboardInputHandler _keyboardHandler = new KeyboardInputHandler();
 
+        // 設定管理
+        private readonly MainWindowSettings _settings;
+        
         private readonly DispatcherTimer _timer;
-        private Brush _activeBrush = new SolidColorBrush(Color.FromArgb(180, 0, 255, 0));
         private readonly Brush _inactiveBrush;
         private readonly Brush _keyboardKeyDefaultBrush;
         
-        // スクロール表示色（ハイライト色と同じ）
+        // ドラッグ操作関連
         private bool _isDragging = false;
         private Point _dragStartPoint;
+        
+        // スクロール表示タイマー
         private int _scrollUpTimer = 0;
         private int _scrollDownTimer = 0;
-        
-        // フォアグラウンド色管理
-        private Brush _foregroundBrush = Brushes.White;
-        
-        // マウス表示切り替え
-        private bool _isMouseVisible = true;
-        
-        // 表示スケール（0.8, 1.0, 1.2, 1.5）
-        private double _displayScale = 1.0;
         
         // 設定管理システム
         private readonly SettingsManager _settingsManager = SettingsManager.Instance;
@@ -79,12 +74,16 @@ namespace KeyOverlayFPS
                 
                 InitializeComponent();
                 
+                // 設定管理システムを初期化
+                _settings = new MainWindowSettings(this, _settingsManager);
+                _settings.SettingsChanged += OnSettingsChanged;
+                
                 // イベント委譲アクションを初期化
                 InitializeEventActions();
                 
                 // 設定システム初期化
                 Logger.Info("設定システム初期化開始");
-                InitializeSettings();
+                _settings.Initialize();
                 Logger.Info("設定システム初期化完了");
                 
                 // 動的レイアウトシステムを初期化
@@ -121,7 +120,10 @@ namespace KeyOverlayFPS
                 
                 // 設定適用
                 Logger.Info("設定適用開始");
-                ApplySettings();
+                ApplyProfileLayout();
+                ApplyDisplayScale();
+                UpdateMousePositions();
+                UpdateAllTextForeground();
                 Logger.Info("設定適用完了");
             }
             catch (Exception ex)
@@ -353,7 +355,7 @@ namespace KeyOverlayFPS
             var topmostMenuItem = new MenuItem { Header = "最前面固定", IsCheckable = true, IsChecked = Topmost };
             topmostMenuItem.Click += (s, e) => ToggleTopmost();
             
-            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _isMouseVisible };
+            var mouseVisibilityMenuItem = new MenuItem { Header = "マウス表示", IsCheckable = true, IsChecked = _settings.IsMouseVisible };
             mouseVisibilityMenuItem.Click += (s, e) => ToggleMouseVisibility();
             
             var scaleMenuItem = CreateDisplayScaleMenu();
@@ -378,7 +380,7 @@ namespace KeyOverlayFPS
                 { 
                     Header = label, 
                     IsCheckable = true, 
-                    IsChecked = Math.Abs(_displayScale - scale) < 0.01 
+                    IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01 
                 };
                 menuItem.Click += (s, e) => 
                 {
@@ -429,41 +431,29 @@ namespace KeyOverlayFPS
         
         private void SetBackgroundColor(Color color, bool transparent)
         {
-            if (transparent)
-            {
-                Background = BrushFactory.CreateTransparentBackground();
-            }
-            else
-            {
-                Background = new SolidColorBrush(color);
-            }
-            SaveSettings();
+            _settings.SetBackgroundColor(color, transparent);
         }
         
         private void SetForegroundColor(Color color)
         {
-            _foregroundBrush = new SolidColorBrush(color);
+            _settings.SetForegroundColor(color);
             UpdateAllTextForeground();
-            SaveSettings();
         }
         
         private void SetHighlightColor(Color color)
         {
-            _activeBrush = new SolidColorBrush(color);
-            SaveSettings();
+            _settings.SetHighlightColor(color);
         }
         
         private void ToggleTopmost()
         {
-            Topmost = !Topmost;
-            SaveSettings();
+            _settings.ToggleTopmost();
         }
         
         private void ToggleMouseVisibility()
         {
-            _isMouseVisible = !_isMouseVisible;
+            _settings.ToggleMouseVisibility();
             UpdateMouseVisibility();
-            SaveSettings();
         }
         
         private void UpdateMouseVisibility()
@@ -474,9 +464,8 @@ namespace KeyOverlayFPS
         
         private void SetDisplayScale(double scale)
         {
-            _displayScale = scale;
+            _settings.SetDisplayScale(scale);
             ApplyDisplayScale();
-            SaveSettings();
         }
         
         private void ApplyDisplayScale()
@@ -485,14 +474,14 @@ namespace KeyOverlayFPS
             if (canvas != null)
             {
                 // Canvas全体にスケール変換を適用
-                var transform = new ScaleTransform(_displayScale, _displayScale);
+                var transform = new ScaleTransform(_settings.DisplayScale, _settings.DisplayScale);
                 canvas.RenderTransform = transform;
                 
                 // プロファイルに応じたウィンドウサイズ調整
                 double baseWidth, baseHeight;
                 if (_keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard)
                 {
-                    baseWidth = _isMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth;
+                    baseWidth = _settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth;
                     baseHeight = ApplicationConstants.WindowSizes.FpsKeyboardHeight;
                 }
                 else
@@ -501,8 +490,8 @@ namespace KeyOverlayFPS
                     baseHeight = ApplicationConstants.WindowSizes.FullKeyboardHeight;
                 }
                 
-                Width = baseWidth * _displayScale;
-                Height = baseHeight * _displayScale;
+                Width = baseWidth * _settings.DisplayScale;
+                Height = baseHeight * _settings.DisplayScale;
             }
         }
         
@@ -522,7 +511,7 @@ namespace KeyOverlayFPS
             _keyboardHandler.CurrentProfile = profile;
             ApplyProfileLayout();
             UpdateMousePositions();
-            SaveSettings();
+            _settings.SaveSettings();
         }
         
         private void ApplyProfileLayout()
@@ -535,15 +524,15 @@ namespace KeyOverlayFPS
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();
                     // ウィンドウサイズ調整
-                    Width = ApplicationConstants.WindowSizes.FullKeyboardWidth * _displayScale;
-                    Height = ApplicationConstants.WindowSizes.FullKeyboardHeight * _displayScale;
+                    Width = ApplicationConstants.WindowSizes.FullKeyboardWidth * _settings.DisplayScale;
+                    Height = ApplicationConstants.WindowSizes.FullKeyboardHeight * _settings.DisplayScale;
                     break;
                     
                 case KeyboardProfile.FPSKeyboard:
                     ShowFPSKeyboardLayout();
                     // ウィンドウサイズ調整（FPS用サイズ、マウス表示考慮）
-                    Width = (_isMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth) * _displayScale;
-                    Height = ApplicationConstants.WindowSizes.FpsKeyboardHeight * _displayScale;
+                    Width = (_settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth) * _settings.DisplayScale;
+                    Height = ApplicationConstants.WindowSizes.FpsKeyboardHeight * _settings.DisplayScale;
                     break;
             }
         }
@@ -642,12 +631,12 @@ namespace KeyOverlayFPS
             if (element is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
             {
                 // マウス移動可視化キャンバス
-                element.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                element.Visibility = _settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
             }
             else
             {
                 // マウス本体や他のマウス要素
-                element.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                element.Visibility = _settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
             }
         }
         
@@ -692,124 +681,8 @@ namespace KeyOverlayFPS
             }
         }
 
-        /// <summary>
-        /// 設定を適用
-        /// </summary>
-        private void ApplySettings()
-        {
-            var settings = _settingsManager.Current;
-            
-            // ウィンドウ設定
-            if (settings.WindowLeft > 0 && settings.WindowTop > 0)
-            {
-                Left = settings.WindowLeft;
-                Top = settings.WindowTop;
-            }
-            Topmost = settings.IsTopmost;
-            
-            // 表示設定
-            _displayScale = settings.DisplayScale;
-            _isMouseVisible = settings.IsMouseVisible;
-            
-            // プロファイル設定
-            if (Enum.TryParse<KeyboardProfile>(settings.CurrentProfile, out var profile))
-            {
-                _keyboardHandler.CurrentProfile = profile;
-            }
-            
-            // 色設定の適用
-            ApplyColorSettings(settings);
-            
-            // レイアウトとスケールを適用
-            ApplyProfileLayout();
-            ApplyDisplayScale();
-            UpdateMousePositions();
-            UpdateAllTextForeground();
-        }
 
-        /// <summary>
-        /// 色設定を適用
-        /// </summary>
-        private void ApplyColorSettings(AppSettings settings)
-        {
-            // 前景色
-            _foregroundBrush = GetBrushFromColorName(settings.ForegroundColor, SimpleColorManager.ForegroundMenuOptions);
-            
-            // ハイライト色
-            _activeBrush = GetBrushFromColorName(settings.HighlightColor, SimpleColorManager.HighlightMenuOptions);
-            
-            // 背景色
-            var backgroundOption = SimpleColorManager.BackgroundMenuOptions
-                .FirstOrDefault(opt => opt.Name.Contains(settings.BackgroundColor) || 
-                                     settings.BackgroundColor.Contains(opt.Name.Replace("透明", "Transparent")));
-            
-            if (backgroundOption != default)
-            {
-                SetBackgroundColor(backgroundOption.Color, backgroundOption.Transparent);
-            }
-        }
 
-        /// <summary>
-        /// 色名からBrushを取得
-        /// </summary>
-        private Brush GetBrushFromColorName(string colorName, (string Name, Color Color)[] options)
-        {
-            var option = options.FirstOrDefault(opt => opt.Name.Contains(colorName) || colorName.Contains(opt.Name));
-            if (option != default)
-            {
-                return new SolidColorBrush(option.Color);
-            }
-            return Brushes.White; // デフォルト
-        }
-
-        /// <summary>
-        /// 設定を保存
-        /// </summary>
-        private void SaveSettings()
-        {
-            var settings = _settingsManager.Current;
-            
-            // 現在の状態を設定に反映
-            settings.WindowLeft = Left;
-            settings.WindowTop = Top;
-            settings.IsTopmost = Topmost;
-            settings.DisplayScale = _displayScale;
-            settings.IsMouseVisible = _isMouseVisible;
-            settings.CurrentProfile = _keyboardHandler.CurrentProfile.ToString();
-            
-            // 色設定の反映
-            settings.ForegroundColor = GetColorNameFromBrush(_foregroundBrush, SimpleColorManager.ForegroundMenuOptions);
-            settings.HighlightColor = GetColorNameFromBrush(_activeBrush, SimpleColorManager.HighlightMenuOptions);
-            
-            _settingsManager.Save();
-        }
-
-        /// <summary>
-        /// BrushからColorNameを取得
-        /// </summary>
-        private string GetColorNameFromBrush(Brush brush, (string Name, Color Color)[] options)
-        {
-            if (brush is SolidColorBrush solidBrush)
-            {
-                var option = options.FirstOrDefault(opt => ColorsAreEqual(opt.Color, solidBrush.Color));
-                if (option != default)
-                {
-                    return option.Name;
-                }
-            }
-            return options.Length > 0 ? options[0].Name : "白"; // デフォルト
-        }
-
-        /// <summary>
-        /// 色比較（アルファ値も含む）
-        /// </summary>
-        private bool ColorsAreEqual(Color color1, Color color2)
-        {
-            return color1.A == color2.A && color1.R == color2.R && 
-                   color1.G == color2.G && color1.B == color2.B;
-        }
-        
-        
         private void UpdateAllTextForeground()
         {
             // Canvas内のすべてのTextBlockを探してフォアグラウンド色を更新
@@ -830,7 +703,7 @@ namespace KeyOverlayFPS
         {
             if (border.Child is TextBlock textBlock)
             {
-                textBlock.Foreground = _foregroundBrush;
+                textBlock.Foreground = _settings.ForegroundBrush;
             }
             else if (border.Child is StackPanel stackPanel)
             {
@@ -838,7 +711,7 @@ namespace KeyOverlayFPS
                 {
                     if (child is TextBlock tb)
                     {
-                        tb.Foreground = _foregroundBrush;
+                        tb.Foreground = _settings.ForegroundBrush;
                     }
                 }
             }
@@ -881,7 +754,7 @@ namespace KeyOverlayFPS
             UpdateKeys(isShiftPressed);
             
             // マウス入力（表示時のみ更新）
-            if (_isMouseVisible)
+            if (_settings.IsMouseVisible)
             {
                 UpdateMouseKeys();
                 UpdateScrollIndicators();
@@ -950,7 +823,7 @@ namespace KeyOverlayFPS
                     // キーボードキーの場合
                     isPressed = KeyboardInputHandler.IsKeyPressed(keyCode);
                 }
-                keyBorder.Background = isPressed ? _activeBrush : _inactiveBrush;
+                keyBorder.Background = isPressed ? _settings.ActiveBrush : _inactiveBrush;
             }
         }
 
@@ -962,7 +835,7 @@ namespace KeyOverlayFPS
             if (keyBorder != null && textBlock != null)
             {
                 bool isPressed = KeyboardInputHandler.IsKeyPressed(virtualKeyCode);
-                keyBorder.Background = isPressed ? _activeBrush : _inactiveBrush;
+                keyBorder.Background = isPressed ? _settings.ActiveBrush : _inactiveBrush;
                 
                 // プロファイルのShift表示設定を確認
                 bool shouldShowShiftText = isShiftPressed && _keyboardHandler.IsShiftDisplayEnabled(_keyboardHandler.CurrentProfile);
@@ -998,7 +871,7 @@ namespace KeyOverlayFPS
         
         private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (_isMouseVisible)
+            if (_settings.IsMouseVisible)
             {
                 // スクロール表示（マウス表示時のみ）
                 if (e.Delta > 0)
@@ -1022,7 +895,7 @@ namespace KeyOverlayFPS
             {
                 if (_scrollUpTimer > 0)
                 {
-                    scrollUpIndicator.Foreground = _activeBrush; // ハイライト色を使用
+                    scrollUpIndicator.Foreground = _settings.ActiveBrush; // ハイライト色を使用
                     _scrollUpTimer--;
                 }
                 else
@@ -1037,7 +910,7 @@ namespace KeyOverlayFPS
             {
                 if (_scrollDownTimer > 0)
                 {
-                    scrollDownIndicator.Foreground = _activeBrush; // ハイライト色を使用
+                    scrollDownIndicator.Foreground = _settings.ActiveBrush; // ハイライト色を使用
                     _scrollDownTimer--;
                 }
                 else
@@ -1058,6 +931,15 @@ namespace KeyOverlayFPS
             CanvasWheelAction = MainWindow_MouseWheel;
             KeyBorderLeftButtonDownAction = KeyBorder_MouseLeftButtonDown;
             KeyBorderRightButtonDownAction = KeyBorder_MouseRightButtonDown;
+        }
+        
+        /// <summary>
+        /// 設定変更時のイベントハンドラー
+        /// </summary>
+        private void OnSettingsChanged(object? sender, EventArgs e)
+        {
+            // UI更新が必要な場合の処理
+            // 現在は自動的に設定が適用されるため、特別な処理は不要
         }
     }
 }
