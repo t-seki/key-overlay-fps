@@ -173,44 +173,36 @@ namespace KeyOverlayFPS.Layout
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // 親ウィンドウのドラッグ開始処理を呼び出し
-            if (_canvas.Parent is Window window)
+            if (_canvas.Parent is MainWindow mainWindow)
             {
-                var method = window.GetType().GetMethod("MainWindow_MouseLeftButtonDown", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                method?.Invoke(window, new object[] { sender, e });
+                mainWindow.CanvasLeftButtonDownAction?.Invoke(sender, e);
             }
         }
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             // 親ウィンドウのドラッグ処理を呼び出し
-            if (_canvas.Parent is Window window)
+            if (_canvas.Parent is MainWindow mainWindow)
             {
-                var method = window.GetType().GetMethod("MainWindow_MouseMove", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                method?.Invoke(window, new object[] { sender, e });
+                mainWindow.CanvasMoveAction?.Invoke(sender, e);
             }
         }
 
         private void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             // 親ウィンドウのドラッグ終了処理を呼び出し
-            if (_canvas.Parent is Window window)
+            if (_canvas.Parent is MainWindow mainWindow)
             {
-                var method = window.GetType().GetMethod("MainWindow_MouseLeftButtonUp", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                method?.Invoke(window, new object[] { sender, e });
+                mainWindow.CanvasLeftButtonUpAction?.Invoke(sender, e);
             }
         }
 
         private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             // 親ウィンドウのマウスホイール処理を呼び出し
-            if (_canvas.Parent is Window window)
+            if (_canvas.Parent is MainWindow mainWindow)
             {
-                var method = window.GetType().GetMethod("MainWindow_MouseWheel", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                method?.Invoke(window, new object[] { sender, e });
+                mainWindow.CanvasWheelAction?.Invoke(sender, e);
             }
         }
 
@@ -221,22 +213,18 @@ namespace KeyOverlayFPS.Layout
         private void KeyBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // 親ウィンドウのキーボーダーマウス処理を呼び出し
-            if (_canvas.Parent is Window window)
+            if (_canvas.Parent is MainWindow mainWindow)
             {
-                var method = window.GetType().GetMethod("KeyBorder_MouseLeftButtonDown", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                method?.Invoke(window, new object[] { sender, e });
+                mainWindow.KeyBorderLeftButtonDownAction?.Invoke(sender, e);
             }
         }
 
         private void KeyBorder_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             // 親ウィンドウのキーボーダー右クリック処理を呼び出し
-            if (_canvas.Parent is Window window)
+            if (_canvas.Parent is MainWindow mainWindow)
             {
-                var method = window.GetType().GetMethod("KeyBorder_MouseRightButtonDown", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                method?.Invoke(window, new object[] { sender, e });
+                mainWindow.KeyBorderRightButtonDownAction?.Invoke(sender, e);
             }
         }
 

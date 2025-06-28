@@ -19,11 +19,18 @@ using System.Windows.Shapes;
 
 namespace KeyOverlayFPS
 {
-    // 定数はApplicationConstants.csに移動済み
 
 
     public partial class MainWindow : Window
     {
+        // UI要素イベント委譲用アクション
+        public Action<object, MouseButtonEventArgs>? CanvasLeftButtonDownAction { get; private set; }
+        public Action<object, MouseEventArgs>? CanvasMoveAction { get; private set; }
+        public Action<object, MouseButtonEventArgs>? CanvasLeftButtonUpAction { get; private set; }
+        public Action<object, MouseWheelEventArgs>? CanvasWheelAction { get; private set; }
+        public Action<object, MouseButtonEventArgs>? KeyBorderLeftButtonDownAction { get; private set; }
+        public Action<object, MouseButtonEventArgs>? KeyBorderRightButtonDownAction { get; private set; }
+        
         // キーボード入力ハンドラー
         private readonly KeyboardInputHandler _keyboardHandler = new KeyboardInputHandler();
 
@@ -71,6 +78,9 @@ namespace KeyOverlayFPS
                 _inactiveBrush = _keyboardKeyDefaultBrush;
                 
                 InitializeComponent();
+                
+                // イベント委譲アクションを初期化
+                InitializeEventActions();
                 
                 // 設定システム初期化
                 Logger.Info("設定システム初期化開始");
@@ -410,10 +420,6 @@ namespace KeyOverlayFPS
             return profileMenuItem;
         }
         
-        
-        
-        
-        
         private MenuItem CreateExitMenu()
         {
             var exitMenuItem = new MenuItem { Header = "終了" };
@@ -552,25 +558,18 @@ namespace KeyOverlayFPS
             {
                 if (child is Border border && !string.IsNullOrEmpty(border.Name))
                 {
-                    // マウス要素は現在の設定に従う
                     if (IsMouseElement(border.Name))
                     {
-                        border.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                        SetMouseElementVisibility(child);
                     }
                     else
                     {
                         border.Visibility = Visibility.Visible;
                     }
                 }
-                else if (child is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
-                {
-                    // マウス移動可視化キャンバス
-                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
-                }
                 else
                 {
-                    // マウス本体など名前なし要素の処理
-                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                    SetMouseElementVisibility(child);
                 }
             }
         }
@@ -589,8 +588,7 @@ namespace KeyOverlayFPS
                 {
                     if (IsMouseElement(border.Name))
                     {
-                        // マウス要素は設定に従う
-                        border.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                        SetMouseElementVisibility(child);
                     }
                     else if (fpsKeys.Contains(border.Name))
                     {
@@ -603,15 +601,9 @@ namespace KeyOverlayFPS
                         border.Visibility = Visibility.Collapsed;
                     }
                 }
-                else if (child is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
-                {
-                    // マウス移動可視化キャンバス
-                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
-                }
                 else
                 {
-                    // マウス本体など名前なし要素
-                    child.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                    SetMouseElementVisibility(child);
                 }
             }
         }
@@ -641,6 +633,23 @@ namespace KeyOverlayFPS
         }
         
         private static bool IsMouseElement(string elementName) => MouseElements.Names.Contains(elementName);
+        
+        /// <summary>
+        /// マウス要素の可視性を設定
+        /// </summary>
+        private void SetMouseElementVisibility(UIElement element)
+        {
+            if (element is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
+            {
+                // マウス移動可視化キャンバス
+                element.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else
+            {
+                // マウス本体や他のマウス要素
+                element.Visibility = _isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
         
         /// <summary>
         /// UIエレメントを取得（KeyEventBinderのキャッシュを使用）
@@ -1036,6 +1045,19 @@ namespace KeyOverlayFPS
                     scrollDownIndicator.Foreground = _inactiveBrush;
                 }
             }
+        }
+        
+        /// <summary>
+        /// イベント委譲アクションを初期化
+        /// </summary>
+        private void InitializeEventActions()
+        {
+            CanvasLeftButtonDownAction = MainWindow_MouseLeftButtonDown;
+            CanvasMoveAction = MainWindow_MouseMove;
+            CanvasLeftButtonUpAction = MainWindow_MouseLeftButtonUp;
+            CanvasWheelAction = MainWindow_MouseWheel;
+            KeyBorderLeftButtonDownAction = KeyBorder_MouseLeftButtonDown;
+            KeyBorderRightButtonDownAction = KeyBorder_MouseRightButtonDown;
         }
     }
 }

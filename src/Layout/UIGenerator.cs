@@ -286,9 +286,6 @@ namespace KeyOverlayFPS.Layout
             return canvas;
         }
 
-        // CreateDirectionArcメソッドはDirectionArcGenerator.csに移動済み
-
-        // ブラシ作成メソッドはBrushFactory.csに移動済み
 
         /// <summary>
         /// Canvas背景色を設定

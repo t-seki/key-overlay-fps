@@ -169,6 +169,11 @@ namespace KeyOverlayFPS.Constants
             public const int DirectionSegments = 32;
             
             /// <summary>
+            /// マウス移動検出の最小ピクセル数
+            /// </summary>
+            public const double MovementThreshold = 5.0;
+            
+            /// <summary>
             /// 方向表示キャンバスのサイズ
             /// </summary>
             public static double CanvasSize => CircleRadius * 2;

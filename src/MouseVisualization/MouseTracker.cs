@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+using KeyOverlayFPS.Constants;
 
 namespace KeyOverlayFPS.MouseVisualization
 {
@@ -31,7 +32,7 @@ namespace KeyOverlayFPS.MouseVisualization
         /// マウス位置を更新し、移動を検出
         /// </summary>
         /// <param name="threshold">移動を検出する最小ピクセル数</param>
-        public void Update(double threshold = 5.0)
+        public void Update(double threshold = ApplicationConstants.MouseVisualization.MovementThreshold)
         {
             var currentPosition = GetCurrentMousePosition();
             
