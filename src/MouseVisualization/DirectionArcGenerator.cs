@@ -9,7 +9,7 @@ namespace KeyOverlayFPS.MouseVisualization
 {
     /// <summary>
     /// マウス方向表示用の円弧生成クラス
-    /// 32方向のマウス移動可視化で使用される円弧Pathを生成する
+    /// 16方向のマウス移動可視化で使用される円弧Pathを生成する
     /// </summary>
     public static class DirectionArcGenerator
     {
@@ -17,7 +17,7 @@ namespace KeyOverlayFPS.MouseVisualization
         /// 指定された方向とセグメントインデックスから円弧Pathを作成
         /// </summary>
         /// <param name="direction">マウス移動方向</param>
-        /// <param name="segmentIndex">セグメント番号（0-31）</param>
+        /// <param name="segmentIndex">セグメント番号（0-15）</param>
         /// <param name="radius">円の半径（デフォルト値使用可能）</param>
         /// <param name="strokeBrush">線のブラシ（デフォルト値使用可能）</param>
         /// <returns>作成された円弧Path</returns>
@@ -35,7 +35,7 @@ namespace KeyOverlayFPS.MouseVisualization
                 strokeBrush = BrushFactory.CreateDefaultHighlightBrush();
             
             var anglePerSegment = 360.0 / ApplicationConstants.MouseVisualization.DirectionSegments;
-            var startAngle = segmentIndex * anglePerSegment;
+            var startAngle = segmentIndex * anglePerSegment - anglePerSegment / 2;
             var endAngle = startAngle + anglePerSegment;
             
             // 角度をラジアンに変換（East=0度を3時方向に配置）
@@ -80,7 +80,7 @@ namespace KeyOverlayFPS.MouseVisualization
         }
         
         /// <summary>
-        /// 32方向すべての円弧を生成してCanvasに追加
+        /// 16方向すべての円弧を生成してCanvasに追加
         /// </summary>
         /// <param name="canvas">追加先のCanvas</param>
         /// <param name="radius">円の半径（デフォルト値使用可能）</param>
@@ -93,25 +93,17 @@ namespace KeyOverlayFPS.MouseVisualization
         {
             var directionIndicators = new System.Collections.Generic.Dictionary<MouseDirection, Path>();
             
-            // 32方向の列挙
+            // 16方向の列挙
             var directions = new MouseDirection[]
             {
-                MouseDirection.East, MouseDirection.East_11_25, 
-                MouseDirection.EastNorthEast, MouseDirection.East_33_75,
-                MouseDirection.NorthEast, MouseDirection.North_56_25, 
-                MouseDirection.NorthNorthEast, MouseDirection.North_78_75,
-                MouseDirection.North, MouseDirection.North_101_25, 
-                MouseDirection.NorthNorthWest, MouseDirection.North_123_75,
-                MouseDirection.NorthWest, MouseDirection.West_146_25, 
-                MouseDirection.WestNorthWest, MouseDirection.West_168_75,
-                MouseDirection.West, MouseDirection.West_191_25, 
-                MouseDirection.WestSouthWest, MouseDirection.West_213_75,
-                MouseDirection.SouthWest, MouseDirection.South_236_25, 
-                MouseDirection.SouthSouthWest, MouseDirection.South_258_75,
-                MouseDirection.South, MouseDirection.South_281_25, 
-                MouseDirection.SouthSouthEast, MouseDirection.South_303_75,
-                MouseDirection.SouthEast, MouseDirection.South_326_25, 
-                MouseDirection.EastSouthEast, MouseDirection.East_348_75
+                MouseDirection.East, MouseDirection.EastNorthEast,
+                MouseDirection.NorthEast, MouseDirection.NorthNorthEast,
+                MouseDirection.North, MouseDirection.NorthNorthWest,
+                MouseDirection.NorthWest, MouseDirection.WestNorthWest,
+                MouseDirection.West, MouseDirection.WestSouthWest,
+                MouseDirection.SouthWest, MouseDirection.SouthSouthWest,
+                MouseDirection.South, MouseDirection.SouthSouthEast,
+                MouseDirection.SouthEast, MouseDirection.EastSouthEast
             };
             
             for (int i = 0; i < directions.Length; i++)

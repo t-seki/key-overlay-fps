@@ -70,7 +70,7 @@ namespace KeyOverlayFPS.MouseVisualization
         }
 
         /// <summary>
-        /// 移動方向を計算（32方向）
+        /// 移動方向を計算（16方向）
         /// </summary>
         /// <param name="deltaX">X軸の移動量</param>
         /// <param name="deltaY">Y軸の移動量</param>
@@ -125,73 +125,41 @@ namespace KeyOverlayFPS.MouseVisualization
     }
 
     /// <summary>
-    /// マウスの移動方向（32方向）
+    /// マウスの移動方向（16方向）
     /// </summary>
     public enum MouseDirection
     {
         /// <summary>東（右）</summary>
         East = 0,
-        /// <summary>東微北</summary>
-        East_11_25 = 1,
         /// <summary>東北東</summary>
-        EastNorthEast = 2,
-        /// <summary>東北東微北</summary>
-        East_33_75 = 3,
+        EastNorthEast = 1,
         /// <summary>北東</summary>
-        NorthEast = 4,
-        /// <summary>北東微北</summary>
-        North_56_25 = 5,
+        NorthEast = 2,
         /// <summary>北北東</summary>
-        NorthNorthEast = 6,
-        /// <summary>北北東微北</summary>
-        North_78_75 = 7,
+        NorthNorthEast = 3,
         /// <summary>北（上）</summary>
-        North = 8,
-        /// <summary>北微西</summary>
-        North_101_25 = 9,
+        North = 4,
         /// <summary>北北西</summary>
-        NorthNorthWest = 10,
-        /// <summary>北北西微西</summary>
-        North_123_75 = 11,
+        NorthNorthWest = 5,
         /// <summary>北西</summary>
-        NorthWest = 12,
-        /// <summary>北西微西</summary>
-        West_146_25 = 13,
+        NorthWest = 6,
         /// <summary>西北西</summary>
-        WestNorthWest = 14,
-        /// <summary>西北西微西</summary>
-        West_168_75 = 15,
+        WestNorthWest = 7,
         /// <summary>西（左）</summary>
-        West = 16,
-        /// <summary>西微南</summary>
-        West_191_25 = 17,
+        West = 8,
         /// <summary>西南西</summary>
-        WestSouthWest = 18,
-        /// <summary>西南西微南</summary>
-        West_213_75 = 19,
+        WestSouthWest = 9,
         /// <summary>南西</summary>
-        SouthWest = 20,
-        /// <summary>南西微南</summary>
-        South_236_25 = 21,
+        SouthWest = 10,
         /// <summary>南南西</summary>
-        SouthSouthWest = 22,
-        /// <summary>南南西微南</summary>
-        South_258_75 = 23,
+        SouthSouthWest = 11,
         /// <summary>南（下）</summary>
-        South = 24,
-        /// <summary>南微東</summary>
-        South_281_25 = 25,
+        South = 12,
         /// <summary>南南東</summary>
-        SouthSouthEast = 26,
-        /// <summary>南南東微東</summary>
-        South_303_75 = 27,
+        SouthSouthEast = 13,
         /// <summary>南東</summary>
-        SouthEast = 28,
-        /// <summary>南東微東</summary>
-        South_326_25 = 29,
+        SouthEast = 14,
         /// <summary>東南東</summary>
-        EastSouthEast = 30,
-        /// <summary>東南東微東</summary>
-        East_348_75 = 31
+        EastSouthEast = 15
     }
 }

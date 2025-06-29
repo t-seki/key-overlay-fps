@@ -85,10 +85,10 @@ namespace KeyOverlayFPS.Tests
             Assert.AreEqual(expected, result);
         }
 
-        [TestCase(11, MouseDirection.East_11_25)] // 11.25°付近は East_11_25
-        [TestCase(350, MouseDirection.East_348_75)] // 348.75°付近は East_348_75
-        [TestCase(34, MouseDirection.East_33_75)] // 33.75°付近は East_33_75
-        [TestCase(56, MouseDirection.North_56_25)] // 56.25°付近は North_56_25
+        [TestCase(11, MouseDirection.East)] // 11°付近はEast (-11.25° ~ +11.25°)
+        [TestCase(12, MouseDirection.EastNorthEast)] // 12°付近はEastNorthEast
+        [TestCase(349, MouseDirection.East)] // 349°付近はEast
+        [TestCase(348, MouseDirection.EastSouthEast)] // 348°付近はEastSouthEast
         public void GetDirectionFromAngle_BorderAngles_ReturnsCorrectDirection(double angle, MouseDirection expected)
         {
             var result = DirectionCalculator.GetDirectionFromAngle(angle);

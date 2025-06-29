@@ -7,7 +7,7 @@ This document contains project-specific guidelines and best practices for AI-ass
 KeyOverlayFPS is a Windows WPF application that provides real-time keyboard and mouse input visualization for FPS gaming streams and recordings. The application features:
 
 - Real-time keyboard input detection using Win32 API
-- Mouse input visualization with 32-directional movement tracking
+- Mouse input visualization with 16-directional movement tracking
 - Customizable layouts and themes
 - YAML-based configuration management
 - Layout editor with live preview
@@ -29,7 +29,7 @@ KeyOverlayFPS is a Windows WPF application that provides real-time keyboard and 
 2. **Documentation Standards**
    - Use XML documentation comments for all public APIs
    - Include parameter descriptions and return value documentation
-   - Document complex algorithms (e.g., 32-direction calculation)
+   - Document complex algorithms (e.g., 16-direction calculation)
 
 3. **Error Handling**
    - Use try-catch blocks for file I/O and external API calls

@@ -134,9 +134,9 @@ namespace KeyOverlayFPS.Constants
             public const double StrokeThickness = 4.0;
             
             /// <summary>
-            /// 方向分割数（32方向）
+            /// 方向分割数（16方向）
             /// </summary>
-            public const int DirectionSegments = 32;
+            public const int DirectionSegments = 16;
             
             /// <summary>
             /// マウス移動検出の最小ピクセル数

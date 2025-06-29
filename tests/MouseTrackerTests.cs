@@ -71,13 +71,13 @@ namespace KeyOverlayFPS.Tests
         }
 
         [Test]
-        public void MouseDirection_EnumValues_Have32Values()
+        public void MouseDirection_EnumValues_Have16Values()
         {
             var values = Enum.GetValues<MouseDirection>();
-            Assert.AreEqual(32, values.Length);
+            Assert.AreEqual(16, values.Length);
 
-            // 値が0-31の連続した値であることを確認
-            for (int i = 0; i < 32; i++)
+            // 値が0-15の連続した値であることを確認
+            for (int i = 0; i < 16; i++)
             {
                 Assert.IsTrue(Enum.IsDefined(typeof(MouseDirection), i), $"MouseDirection value {i} should be defined");
             }
@@ -101,17 +101,13 @@ namespace KeyOverlayFPS.Tests
         {
             // 時計回りの順序で定義されていることを確認（32方向）
             Assert.AreEqual(0, (int)MouseDirection.East);
-            Assert.AreEqual(1, (int)MouseDirection.East_11_25);
-            Assert.AreEqual(2, (int)MouseDirection.EastNorthEast);
-            Assert.AreEqual(3, (int)MouseDirection.East_33_75);
-            Assert.AreEqual(4, (int)MouseDirection.NorthEast);
-            Assert.AreEqual(5, (int)MouseDirection.North_56_25);
-            Assert.AreEqual(6, (int)MouseDirection.NorthNorthEast);
-            Assert.AreEqual(7, (int)MouseDirection.North_78_75);
-            Assert.AreEqual(8, (int)MouseDirection.North);
-            Assert.AreEqual(16, (int)MouseDirection.West);
-            Assert.AreEqual(24, (int)MouseDirection.South);
-            Assert.AreEqual(30, (int)MouseDirection.EastSouthEast);
+            Assert.AreEqual(1, (int)MouseDirection.EastNorthEast);
+            Assert.AreEqual(2, (int)MouseDirection.NorthEast);
+            Assert.AreEqual(3, (int)MouseDirection.NorthNorthEast);
+            Assert.AreEqual(4, (int)MouseDirection.North);
+            Assert.AreEqual(8, (int)MouseDirection.West);
+            Assert.AreEqual(12, (int)MouseDirection.South);
+            Assert.AreEqual(15, (int)MouseDirection.EastSouthEast);
         }
 
         // 注意: MouseTrackerの実際のマウス座標取得機能は、Win32 APIに依存するため

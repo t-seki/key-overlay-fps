@@ -277,7 +277,7 @@ namespace KeyOverlayFPS.Layout
             // 基準円と中心点を作成
             DirectionArcGenerator.CreateBaseCircleAndCenter(canvas);
 
-            // 32方向の円弧を一括生成
+            // 16方向の円弧を一括生成
             DirectionArcGenerator.CreateAllDirectionArcs(canvas);
 
             return canvas;
