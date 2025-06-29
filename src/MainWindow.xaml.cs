@@ -71,7 +71,7 @@ namespace KeyOverlayFPS
         internal void InitializeUIManagers()
         {
             _dragHandler = new WindowDragHandler(this);
-            _mouseElementManager = new MouseElementManager(LayoutManager, name => ElementLocator?.FindElement<FrameworkElement>(name));
+            _mouseElementManager = new MouseElementManager(LayoutManager, ElementLocator!);
             _profileSwitcher = new ProfileSwitcher(
                 LayoutManager,
                 Input.KeyboardHandler,

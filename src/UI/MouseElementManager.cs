@@ -12,7 +12,7 @@ namespace KeyOverlayFPS.UI
     public class MouseElementManager
     {
         private readonly LayoutManager _layoutManager;
-        private readonly Func<string, FrameworkElement?> _elementFinder;
+        private readonly UIElementLocator _elementLocator;
         
         /// <summary>
         /// マウス要素管理クラス
@@ -27,10 +27,10 @@ namespace KeyOverlayFPS.UI
             };
         }
 
-        public MouseElementManager(LayoutManager layoutManager, Func<string, FrameworkElement?> elementFinder)
+        public MouseElementManager(LayoutManager layoutManager, UIElementLocator elementLocator)
         {
             _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
-            _elementFinder = elementFinder ?? throw new ArgumentNullException(nameof(elementFinder));
+            _elementLocator = elementLocator ?? throw new ArgumentNullException(nameof(elementLocator));
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace KeyOverlayFPS.UI
             // ボタン要素の位置を更新
             foreach (var (buttonName, buttonConfig) in layout.Buttons)
             {
-                var element = _elementFinder(buttonName);
+                var element = _elementLocator.FindElement<FrameworkElement>(buttonName);
                 if (element != null)
                 {
                     Canvas.SetLeft(element, position.Left + buttonConfig.Offset.X);
@@ -77,7 +77,7 @@ namespace KeyOverlayFPS.UI
             }
             
             // マウス本体の位置を更新
-            var bodyElement = _elementFinder("MouseBody");
+            var bodyElement = _elementLocator.FindElement<FrameworkElement>("MouseBody");
             if (bodyElement != null)
             {
                 Canvas.SetLeft(bodyElement, position.Left + layout.Body.Offset.X);
@@ -85,7 +85,7 @@ namespace KeyOverlayFPS.UI
             }
             
             // スクロール要素の位置を更新
-            var scrollUpElement = _elementFinder("ScrollUp");
+            var scrollUpElement = _elementLocator.FindElement<FrameworkElement>("ScrollUp");
             if (scrollUpElement != null && layout.Buttons.ContainsKey("ScrollUp"))
             {
                 var scrollUpConfig = layout.Buttons["ScrollUp"];
@@ -93,7 +93,7 @@ namespace KeyOverlayFPS.UI
                 Canvas.SetTop(scrollUpElement, position.Top + scrollUpConfig.Offset.Y);
             }
             
-            var scrollDownElement = _elementFinder("ScrollDown");
+            var scrollDownElement = _elementLocator.FindElement<FrameworkElement>("ScrollDown");
             if (scrollDownElement != null && layout.Buttons.ContainsKey("ScrollDown"))
             {
                 var scrollDownConfig = layout.Buttons["ScrollDown"];
@@ -102,7 +102,7 @@ namespace KeyOverlayFPS.UI
             }
             
             // 方向表示キャンバスの位置を更新
-            var directionElement = _elementFinder("MouseDirectionCanvas");
+            var directionElement = _elementLocator.FindElement<FrameworkElement>("MouseDirectionCanvas");
             if (directionElement != null)
             {
                 Canvas.SetLeft(directionElement, position.Left + layout.DirectionCanvas.Offset.X);

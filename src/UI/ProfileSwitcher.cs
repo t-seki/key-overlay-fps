@@ -51,9 +51,10 @@ namespace KeyOverlayFPS.UI
                 Logger.Error($"レイアウトファイル読み込みエラー: {ex.Message}", ex);
             }
             
+            _settingsService.SetCurrentProfile(profile.ToString());
+            
             _applyLayoutAction();
             _updateMousePositionsAction();
-            _settingsService.SetCurrentProfile(profile.ToString());
             _updateMenuStateAction();
         }
     }
