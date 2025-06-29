@@ -28,7 +28,6 @@ namespace KeyOverlayFPS
         public Action<object, MouseButtonEventArgs>? CanvasLeftButtonDownAction { get; private set; }
         public Action<object, MouseEventArgs>? CanvasMoveAction { get; private set; }
         public Action<object, MouseButtonEventArgs>? CanvasLeftButtonUpAction { get; private set; }
-        public Action<object, MouseWheelEventArgs>? CanvasWheelAction { get; private set; }
         public Action<object, MouseButtonEventArgs>? KeyBorderLeftButtonDownAction { get; private set; }
         public Action<object, MouseButtonEventArgs>? KeyBorderRightButtonDownAction { get; private set; }
         
@@ -60,6 +59,9 @@ namespace KeyOverlayFPS
             {
                 var initializer = new WindowInitializer();
                 initializer.Initialize(this);
+                
+                // ウィンドウ終了時のリソース解放設定
+                this.Closed += MainWindow_Closed;
             }
             catch (Exception ex)
             {
@@ -273,10 +275,6 @@ namespace KeyOverlayFPS
             e.Handled = true;
         }
         
-        internal void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            Input.HandleMouseWheel(e.Delta);
-        }
         
         /// <summary>
         /// メニューアクションを初期化
@@ -301,7 +299,6 @@ namespace KeyOverlayFPS
             CanvasLeftButtonDownAction = MainWindow_MouseLeftButtonDown;
             CanvasMoveAction = MainWindow_MouseMove;
             CanvasLeftButtonUpAction = MainWindow_MouseLeftButtonUp;
-            CanvasWheelAction = MainWindow_MouseWheel;
             KeyBorderLeftButtonDownAction = KeyBorder_MouseLeftButtonDown;
             KeyBorderRightButtonDownAction = KeyBorder_MouseRightButtonDown;
         }
@@ -313,6 +310,22 @@ namespace KeyOverlayFPS
         {
             // メニューのチェック状態を更新
             Menu.UpdateMenuCheckedState();
+        }
+        
+        /// <summary>
+        /// ウィンドウ終了時のリソース解放処理
+        /// </summary>
+        private void MainWindow_Closed(object? sender, EventArgs e)
+        {
+            try
+            {
+                // 入力処理のリソースを解放
+                Input?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("MainWindow 終了時のリソース解放でエラーが発生", ex);
+            }
         }
     }
 }

@@ -31,7 +31,6 @@ namespace KeyOverlayFPS.Initialization.Steps
             window.MouseLeftButtonDown += window.MainWindow_MouseLeftButtonDown;
             window.MouseMove += window.MainWindow_MouseMove;
             window.MouseLeftButtonUp += window.MainWindow_MouseLeftButtonUp;
-            window.MouseWheel += window.MainWindow_MouseWheel;
             
             // コンテキストメニュー設定
             context.Menu.SetupContextMenu();

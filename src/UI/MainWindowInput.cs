@@ -14,7 +14,7 @@ namespace KeyOverlayFPS.UI
     /// <summary>
     /// MainWindowの入力処理責務を担当するクラス
     /// </summary>
-    public class MainWindowInput
+    public class MainWindowInput : IDisposable
     {
         private readonly Window _window;
         private readonly MainWindowSettings _settings;
@@ -27,9 +27,19 @@ namespace KeyOverlayFPS.UI
         // タイマー管理
         private readonly DispatcherTimer _timer;
         
+        // マウスホイールフック
+        private readonly MouseWheelHook _mouseWheelHook;
+        
         // スクロール表示タイマー
         private int _scrollUpTimer = 0;
         private int _scrollDownTimer = 0;
+        
+        // マウスホイールフラグ（フック検知用）
+        private volatile bool _wheelUpDetected = false;
+        private volatile bool _wheelDownDetected = false;
+        
+        // リソース管理
+        private bool _disposed = false;
         
         // マウス方向インジケーター管理
         private readonly Dictionary<MouseDirection, System.Windows.Shapes.Path> _directionIndicators = new();
@@ -69,6 +79,10 @@ namespace KeyOverlayFPS.UI
             };
             _timer.Tick += Timer_Tick;
             
+            // マウスホイールフック初期化
+            _mouseWheelHook = new MouseWheelHook();
+            _mouseWheelHook.MouseWheelDetected += OnMouseWheelDetected;
+            
             // マウス移動イベント設定
             _mouseTracker.MouseMoved += OnMouseMoved;
         }
@@ -79,6 +93,7 @@ namespace KeyOverlayFPS.UI
         public void Start()
         {
             _timer.Start();
+            _mouseWheelHook.StartHook();
             BuildDirectionIndicatorCache();
         }
 
@@ -88,6 +103,7 @@ namespace KeyOverlayFPS.UI
         public void Stop()
         {
             _timer.Stop();
+            _mouseWheelHook.StopHook();
             _directionHideTimer?.Stop();
         }
 
@@ -108,6 +124,7 @@ namespace KeyOverlayFPS.UI
             {
                 UpdateMouseKeys();
                 UpdateScrollIndicators();
+                ProcessWheelFlags();
             }
         }
 
@@ -241,6 +258,40 @@ namespace KeyOverlayFPS.UI
         }
 
         /// <summary>
+        /// マウスホイールフック検知イベントハンドラー
+        /// </summary>
+        private void OnMouseWheelDetected(object? sender, MouseWheelEventArgs e)
+        {
+            // フラグを設定（タイマーティックで処理される）
+            if (e.Delta > 0)
+            {
+                _wheelUpDetected = true;
+            }
+            else if (e.Delta < 0)
+            {
+                _wheelDownDetected = true;
+            }
+        }
+
+        /// <summary>
+        /// ホイールフラグを処理してタイマーを設定
+        /// </summary>
+        private void ProcessWheelFlags()
+        {
+            if (_wheelUpDetected)
+            {
+                _scrollUpTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
+                _wheelUpDetected = false;
+            }
+
+            if (_wheelDownDetected)
+            {
+                _scrollDownTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
+                _wheelDownDetected = false;
+            }
+        }
+
+        /// <summary>
         /// マウス移動処理
         /// </summary>
         private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
@@ -321,5 +372,36 @@ namespace KeyOverlayFPS.UI
         {
             return _eventBinder?.FindElement<T>(name);
         }
+
+        #region IDisposable実装
+
+        /// <summary>
+        /// リソースを解放
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// リソースを解放
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // マネージリソースの解放
+                    Stop(); // タイマーとフックを停止
+                    _mouseWheelHook?.Dispose();
+                    _directionHideTimer?.Stop();
+                }
+                _disposed = true;
+            }
+        }
+
+        #endregion
     }
 }

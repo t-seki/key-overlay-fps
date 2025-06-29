@@ -50,7 +50,6 @@ namespace KeyOverlayFPS.Layout
             _canvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
             _canvas.MouseMove += Canvas_MouseMove;
             _canvas.MouseLeftButtonUp += Canvas_MouseLeftButtonUp;
-            _canvas.MouseWheel += Canvas_MouseWheel;
         }
 
         /// <summary>
@@ -197,14 +196,6 @@ namespace KeyOverlayFPS.Layout
             }
         }
 
-        private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            // 親ウィンドウのマウスホイール処理を呼び出し
-            if (_canvas.Parent is MainWindow mainWindow)
-            {
-                mainWindow.CanvasWheelAction?.Invoke(sender, e);
-            }
-        }
 
         #endregion
 
