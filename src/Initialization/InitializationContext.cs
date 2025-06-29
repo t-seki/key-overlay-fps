@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Input;
 using KeyOverlayFPS.UI;
@@ -13,10 +12,6 @@ namespace KeyOverlayFPS.Initialization
     /// </summary>
     public class InitializationContext
     {
-        /// <summary>
-        /// 初期化済みコンポーネントを格納する辞書
-        /// </summary>
-        public Dictionary<string, object> Components { get; } = new();
         
         /// <summary>
         /// 設定管理システム
@@ -59,20 +54,5 @@ namespace KeyOverlayFPS.Initialization
         /// </summary>
         public MouseTracker? MouseTracker { get; set; }
         
-        /// <summary>
-        /// コンポーネントを取得
-        /// </summary>
-        public T? GetComponent<T>(string key) where T : class
-        {
-            return Components.TryGetValue(key, out var component) ? component as T : null;
-        }
-        
-        /// <summary>
-        /// コンポーネントを設定
-        /// </summary>
-        public void SetComponent<T>(string key, T component) where T : class
-        {
-            Components[key] = component;
-        }
     }
 }
