@@ -23,6 +23,10 @@ namespace KeyOverlayFPS.Initialization.Steps
                 Logger.Info("アプリケーション終了時の設定保存完了");
             };
             
+            // UI管理クラスを初期化
+            window.InitializeUIManagers();
+            window.InitializeVisibilityController();
+            
             // 保存されたプロファイル設定を復元
             RestoreProfileSettings(window, context);
             

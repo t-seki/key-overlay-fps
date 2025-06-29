@@ -8,47 +8,46 @@ using KeyOverlayFPS.Constants;
 namespace KeyOverlayFPS.UI
 {
     /// <summary>
-    /// MainWindowの設定管理責務を担当するクラス
+    /// MainWindowの設定UI管理を担当するクラス
     /// </summary>
     public class MainWindowSettings
     {
         private readonly Window _window;
-        private readonly SettingsManager _settingsManager;
-        
-        private Brush _foregroundBrush = Brushes.White;
-        private Brush _activeBrush = new SolidColorBrush(ApplicationConstants.Colors.DefaultHighlight);
-        private double _displayScale = 1.0;
-        private bool _isMouseVisible = true;
+        private readonly ISettingsService _settingsService;
 
         /// <summary>
         /// 前景ブラシ
         /// </summary>
-        public Brush ForegroundBrush => _foregroundBrush;
+        public Brush ForegroundBrush => _settingsService.GetBrushFromColorName(_settingsService.Current.ForegroundColor);
         
         /// <summary>
         /// アクティブブラシ
         /// </summary>
-        public Brush ActiveBrush => _activeBrush;
+        public Brush ActiveBrush => _settingsService.GetBrushFromColorName(_settingsService.Current.HighlightColor);
         
         /// <summary>
         /// 表示スケール
         /// </summary>
-        public double DisplayScale => _displayScale;
+        public double DisplayScale => _settingsService.Current.DisplayScale;
         
         /// <summary>
         /// マウス要素の可視性
         /// </summary>
-        public bool IsMouseVisible => _isMouseVisible;
+        public bool IsMouseVisible => _settingsService.Current.IsMouseVisible;
 
         /// <summary>
         /// 設定変更時のイベント
         /// </summary>
-        public event EventHandler? SettingsChanged;
+        public event EventHandler? SettingsChanged
+        {
+            add => _settingsService.SettingsChanged += value;
+            remove => _settingsService.SettingsChanged -= value;
+        }
 
-        public MainWindowSettings(Window window, SettingsManager settingsManager)
+        public MainWindowSettings(Window window, ISettingsService settingsService)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
-            _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         }
 
         /// <summary>
@@ -58,20 +57,12 @@ namespace KeyOverlayFPS.UI
         {
             try
             {
-                _settingsManager.Load();
-                var settings = _settingsManager.Current;
+                _settingsService.Load();
+                var settings = _settingsService.Current;
 
                 // ウィンドウ設定を適用
                 ApplyWindowSettings(settings);
-
-                // 色設定を適用
-                ApplyColorSettings(settings);
-
-                // その他の設定を適用
-                _displayScale = settings.DisplayScale;
-                _isMouseVisible = settings.IsMouseVisible;
                 
-                // プロファイル設定を適用（MainWindowが設定された後）
                 // 背景色設定を適用
                 ApplyBackgroundSettings(settings);
             }
@@ -90,23 +81,14 @@ namespace KeyOverlayFPS.UI
         {
             try
             {
-                // 現在の状態をAppSettingsに反映
-                _settingsManager.Current.WindowLeft = _window.Left;
-                _settingsManager.Current.WindowTop = _window.Top;
-                _settingsManager.Current.IsTopmost = _window.Topmost;
-                _settingsManager.Current.ForegroundColor = GetColorNameFromBrush(_foregroundBrush);
-                _settingsManager.Current.HighlightColor = GetColorNameFromBrush(_activeBrush);
-                _settingsManager.Current.BackgroundColor = GetColorNameFromBrush(_window.Background);
-                _settingsManager.Current.DisplayScale = _displayScale;
-                _settingsManager.Current.IsMouseVisible = _isMouseVisible;
+                // ウィンドウ位置を更新
+                _settingsService.UpdateWindowPosition(_window.Left, _window.Top);
                 
                 // MainWindowからプロファイル情報を取得して保存
                 if (_window is MainWindow mainWindow && mainWindow.Input?.KeyboardHandler != null)
                 {
-                    _settingsManager.Current.CurrentProfile = mainWindow.Input.KeyboardHandler.CurrentProfile.ToString();
+                    _settingsService.SetCurrentProfile(mainWindow.Input.KeyboardHandler.CurrentProfile.ToString());
                 }
-                
-                _settingsManager.Save();
             }
             catch (Exception ex)
             {
@@ -119,16 +101,8 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void SetBackgroundColor(Color color, bool transparent)
         {
-            if (transparent)
-            {
-                _window.Background = BrushFactory.CreateTransparentBackground();
-            }
-            else
-            {
-                _window.Background = new SolidColorBrush(color);
-            }
-            SaveSettings();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            _settingsService.SetBackgroundColor(color, transparent);
+            ApplyBackgroundSettings(_settingsService.Current);
         }
 
         /// <summary>
@@ -136,9 +110,7 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void SetForegroundColor(Color color)
         {
-            _foregroundBrush = new SolidColorBrush(color);
-            SaveSettings();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            _settingsService.SetForegroundColor(color);
         }
 
         /// <summary>
@@ -146,9 +118,7 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void SetHighlightColor(Color color)
         {
-            _activeBrush = new SolidColorBrush(color);
-            SaveSettings();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            _settingsService.SetHighlightColor(color);
         }
 
         /// <summary>
@@ -156,9 +126,8 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void ToggleTopmost()
         {
-            _window.Topmost = !_window.Topmost;
-            SaveSettings();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            _settingsService.ToggleTopmost();
+            _window.Topmost = _settingsService.Current.IsTopmost;
         }
 
         /// <summary>
@@ -166,9 +135,7 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void ToggleMouseVisibility()
         {
-            _isMouseVisible = !_isMouseVisible;
-            SaveSettings();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            _settingsService.ToggleMouseVisibility();
         }
 
         /// <summary>
@@ -176,9 +143,7 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void SetDisplayScale(double scale)
         {
-            _displayScale = scale;
-            SaveSettings();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            _settingsService.SetDisplayScale(scale);
         }
 
         /// <summary>
@@ -192,53 +157,6 @@ namespace KeyOverlayFPS.UI
         }
 
         /// <summary>
-        /// 色設定を適用
-        /// </summary>
-        private void ApplyColorSettings(AppSettings settings)
-        {
-            // 前景色設定
-            _foregroundBrush = GetBrushFromColorName(settings.ForegroundColor);
-
-            // ハイライト色設定
-            _activeBrush = GetBrushFromColorName(settings.HighlightColor);
-        }
-
-        /// <summary>
-        /// 色名からBrushを取得
-        /// </summary>
-        private Brush GetBrushFromColorName(string colorName)
-        {
-            return BrushFactory.CreateBrushFromString(colorName, Brushes.White);
-        }
-
-        /// <summary>
-        /// Brushから色名を取得
-        /// </summary>
-        private string GetColorNameFromBrush(Brush brush)
-        {
-            if (brush is SolidColorBrush solidBrush)
-            {
-                var color = solidBrush.Color;
-                
-                // よく使用される色の名前を返す
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.White)) return "White";
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.Red)) return "Red";
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.Green)) return "Green";
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.Blue)) return "Blue";
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.Yellow)) return "Yellow";
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.Orange)) return "Orange";
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.Purple)) return "Purple";
-                if (ColorsAreEqual(color, System.Windows.Media.Colors.Pink)) return "Pink";
-                if (ColorsAreEqual(color, ApplicationConstants.Colors.DefaultHighlight)) return "LimeGreen";
-                
-                // RGB形式で返す
-                return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-            }
-            
-            return "White";
-        }
-
-        /// <summary>
         /// 背景色設定を適用
         /// </summary>
         private void ApplyBackgroundSettings(AppSettings settings)
@@ -249,17 +167,9 @@ namespace KeyOverlayFPS.UI
             }
             else
             {
-                var backgroundBrush = GetBrushFromColorName(settings.BackgroundColor);
+                var backgroundBrush = _settingsService.GetBrushFromColorName(settings.BackgroundColor);
                 _window.Background = backgroundBrush;
             }
-        }
-
-        /// <summary>
-        /// 色の比較（アルファ値を無視）
-        /// </summary>
-        private static bool ColorsAreEqual(Color color1, Color color2)
-        {
-            return color1.R == color2.R && color1.G == color2.G && color1.B == color2.B;
         }
     }
 }

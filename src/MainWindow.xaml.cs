@@ -41,9 +41,11 @@ namespace KeyOverlayFPS
         // 入力処理管理
         public MainWindowInput Input { get; set; } = null!;
         
-        // ドラッグ操作関連
-        private bool _isDragging = false;
-        private Point _dragStartPoint;
+        // UI管理クラス
+        private WindowDragHandler? _dragHandler;
+        private MouseElementManager? _mouseElementManager;
+        private ProfileSwitcher? _profileSwitcher;
+        private VisibilityController? _visibilityController;
         
         // 動的レイアウトシステム
         public LayoutManager LayoutManager { get; }
@@ -66,6 +68,34 @@ namespace KeyOverlayFPS
             }
         }
         
+        /// <summary>
+        /// UI管理クラスを初期化
+        /// </summary>
+        internal void InitializeUIManagers()
+        {
+            _dragHandler = new WindowDragHandler(this);
+            _mouseElementManager = new MouseElementManager(LayoutManager, name => EventBinder?.FindElement<FrameworkElement>(name));
+            _profileSwitcher = new ProfileSwitcher(
+                LayoutManager,
+                Input.KeyboardHandler,
+                SettingsManager.Instance,
+                ApplyProfileLayout,
+                UpdateMousePositions,
+                () => Menu.UpdateMenuCheckedState()
+            );
+        }
+        
+        /// <summary>
+        /// VisibilityControllerを初期化（Canvas準備後）
+        /// </summary>
+        internal void InitializeVisibilityController()
+        {
+            var canvas = Content as Canvas;
+            if (canvas != null)
+            {
+                _visibilityController = new VisibilityController(LayoutManager, canvas, () => Settings.IsMouseVisible);
+            }
+        }
         
                 
         private void SetBackgroundColor(Color color, bool transparent)
@@ -127,22 +157,7 @@ namespace KeyOverlayFPS
         
         private void SwitchProfile(KeyboardProfile profile)
         {
-            Input.KeyboardHandler.CurrentProfile = profile;
-            
-            // プロファイルに対応する新しいYAMLファイルを読み込み
-            try
-            {
-                LayoutManager.LoadLayout(profile);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"レイアウトファイル読み込みエラー: {ex.Message}");
-            }
-            
-            ApplyProfileLayout();
-            UpdateMousePositions();
-            Settings.SaveSettings();
-            Menu.UpdateMenuCheckedState();
+            _profileSwitcher?.SwitchProfile(profile);
         }
         
         internal void ApplyProfileLayout()
@@ -169,135 +184,18 @@ namespace KeyOverlayFPS
         
         private void ShowFullKeyboardLayout()
         {
-            // YAMLファイルのisVisible設定に基づいて表示するキーを取得
-            var visibleKeys = LayoutManager.GetVisibleKeys();
-            
-            var canvas = Content as Canvas;
-            if (canvas == null) return;
-            
-            foreach (UIElement child in canvas.Children)
-            {
-                if (child is Border border && !string.IsNullOrEmpty(border.Name))
-                {
-                    if (IsMouseElement(border.Name))
-                    {
-                        SetMouseElementVisibility(child);
-                    }
-                    else if (visibleKeys.Contains(border.Name))
-                    {
-                        border.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        border.Visibility = Visibility.Collapsed;
-                    }
-                }
-                else
-                {
-                    SetMouseElementVisibility(child);
-                }
-            }
+            _visibilityController?.ShowFullKeyboardLayout();
         }
         
         private void ShowFPSKeyboardLayout()
         {
-            // YAMLファイルのisVisible設定に基づいて表示するキーを取得
-            var visibleKeys = LayoutManager.GetVisibleKeys();
-            
-            var canvas = Content as Canvas;
-            if (canvas == null) return;
-            
-            foreach (UIElement child in canvas.Children)
-            {
-                if (child is Border border && !string.IsNullOrEmpty(border.Name))
-                {
-                    if (IsMouseElement(border.Name))
-                    {
-                        SetMouseElementVisibility(child);
-                    }
-                    else if (visibleKeys.Contains(border.Name))
-                    {
-                        // FPSキーは表示
-                        border.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        // その他のキーは非表示
-                        border.Visibility = Visibility.Collapsed;
-                    }
-                }
-                else
-                {
-                    SetMouseElementVisibility(child);
-                }
-            }
+            _visibilityController?.ShowFPSKeyboardLayout();
         }
         
-        // マウス要素管理クラス
-        private static class MouseElements
-        {
-            public static readonly HashSet<string> Names = new()
-            {
-                "MouseBody", "MouseLeft", "MouseRight", "MouseWheelButton", 
-                "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown",
-                "MouseDirectionCanvas"
-            };
-            
-            public static readonly Dictionary<string, (double Left, double Top)> Offsets = new()
-            {
-                { "MouseBody", (0, 0) },           // 基準位置
-                { "MouseLeft", (3, 3) },
-                { "MouseRight", (32, 3) },
-                { "MouseWheelButton", (25, 10) },
-                { "MouseButton4", (0, 64) },
-                { "MouseButton5", (0, 42) },
-                { "ScrollUp", (35, 10) },
-                { "ScrollDown", (35, 24) },
-                { "MouseDirectionCanvas", (15, 50) } // マウス本体中央下に配置
-            };
-        }
-        
-        private static bool IsMouseElement(string elementName) => MouseElements.Names.Contains(elementName);
-        
-        /// <summary>
-        /// マウス要素の可視性を設定
-        /// </summary>
-        private void SetMouseElementVisibility(UIElement element)
-        {
-            if (element is Canvas childCanvas && childCanvas.Name == "MouseDirectionCanvas")
-            {
-                // マウス移動可視化キャンバス
-                element.Visibility = Settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
-            }
-            else
-            {
-                // マウス本体や他のマウス要素
-                element.Visibility = Settings.IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
-        
-        /// <summary>
-        /// UIエレメントを取得（KeyEventBinderのキャッシュを使用）
-        /// </summary>
-        private T? GetCachedElement<T>(string name) where T : FrameworkElement
-        {
-            return EventBinder?.FindElement<T>(name);
-        }
         
         internal void UpdateMousePositions()
         {
-            var position = LayoutManager.GetMousePosition();
-            
-            // 全マウス要素の位置を一括更新
-            foreach (var (elementName, offset) in MouseElements.Offsets)
-            {
-                var element = GetCachedElement<FrameworkElement>(elementName);
-                if (element != null)
-                {
-                    Canvas.SetLeft(element, position.Left + offset.Left);
-                    Canvas.SetTop(element, position.Top + offset.Top);
-                }
-            }
+            _mouseElementManager?.UpdateMousePositions();
         }
 
         internal void UpdateAllTextForeground()
@@ -334,41 +232,19 @@ namespace KeyOverlayFPS
             }
         }
 
-        /// <summary>
-        /// ドラッグ操作を開始
-        /// </summary>
-        private void StartDrag(MouseButtonEventArgs e)
-        {
-            _isDragging = true;
-            _dragStartPoint = e.GetPosition(this);
-            CaptureMouse();
-        }
-        
         internal void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            StartDrag(e);
+            _dragHandler?.StartDrag(e);
         }
 
         internal void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
-            {
-                var currentPosition = e.GetPosition(this);
-                var screen = PointToScreen(currentPosition);
-                var window = PointToScreen(_dragStartPoint);
-                
-                Left = screen.X - window.X + Left;
-                Top = screen.Y - window.Y + Top;
-            }
+            _dragHandler?.HandleMouseMove(e);
         }
 
         internal void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (_isDragging)
-            {
-                _isDragging = false;
-                ReleaseMouseCapture();
-            }
+            _dragHandler?.EndDrag();
         }
 
         
@@ -384,7 +260,7 @@ namespace KeyOverlayFPS
 
         private void KeyBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            StartDrag(e);
+            _dragHandler?.StartDrag(e);
             e.Handled = true;
         }
 
