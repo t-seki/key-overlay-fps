@@ -22,6 +22,7 @@ namespace KeyOverlayFPS.UI
         private MenuItem? _mouseVisibilityMenuItem;
         private MenuItem? _fullKeyboardMenuItem;
         private MenuItem? _fpsKeyboardMenuItem;
+        private MenuItem[]? _scaleMenuItems;
 
         /// <summary>
         /// メニューアクション
@@ -155,6 +156,9 @@ namespace KeyOverlayFPS.UI
         {
             var scaleMenuItem = new MenuItem { Header = "表示スケール" };
             
+            // 参照保持用配列の初期化
+            _scaleMenuItems = new MenuItem[ApplicationConstants.ScaleOptions.Values.Length];
+            
             for (int i = 0; i < ApplicationConstants.ScaleOptions.Values.Length; i++)
             {
                 var scale = ApplicationConstants.ScaleOptions.Values[i];
@@ -172,6 +176,8 @@ namespace KeyOverlayFPS.UI
                     UpdateMenuCheckedState();
                 };
                 
+                // 参照を保持
+                _scaleMenuItems[i] = menuItem;
                 scaleMenuItem.Items.Add(menuItem);
             }
             
@@ -251,7 +257,7 @@ namespace KeyOverlayFPS.UI
                 _fpsKeyboardMenuItem.IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard;
             }
             
-            // スケールメニューは複雑なので従来の方法で更新
+            // スケールメニューの更新
             UpdateScaleMenuCheckedState();
         }
 
@@ -260,36 +266,14 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private void UpdateScaleMenuCheckedState()
         {
-            if (_window.ContextMenu == null) return;
+            if (_scaleMenuItems == null) return;
             
-            foreach (var item in _window.ContextMenu.Items)
+            for (int i = 0; i < _scaleMenuItems.Length; i++)
             {
-                if (item is not MenuItem mainItem) continue;
-                
-                if (mainItem.Header?.ToString() == "表示オプション")
+                if (i < ApplicationConstants.ScaleOptions.Values.Length)
                 {
-                    foreach (var subItem in mainItem.Items)
-                    {
-                        if (subItem is not MenuItem menuItem) continue;
-                        
-                        if (menuItem.Header?.ToString() == "表示スケール")
-                        {
-                            int index = 0;
-                            foreach (var scaleSubItem in menuItem.Items)
-                            {
-                                if (scaleSubItem is not MenuItem scaleItem) continue;
-                                
-                                if (index < ApplicationConstants.ScaleOptions.Values.Length)
-                                {
-                                    var scale = ApplicationConstants.ScaleOptions.Values[index];
-                                    scaleItem.IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01;
-                                }
-                                index++;
-                            }
-                            break;
-                        }
-                    }
-                    break;
+                    var scale = ApplicationConstants.ScaleOptions.Values[i];
+                    _scaleMenuItems[i].IsChecked = Math.Abs(_settings.DisplayScale - scale) < 0.01;
                 }
             }
         }
