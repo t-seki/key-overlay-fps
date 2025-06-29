@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using KeyOverlayFPS.Utils;
+using KeyOverlayFPS.Constants;
+using KeyOverlayFPS.Layout;
 
 namespace KeyOverlayFPS.Settings
 {
@@ -91,8 +93,9 @@ namespace KeyOverlayFPS.Settings
                 }
                 else
                 {
-                    Logger.Info($"設定ファイルが存在しない、デフォルト設定で保存: {_settingsPath}");
-                    // デフォルト設定で保存
+                    Logger.Info($"設定ファイルが存在しない、65%キーボードYAMLから初期設定を読み込み: {_settingsPath}");
+                    // 65%キーボードYAMLから初期設定を作成
+                    _settings = CreateSettingsFromLayout();
                     Save();
                 }
             }
@@ -118,6 +121,46 @@ namespace KeyOverlayFPS.Settings
             {
                 Logger.Error("設定保存でエラーが発生", ex);
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// 65%キーボードYAMLから初期設定を作成
+        /// </summary>
+        private AppSettings CreateSettingsFromLayout()
+        {
+            try
+            {
+                var layoutManager = new LayoutManager();
+                layoutManager.LoadLayout(Input.KeyboardProfile.FullKeyboard65);
+                var layout = layoutManager.CurrentLayout;
+
+                var settings = new AppSettings
+                {
+                    // ウィンドウ位置のみデフォルト値使用
+                    WindowLeft = ApplicationConstants.UILayout.CanvasMargin * 12.5, // 100
+                    WindowTop = ApplicationConstants.UILayout.CanvasMargin * 12.5,  // 100
+                    IsTopmost = true,
+                    
+                    // レイアウトから色設定を取得
+                    BackgroundColor = layout?.Global?.BackgroundColor ?? "Transparent",
+                    ForegroundColor = layout?.Global?.ForegroundColor ?? "White", 
+                    HighlightColor = layout?.Global?.HighlightColor ?? "Green",
+                    
+                    // その他はデフォルト値
+                    DisplayScale = 1.0,
+                    IsMouseVisible = true,
+                    CurrentProfile = "FullKeyboard65",
+                    IsMouseTrackingEnabled = true
+                };
+
+                Logger.Info("65%キーボードYAMLから初期設定を作成完了");
+                return settings;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("65%キーボードYAMLからの設定作成でエラーが発生、デフォルト設定を使用", ex);
+                return new AppSettings();
             }
         }
     }

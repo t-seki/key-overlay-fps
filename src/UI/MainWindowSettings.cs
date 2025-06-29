@@ -70,6 +70,10 @@ namespace KeyOverlayFPS.UI
                 // その他の設定を適用
                 _displayScale = settings.DisplayScale;
                 _isMouseVisible = settings.IsMouseVisible;
+                
+                // プロファイル設定を適用（MainWindowが設定された後）
+                // 背景色設定を適用
+                ApplyBackgroundSettings(settings);
             }
             catch (Exception ex)
             {
@@ -86,24 +90,22 @@ namespace KeyOverlayFPS.UI
         {
             try
             {
-                var currentSettings = new AppSettings
+                // 現在の状態をAppSettingsに反映
+                _settingsManager.Current.WindowLeft = _window.Left;
+                _settingsManager.Current.WindowTop = _window.Top;
+                _settingsManager.Current.IsTopmost = _window.Topmost;
+                _settingsManager.Current.ForegroundColor = GetColorNameFromBrush(_foregroundBrush);
+                _settingsManager.Current.HighlightColor = GetColorNameFromBrush(_activeBrush);
+                _settingsManager.Current.BackgroundColor = GetColorNameFromBrush(_window.Background);
+                _settingsManager.Current.DisplayScale = _displayScale;
+                _settingsManager.Current.IsMouseVisible = _isMouseVisible;
+                
+                // MainWindowからプロファイル情報を取得して保存
+                if (_window is MainWindow mainWindow && mainWindow.Input?.KeyboardHandler != null)
                 {
-                    WindowLeft = _window.Left,
-                    WindowTop = _window.Top,
-                    IsTopmost = _window.Topmost,
-                    ForegroundColor = GetColorNameFromBrush(_foregroundBrush),
-                    HighlightColor = GetColorNameFromBrush(_activeBrush),
-                    DisplayScale = _displayScale,
-                    IsMouseVisible = _isMouseVisible
-                };
-
-                _settingsManager.Current.WindowLeft = currentSettings.WindowLeft;
-                _settingsManager.Current.WindowTop = currentSettings.WindowTop;
-                _settingsManager.Current.IsTopmost = currentSettings.IsTopmost;
-                _settingsManager.Current.ForegroundColor = currentSettings.ForegroundColor;
-                _settingsManager.Current.HighlightColor = currentSettings.HighlightColor;
-                _settingsManager.Current.DisplayScale = currentSettings.DisplayScale;
-                _settingsManager.Current.IsMouseVisible = currentSettings.IsMouseVisible;
+                    _settingsManager.Current.CurrentProfile = mainWindow.Input.KeyboardHandler.CurrentProfile.ToString();
+                }
+                
                 _settingsManager.Save();
             }
             catch (Exception ex)
@@ -234,6 +236,22 @@ namespace KeyOverlayFPS.UI
             }
             
             return "White";
+        }
+
+        /// <summary>
+        /// 背景色設定を適用
+        /// </summary>
+        private void ApplyBackgroundSettings(AppSettings settings)
+        {
+            if (settings.BackgroundColor == "Transparent")
+            {
+                _window.Background = BrushFactory.CreateTransparentBackground();
+            }
+            else
+            {
+                var backgroundBrush = GetBrushFromColorName(settings.BackgroundColor);
+                _window.Background = backgroundBrush;
+            }
         }
 
         /// <summary>

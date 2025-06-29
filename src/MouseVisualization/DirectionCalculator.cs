@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using KeyOverlayFPS.Constants;
 
 namespace KeyOverlayFPS.MouseVisualization
 {
@@ -49,10 +50,10 @@ namespace KeyOverlayFPS.MouseVisualization
             var angle = Math.Atan2(-deltaY, deltaX);
             
             // ラジアンを度に変換
-            var degrees = angle * 180.0 / Math.PI;
+            var degrees = angle * ApplicationConstants.Mathematics.RadiansToDegrees / Math.PI;
             
             // 0-360度の範囲に正規化
-            if (degrees < 0) degrees += 360;
+            if (degrees < 0) degrees += ApplicationConstants.Mathematics.DegreesFullCircle;
             
             // 方向を決定
             return GetDirectionFromAngle(degrees);
@@ -66,10 +67,11 @@ namespace KeyOverlayFPS.MouseVisualization
         public static MouseDirection GetDirectionFromAngle(double degrees)
         {
             // 角度を0-360度の範囲に正規化
-            degrees = ((degrees % 360) + 360) % 360;
+            degrees = ((degrees % ApplicationConstants.Mathematics.DegreesFullCircle) + ApplicationConstants.Mathematics.DegreesFullCircle) % ApplicationConstants.Mathematics.DegreesFullCircle;
 
-            // 16方向に分割（22.5度刻み）
-            var directionIndex = (int)Math.Round(degrees / 22.5) % 16;
+            // 16方向に分割（動的算出）
+            var anglePerDirection = ApplicationConstants.Mathematics.DegreesFullCircle / ApplicationConstants.MouseVisualization.DirectionSegments;
+            var directionIndex = (int)Math.Round(degrees / anglePerDirection) % ApplicationConstants.MouseVisualization.DirectionSegments;
             
             return (MouseDirection)directionIndex;
         }

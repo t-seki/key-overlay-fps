@@ -99,6 +99,12 @@ namespace KeyOverlayFPS.Constants
             /// マウス方向表示の中心点色
             /// </summary>
             public static readonly Color MouseDirectionCenter = Color.FromRgb(255, 68, 68);
+            
+            /// <summary>
+            /// UIGenerator で使用される直接指定色
+            /// </summary>
+            public static readonly Color MouseBodyBorderColor = Color.FromRgb(0xCC, 0xCC, 0xCC);
+            public static readonly Color MouseButtonBorderColor = Color.FromRgb(0x88, 0x88, 0x88);
         }
         
         
@@ -116,6 +122,58 @@ namespace KeyOverlayFPS.Constants
             /// スケール値の表示ラベル
             /// </summary>
             public static readonly string[] Labels = { "80%", "100%", "120%", "150%" };
+        }
+        
+        /// <summary>
+        /// 数学計算関連の定数
+        /// </summary>
+        public static class Mathematics
+        {
+            /// <summary>
+            /// 完全円の角度（度）
+            /// </summary>
+            public const double DegreesFullCircle = 360.0;
+            
+            /// <summary>
+            /// ラジアンから度への変換係数
+            /// </summary>
+            public const double RadiansToDegrees = 180.0;
+            
+            /// <summary>
+            /// 度からラジアンへの変換係数
+            /// </summary>
+            public static double DegreesToRadians => RadiansToDegrees / Math.PI;
+        }
+        
+        /// <summary>
+        /// UI レイアウト関連の定数
+        /// </summary>
+        public static class UILayout
+        {
+            /// <summary>
+            /// マウス本体の幅
+            /// </summary>
+            public const double MouseBodyWidth = 60.0;
+            
+            /// <summary>
+            /// マウス本体の高さ
+            /// </summary>
+            public const double MouseBodyHeight = 100.0;
+            
+            /// <summary>
+            /// キーの角丸半径（X方向）
+            /// </summary>
+            public const double KeyCornerRadiusX = 28.0;
+            
+            /// <summary>
+            /// キーの角丸半径（Y方向）
+            /// </summary>
+            public const double KeyCornerRadiusY = 25.0;
+            
+            /// <summary>
+            /// Canvas のマージン
+            /// </summary>
+            public const double CanvasMargin = 8.0;
         }
         
         /// <summary>

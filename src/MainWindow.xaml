@@ -11,7 +11,7 @@
         ResizeMode="NoResize"
         Background="Transparent">
     
-    <!-- 動的に生成されるCanvas - C#コードで完全置き換え -->
-    <Canvas Margin="8" Background="Transparent" />
+    <!-- 動的に生成されるCanvas - C#コードで完全置き換え（マージンもC#で設定） -->
+    <Canvas Background="Transparent" />
     
 </Window>

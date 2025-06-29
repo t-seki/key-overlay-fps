@@ -29,7 +29,7 @@ namespace KeyOverlayFPS.Layout
 
             var canvas = new Canvas
             {
-                Margin = new Thickness(8),
+                Margin = new Thickness(ApplicationConstants.UILayout.CanvasMargin),
                 Background = Brushes.Transparent
             };
 
@@ -163,11 +163,11 @@ namespace KeyOverlayFPS.Layout
             var border = new Border
             {
                 Name = "MouseBody",
-                Width = 60,
-                Height = 100,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0xCC, 0xCC, 0xCC)),
+                Width = ApplicationConstants.UILayout.MouseBodyWidth,
+                Height = ApplicationConstants.UILayout.MouseBodyHeight,
+                BorderBrush = new SolidColorBrush(ApplicationConstants.Colors.MouseBodyBorderColor),
                 BorderThickness = new Thickness(2),
-                CornerRadius = new CornerRadius(28, 28, 25, 25),
+                CornerRadius = new CornerRadius(ApplicationConstants.UILayout.KeyCornerRadiusX, ApplicationConstants.UILayout.KeyCornerRadiusX, ApplicationConstants.UILayout.KeyCornerRadiusY, ApplicationConstants.UILayout.KeyCornerRadiusY),
                 Background = BrushFactory.CreateMouseBodyBackground(),
                 Effect = new DropShadowEffect
                 {
@@ -191,7 +191,7 @@ namespace KeyOverlayFPS.Layout
                 Name = buttonName,
                 Width = buttonConfig.Size.Width,
                 Height = buttonConfig.Size.Height,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
+                BorderBrush = new SolidColorBrush(ApplicationConstants.Colors.MouseButtonBorderColor),
                 BorderThickness = new Thickness(1),
                 Background = BrushFactory.CreateMouseButtonBackground(),
                 Effect = new DropShadowEffect

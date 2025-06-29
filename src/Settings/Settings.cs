@@ -1,4 +1,5 @@
 using System;
+using KeyOverlayFPS.Constants;
 
 namespace KeyOverlayFPS.Settings
 {
@@ -7,21 +8,21 @@ namespace KeyOverlayFPS.Settings
     /// </summary>
     public class AppSettings
     {
-        // ウィンドウ設定
-        public double WindowLeft { get; set; } = 100;
-        public double WindowTop { get; set; } = 100;
+        // ウィンドウ設定 - 位置のみフォールバック値として定数使用
+        public double WindowLeft { get; set; } = ApplicationConstants.UILayout.CanvasMargin * 12.5; // 100
+        public double WindowTop { get; set; } = ApplicationConstants.UILayout.CanvasMargin * 12.5;  // 100
         public bool IsTopmost { get; set; } = true;
         
         // 表示設定
         public double DisplayScale { get; set; } = 1.0;
         public bool IsMouseVisible { get; set; } = true;
         
-        // 色設定（文字列で管理）
+        // 色設定（YAML から読み込み、フォールバック値のみ）
         public string BackgroundColor { get; set; } = "Transparent";
         public string ForegroundColor { get; set; } = "White";
         public string HighlightColor { get; set; } = "Green";
         
-        // プロファイル設定
+        // プロファイル設定  
         public string CurrentProfile { get; set; } = "FullKeyboard65";
         
         // マウス設定

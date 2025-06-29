@@ -1,5 +1,7 @@
+using System;
 using System.Windows;
 using KeyOverlayFPS.Utils;
+using KeyOverlayFPS.Input;
 
 namespace KeyOverlayFPS.Initialization.Steps
 {
@@ -16,7 +18,13 @@ namespace KeyOverlayFPS.Initialization.Steps
                 throw new InitializationException(Name, "Settingsが初期化されていません");
 
             // アプリケーション終了時に設定を保存
-            Application.Current.Exit += (s, e) => context.SettingsManager.Save();
+            Application.Current.Exit += (s, e) => {
+                context.Settings?.SaveSettings();
+                Logger.Info("アプリケーション終了時の設定保存完了");
+            };
+            
+            // 保存されたプロファイル設定を復元
+            RestoreProfileSettings(window, context);
             
             // 設定適用
             window.ApplyProfileLayout();
@@ -25,6 +33,29 @@ namespace KeyOverlayFPS.Initialization.Steps
             window.UpdateAllTextForeground();
             
             Logger.Info("最終設定適用完了");
+        }
+
+        /// <summary>
+        /// 保存されたプロファイル設定を復元
+        /// </summary>
+        private void RestoreProfileSettings(MainWindow window, InitializationContext context)
+        {
+            try
+            {
+                var savedProfile = context.SettingsManager.Current.CurrentProfile;
+                if (!string.IsNullOrEmpty(savedProfile) && Enum.TryParse<KeyboardProfile>(savedProfile, out var profile))
+                {
+                    if (window.Input?.KeyboardHandler != null)
+                    {
+                        window.Input.KeyboardHandler.CurrentProfile = profile;
+                        Logger.Info($"プロファイル設定を復元: {profile}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("プロファイル設定復元でエラー", ex);
+            }
         }
     }
 }
