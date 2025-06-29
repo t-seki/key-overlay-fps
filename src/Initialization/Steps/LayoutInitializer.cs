@@ -45,7 +45,6 @@ namespace KeyOverlayFPS.Initialization.Steps
 
             // MainWindowのプロパティに設定
             window.EventBinder = context.EventBinder;
-            window.DynamicCanvas = context.DynamicCanvas;
 
             Logger.Info("動的レイアウトシステム初期化完了");
         }

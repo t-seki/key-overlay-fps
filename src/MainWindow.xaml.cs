@@ -48,7 +48,6 @@ namespace KeyOverlayFPS
         // 動的レイアウトシステム
         public LayoutManager LayoutManager { get; }
         public KeyEventBinder? EventBinder { get; set; }
-        public Canvas? DynamicCanvas { get; set; }
         
         // マウス方向可視化設定はApplicationConstants.MouseVisualizationに移動済み
 
