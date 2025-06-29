@@ -17,8 +17,8 @@ namespace KeyOverlayFPS.Initialization.Steps
                 throw new InitializationException(Name, "Settingsが初期化されていません");
             if (context.KeyboardHandler == null)
                 throw new InitializationException(Name, "KeyboardHandlerが初期化されていません");
-            if (context.EventBinder == null)
-                throw new InitializationException(Name, "EventBinderが初期化されていません");
+            if (context.ElementLocator == null)
+                throw new InitializationException(Name, "ElementLocatorが初期化されていません");
             if (context.MouseTracker == null)
                 throw new InitializationException(Name, "MouseTrackerが初期化されていません");
 
@@ -27,7 +27,7 @@ namespace KeyOverlayFPS.Initialization.Steps
             
             // 入力処理管理システムを初期化
             context.Input = new MainWindowInput(window, context.Settings, context.KeyboardHandler, 
-                context.MouseTracker, context.EventBinder, window.LayoutManager, keyboardKeyBackgroundBrush);
+                context.MouseTracker, context.ElementLocator, window.LayoutManager, keyboardKeyBackgroundBrush);
             
             // 入力処理アクションを初期化
             context.Input.UpdateAllTextForegroundAction = window.UpdateAllTextForeground;

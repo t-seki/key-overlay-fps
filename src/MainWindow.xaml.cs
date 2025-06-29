@@ -24,12 +24,6 @@ namespace KeyOverlayFPS
 
     public partial class MainWindow : Window
     {
-        // UI要素イベント委譲用アクション
-        public Action<object, MouseButtonEventArgs>? CanvasLeftButtonDownAction { get; private set; }
-        public Action<object, MouseEventArgs>? CanvasMoveAction { get; private set; }
-        public Action<object, MouseButtonEventArgs>? CanvasLeftButtonUpAction { get; private set; }
-        public Action<object, MouseButtonEventArgs>? KeyBorderLeftButtonDownAction { get; private set; }
-        public Action<object, MouseButtonEventArgs>? KeyBorderRightButtonDownAction { get; private set; }
         
         // 設定管理
         public MainWindowSettings Settings { get; set; } = null!;
@@ -48,7 +42,8 @@ namespace KeyOverlayFPS
         
         // 動的レイアウトシステム
         public LayoutManager LayoutManager { get; }
-        public KeyEventBinder? EventBinder { get; set; }
+        public UIElementLocator? ElementLocator { get; set; }
+        public MouseDirectionVisualizer? MouseVisualizer { get; set; }
         
         // マウス方向可視化設定はApplicationConstants.MouseVisualizationに移動済み
 
@@ -76,7 +71,7 @@ namespace KeyOverlayFPS
         internal void InitializeUIManagers()
         {
             _dragHandler = new WindowDragHandler(this);
-            _mouseElementManager = new MouseElementManager(LayoutManager, name => EventBinder?.FindElement<FrameworkElement>(name));
+            _mouseElementManager = new MouseElementManager(LayoutManager, name => ElementLocator?.FindElement<FrameworkElement>(name));
             _profileSwitcher = new ProfileSwitcher(
                 LayoutManager,
                 Input.KeyboardHandler,
@@ -252,7 +247,8 @@ namespace KeyOverlayFPS
         
 
 
-        private void Canvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+
+        internal void MainWindow_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (ContextMenu != null)
             {
@@ -260,20 +256,7 @@ namespace KeyOverlayFPS
             }
         }
 
-        private void KeyBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            _dragHandler?.StartDrag(e);
-            e.Handled = true;
-        }
 
-        private void KeyBorder_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (ContextMenu != null)
-            {
-                ContextMenu.IsOpen = true;
-            }
-            e.Handled = true;
-        }
         
         
         /// <summary>
@@ -291,17 +274,6 @@ namespace KeyOverlayFPS
         }
         
         
-        /// <summary>
-        /// イベント委譲アクションを初期化
-        /// </summary>
-        internal void InitializeEventActions()
-        {
-            CanvasLeftButtonDownAction = MainWindow_MouseLeftButtonDown;
-            CanvasMoveAction = MainWindow_MouseMove;
-            CanvasLeftButtonUpAction = MainWindow_MouseLeftButtonUp;
-            KeyBorderLeftButtonDownAction = KeyBorder_MouseLeftButtonDown;
-            KeyBorderRightButtonDownAction = KeyBorder_MouseRightButtonDown;
-        }
         
         /// <summary>
         /// 設定変更時のイベントハンドラー

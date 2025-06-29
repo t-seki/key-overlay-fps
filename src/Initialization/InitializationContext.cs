@@ -35,9 +35,14 @@ namespace KeyOverlayFPS.Initialization
         
         
         /// <summary>
-        /// イベントバインダー
+        /// UI要素検索管理
         /// </summary>
-        public KeyEventBinder? EventBinder { get; set; }
+        public UIElementLocator? ElementLocator { get; set; }
+        
+        /// <summary>
+        /// マウス方向可視化管理
+        /// </summary>
+        public MouseDirectionVisualizer? MouseVisualizer { get; set; }
         
         /// <summary>
         /// 動的生成されたCanvas

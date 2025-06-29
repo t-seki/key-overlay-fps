@@ -24,13 +24,8 @@ namespace KeyOverlayFPS.Initialization.Steps
             // MainWindowのプロパティに設定
             window.Menu = context.Menu;
             
-            // イベント委譲アクションを初期化
-            window.InitializeEventActions();
-            
-            // イベントハンドラー設定
-            window.MouseLeftButtonDown += window.MainWindow_MouseLeftButtonDown;
-            window.MouseMove += window.MainWindow_MouseMove;
-            window.MouseLeftButtonUp += window.MainWindow_MouseLeftButtonUp;
+            // イベントハンドラーはXAMLで設定済みのため、
+            // プログラム的な登録は不要
             
             // コンテキストメニュー設定
             context.Menu.SetupContextMenu();

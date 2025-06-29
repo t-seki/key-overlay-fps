@@ -38,13 +38,17 @@ namespace KeyOverlayFPS.Initialization.Steps
             // 要素名を登録
             UIGenerator.RegisterElementNames(context.DynamicCanvas, window);
 
-            // イベントバインディング
-            context.EventBinder = new KeyEventBinder(context.DynamicCanvas, window.LayoutManager.CurrentLayout!, 
-                context.KeyboardHandler, context.MouseTracker);
-            context.EventBinder.BindAllEvents();
+            // UI要素検索管理を初期化
+            context.ElementLocator = new UIElementLocator();
+            context.ElementLocator.BuildCache(context.DynamicCanvas);
+
+            // マウス方向可視化を初期化
+            context.MouseVisualizer = new MouseDirectionVisualizer(context.ElementLocator);
+            context.MouseVisualizer.Initialize(context.MouseTracker);
 
             // MainWindowのプロパティに設定
-            window.EventBinder = context.EventBinder;
+            window.ElementLocator = context.ElementLocator;
+            window.MouseVisualizer = context.MouseVisualizer;
 
             Logger.Info("動的レイアウトシステム初期化完了");
         }

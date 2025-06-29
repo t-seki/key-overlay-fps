@@ -20,7 +20,7 @@ namespace KeyOverlayFPS.UI
         private readonly MainWindowSettings _settings;
         private readonly KeyboardInputHandler _keyboardHandler;
         private readonly MouseTracker _mouseTracker;
-        private readonly KeyEventBinder? _eventBinder;
+        private readonly UIElementLocator? _elementLocator;
         private readonly LayoutManager _layoutManager;
         private readonly Brush _inactiveBrush;
 
@@ -41,9 +41,6 @@ namespace KeyOverlayFPS.UI
         // リソース管理
         private bool _disposed = false;
         
-        // マウス方向インジケーター管理
-        private readonly Dictionary<MouseDirection, System.Windows.Shapes.Path> _directionIndicators = new();
-        private DispatcherTimer? _directionHideTimer;
 
         /// <summary>
         /// UI更新アクション
@@ -60,7 +57,7 @@ namespace KeyOverlayFPS.UI
             MainWindowSettings settings,
             KeyboardInputHandler keyboardHandler,
             MouseTracker mouseTracker,
-            KeyEventBinder? eventBinder,
+            UIElementLocator? elementLocator,
             LayoutManager layoutManager,
             Brush inactiveBrush)
         {
@@ -68,7 +65,7 @@ namespace KeyOverlayFPS.UI
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _keyboardHandler = keyboardHandler ?? throw new ArgumentNullException(nameof(keyboardHandler));
             _mouseTracker = mouseTracker ?? throw new ArgumentNullException(nameof(mouseTracker));
-            _eventBinder = eventBinder;
+            _elementLocator = elementLocator;
             _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
             _inactiveBrush = inactiveBrush ?? throw new ArgumentNullException(nameof(inactiveBrush));
 
@@ -83,8 +80,7 @@ namespace KeyOverlayFPS.UI
             _mouseWheelHook = new MouseWheelHook();
             _mouseWheelHook.MouseWheelDetected += OnMouseWheelDetected;
             
-            // マウス移動イベント設定
-            _mouseTracker.MouseMoved += OnMouseMoved;
+            // マウス移動可視化はMouseDirectionVisualizerで処理
         }
 
         /// <summary>
@@ -94,7 +90,6 @@ namespace KeyOverlayFPS.UI
         {
             _timer.Start();
             _mouseWheelHook.StartHook();
-            BuildDirectionIndicatorCache();
         }
 
         /// <summary>
@@ -104,7 +99,6 @@ namespace KeyOverlayFPS.UI
         {
             _timer.Stop();
             _mouseWheelHook.StopHook();
-            _directionHideTimer?.Stop();
         }
 
         /// <summary>
@@ -291,86 +285,13 @@ namespace KeyOverlayFPS.UI
             }
         }
 
-        /// <summary>
-        /// マウス移動処理
-        /// </summary>
-        private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
-        {
-            // 方向インジケーターの表示
-            var directionName = $"Direction{e.Direction}";
-            if (_directionIndicators.TryGetValue(e.Direction, out var indicator))
-            {
-                // 他のインジケーターをリセット
-                ResetDirectionIndicators();
-                
-                // 該当方向をハイライト
-                indicator.Opacity = 0.9;
-                
-                // 自動非表示タイマーを開始
-                StartDirectionHideTimer();
-            }
-        }
-
-        /// <summary>
-        /// 方向インジケーターをリセット
-        /// </summary>
-        private void ResetDirectionIndicators()
-        {
-            foreach (var indicator in _directionIndicators.Values)
-            {
-                indicator.Opacity = 0.0;
-            }
-        }
-
-        /// <summary>
-        /// 方向非表示タイマーを開始
-        /// </summary>
-        private void StartDirectionHideTimer()
-        {
-            _directionHideTimer?.Stop();
-            _directionHideTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(ApplicationConstants.Timing.DirectionHideDelay)
-            };
-            _directionHideTimer.Tick += OnDirectionHideTimer_Tick;
-            _directionHideTimer.Start();
-        }
-
-        /// <summary>
-        /// 方向非表示タイマーティック
-        /// </summary>
-        private void OnDirectionHideTimer_Tick(object? sender, EventArgs e)
-        {
-            ResetDirectionIndicators();
-            _directionHideTimer?.Stop();
-        }
-
-        /// <summary>
-        /// 方向インジケーターキャッシュを構築
-        /// </summary>
-        private void BuildDirectionIndicatorCache()
-        {
-            _directionIndicators.Clear();
-            
-            for (int i = 0; i < ApplicationConstants.MouseVisualization.DirectionSegments; i++)
-            {
-                var direction = (MouseDirection)i;
-                var directionName = $"Direction{direction}";
-                var indicator = GetCachedElement<System.Windows.Shapes.Path>(directionName);
-                
-                if (indicator != null)
-                {
-                    _directionIndicators[direction] = indicator;
-                }
-            }
-        }
 
         /// <summary>
         /// キャッシュされた要素を取得
         /// </summary>
         private T? GetCachedElement<T>(string name) where T : FrameworkElement
         {
-            return _eventBinder?.FindElement<T>(name);
+            return _elementLocator?.FindElement<T>(name);
         }
 
         #region IDisposable実装
@@ -396,7 +317,6 @@ namespace KeyOverlayFPS.UI
                     // マネージリソースの解放
                     Stop(); // タイマーとフックを停止
                     _mouseWheelHook?.Dispose();
-                    _directionHideTimer?.Stop();
                 }
                 _disposed = true;
             }
