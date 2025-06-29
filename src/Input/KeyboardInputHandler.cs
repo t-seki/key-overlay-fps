@@ -65,6 +65,12 @@ namespace KeyOverlayFPS.Input
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsKeyPressed(int virtualKeyCode)
         {
+            // 特殊キー（検出不可能）の場合は常にfalseを返す
+            if (virtualKeyCode < 0)
+            {
+                return false;
+            }
+            
             return (GetAsyncKeyState(virtualKeyCode) & KEY_PRESSED_MASK) != 0;
         }
 

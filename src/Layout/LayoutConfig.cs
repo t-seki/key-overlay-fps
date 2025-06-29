@@ -118,6 +118,16 @@ namespace KeyOverlayFPS.Layout
         /// 移動可視化設定
         /// </summary>
         public MouseMovementConfig Movement { get; set; } = new();
+
+        /// <summary>
+        /// マウス本体設定
+        /// </summary>
+        public MouseElementConfig Body { get; set; } = new();
+
+        /// <summary>
+        /// 方向表示キャンバス設定
+        /// </summary>
+        public MouseElementConfig DirectionCanvas { get; set; } = new();
     }
 
     /// <summary>
@@ -149,6 +159,27 @@ namespace KeyOverlayFPS.Layout
         /// 移動感度（ピクセル）
         /// </summary>
         public double Threshold { get; set; } = 5.0;
+    }
+
+    /// <summary>
+    /// マウス要素設定
+    /// </summary>
+    public class MouseElementConfig
+    {
+        /// <summary>
+        /// 相対位置（マウス本体からのオフセット）
+        /// </summary>
+        public PositionConfig Offset { get; set; } = new();
+
+        /// <summary>
+        /// サイズ
+        /// </summary>
+        public SizeConfig Size { get; set; } = new();
+
+        /// <summary>
+        /// 表示可否
+        /// </summary>
+        public bool IsVisible { get; set; } = true;
     }
 
     /// <summary>

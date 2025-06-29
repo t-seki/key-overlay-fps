@@ -429,7 +429,7 @@ keys:
     position: { x: 307, y: 117 }
     size: { width: 32, height: 26 }
     text: "Fn"
-    virtualKey: 0
+    virtualKey: VK_FN  # 特殊キーとしてマーク
     fontSize: 8
     isVisible: true
   KeyRightCtrl:
@@ -523,3 +523,19 @@ mouse:
       size: { width: 10, height: 18 }
       virtualKey: VK_XBUTTON2
       isVisible: true
+    ScrollUp:
+      offset: { x: 35, y: 10 }
+      size: { width: 10, height: 12 }
+      isVisible: false  # スクロール時のみ一時的に表示
+    ScrollDown:
+      offset: { x: 35, y: 24 }
+      size: { width: 10, height: 12 }
+      isVisible: false  # スクロール時のみ一時的に表示
+  body:
+    offset: { x: 0, y: 0 }
+    size: { width: 60, height: 85 }
+    isVisible: true
+  directionCanvas:
+    offset: { x: 15, y: 50 }
+    size: { width: 30, height: 30 }
+    isVisible: true

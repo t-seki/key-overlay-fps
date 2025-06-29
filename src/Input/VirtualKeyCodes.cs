@@ -192,5 +192,8 @@ namespace KeyOverlayFPS.Input
         public const int VK_NONAME = 0xFC;      // Reserved
         public const int VK_PA1 = 0xFD;         // PA1
         public const int VK_OEM_CLEAR = 0xFE;   // Clear
+        
+        // 特殊キー（検出不可能な機能キー）
+        public const int VK_FN = -1;            // Fnキー（ハードウェア依存、通常検出不可）
     }
 }

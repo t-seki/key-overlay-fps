@@ -25,19 +25,6 @@ namespace KeyOverlayFPS.UI
                 "MouseButton4", "MouseButton5", "ScrollUp", "ScrollDown",
                 "MouseDirectionCanvas"
             };
-            
-            public static readonly Dictionary<string, (double Left, double Top)> Offsets = new()
-            {
-                { "MouseBody", (0, 0) },           // 基準位置
-                { "MouseLeft", (3, 3) },
-                { "MouseRight", (32, 3) },
-                { "MouseWheelButton", (25, 10) },
-                { "MouseButton4", (0, 64) },
-                { "MouseButton5", (0, 42) },
-                { "ScrollUp", (35, 10) },
-                { "ScrollDown", (35, 24) },
-                { "MouseDirectionCanvas", (15, 50) } // マウス本体中央下に配置
-            };
         }
 
         public MouseElementManager(LayoutManager layoutManager, Func<string, FrameworkElement?> elementFinder)
@@ -73,17 +60,53 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void UpdateMousePositions()
         {
+            var layout = _layoutManager.CurrentLayout?.Mouse;
+            if (layout == null) return;
+
             var position = _layoutManager.GetMousePosition();
             
-            // 全マウス要素の位置を一括更新
-            foreach (var (elementName, offset) in MouseElements.Offsets)
+            // ボタン要素の位置を更新
+            foreach (var (buttonName, buttonConfig) in layout.Buttons)
             {
-                var element = _elementFinder(elementName);
+                var element = _elementFinder(buttonName);
                 if (element != null)
                 {
-                    Canvas.SetLeft(element, position.Left + offset.Left);
-                    Canvas.SetTop(element, position.Top + offset.Top);
+                    Canvas.SetLeft(element, position.Left + buttonConfig.Offset.X);
+                    Canvas.SetTop(element, position.Top + buttonConfig.Offset.Y);
                 }
+            }
+            
+            // マウス本体の位置を更新
+            var bodyElement = _elementFinder("MouseBody");
+            if (bodyElement != null)
+            {
+                Canvas.SetLeft(bodyElement, position.Left + layout.Body.Offset.X);
+                Canvas.SetTop(bodyElement, position.Top + layout.Body.Offset.Y);
+            }
+            
+            // スクロール要素の位置を更新
+            var scrollUpElement = _elementFinder("ScrollUp");
+            if (scrollUpElement != null && layout.Buttons.ContainsKey("ScrollUp"))
+            {
+                var scrollUpConfig = layout.Buttons["ScrollUp"];
+                Canvas.SetLeft(scrollUpElement, position.Left + scrollUpConfig.Offset.X);
+                Canvas.SetTop(scrollUpElement, position.Top + scrollUpConfig.Offset.Y);
+            }
+            
+            var scrollDownElement = _elementFinder("ScrollDown");
+            if (scrollDownElement != null && layout.Buttons.ContainsKey("ScrollDown"))
+            {
+                var scrollDownConfig = layout.Buttons["ScrollDown"];
+                Canvas.SetLeft(scrollDownElement, position.Left + scrollDownConfig.Offset.X);
+                Canvas.SetTop(scrollDownElement, position.Top + scrollDownConfig.Offset.Y);
+            }
+            
+            // 方向表示キャンバスの位置を更新
+            var directionElement = _elementFinder("MouseDirectionCanvas");
+            if (directionElement != null)
+            {
+                Canvas.SetLeft(directionElement, position.Left + layout.DirectionCanvas.Offset.X);
+                Canvas.SetTop(directionElement, position.Top + layout.DirectionCanvas.Offset.Y);
             }
         }
     }
