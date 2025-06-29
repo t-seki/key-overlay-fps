@@ -88,28 +88,7 @@ namespace KeyOverlayFPS.UI
             return new SolidColorBrush(ApplicationConstants.Colors.MouseDirectionCenter);
         }
         
-        /// <summary>
-        /// 指定された色からSolidColorBrushを作成
-        /// </summary>
-        /// <param name="color">色</param>
-        /// <returns>SolidColorBrush</returns>
-        public static SolidColorBrush CreateSolidBrush(Color color)
-        {
-            return new SolidColorBrush(color);
-        }
         
-        /// <summary>
-        /// 指定されたアルファ値付きの色からSolidColorBrushを作成
-        /// </summary>
-        /// <param name="alpha">アルファ値 (0-255)</param>
-        /// <param name="red">赤成分 (0-255)</param>
-        /// <param name="green">緑成分 (0-255)</param>
-        /// <param name="blue">青成分 (0-255)</param>
-        /// <returns>SolidColorBrush</returns>
-        public static SolidColorBrush CreateArgbBrush(byte alpha, byte red, byte green, byte blue)
-        {
-            return new SolidColorBrush(Color.FromArgb(alpha, red, green, blue));
-        }
         
         /// <summary>
         /// 色文字列からブラシを作成（エラーハンドリング付き）
