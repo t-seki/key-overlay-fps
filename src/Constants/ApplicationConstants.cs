@@ -101,41 +101,6 @@ namespace KeyOverlayFPS.Constants
             public static readonly Color MouseDirectionCenter = Color.FromRgb(255, 68, 68);
         }
         
-        /// <summary>
-        /// ウィンドウサイズ関連の定数
-        /// </summary>
-        public static class WindowSizes
-        {
-            /// <summary>
-            /// 65%キーボード表示時の幅
-            /// </summary>
-            public const double FullKeyboardWidth = 510;
-
-            /// <summary>
-            /// 65%キーボード＋マウス表示時の幅
-            /// </summary>
-            public const double FullKeyboardWidthWithMouse = 580;
-            
-            /// <summary>
-            /// 65%キーボード表示時の高さ
-            /// </summary>
-            public const double FullKeyboardHeight = 160;
-            
-            /// <summary>
-            /// FPSキーボード表示時の幅
-            /// </summary>
-            public const double FpsKeyboardWidth = 450;
-            
-            /// <summary>
-            /// FPSキーボード＋マウス表示時の幅
-            /// </summary>
-            public const double FpsKeyboardWidthWithMouse = 520;
-            
-            /// <summary>
-            /// FPSキーボード表示時の高さ
-            /// </summary>
-            public const double FpsKeyboardHeight = 160;
-        }
         
         /// <summary>
         /// 表示スケールオプション

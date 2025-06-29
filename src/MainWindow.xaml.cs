@@ -116,18 +116,8 @@ namespace KeyOverlayFPS
                 var transform = new ScaleTransform(Settings.DisplayScale, Settings.DisplayScale);
                 canvas.RenderTransform = transform;
                 
-                // プロファイルに応じたウィンドウサイズ調整
-                double baseWidth, baseHeight;
-                if (Input.KeyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard)
-                {
-                    baseWidth = Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth;
-                    baseHeight = ApplicationConstants.WindowSizes.FpsKeyboardHeight;
-                }
-                else
-                {
-                    baseWidth = Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth;
-                    baseHeight = ApplicationConstants.WindowSizes.FullKeyboardHeight;
-                }
+                // YAMLファイルからウィンドウサイズを取得
+                var (baseWidth, baseHeight) = LayoutManager.GetWindowSize(Settings.IsMouseVisible);
                 
                 Width = baseWidth * Settings.DisplayScale;
                 Height = baseHeight * Settings.DisplayScale;
@@ -164,18 +154,17 @@ namespace KeyOverlayFPS
             {
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();
-                    // ウィンドウサイズ調整
-                    Width = (Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FullKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FullKeyboardWidth) * Settings.DisplayScale;
-                    Height = ApplicationConstants.WindowSizes.FullKeyboardHeight * Settings.DisplayScale;
                     break;
                     
                 case KeyboardProfile.FPSKeyboard:
                     ShowFPSKeyboardLayout();
-                    // ウィンドウサイズ調整（FPS用サイズ、マウス表示考慮）
-                    Width = (Settings.IsMouseVisible ? ApplicationConstants.WindowSizes.FpsKeyboardWidthWithMouse : ApplicationConstants.WindowSizes.FpsKeyboardWidth) * Settings.DisplayScale;
-                    Height = ApplicationConstants.WindowSizes.FpsKeyboardHeight * Settings.DisplayScale;
                     break;
             }
+            
+            // YAMLファイルからウィンドウサイズを取得してサイズ調整
+            var (width, height) = LayoutManager.GetWindowSize(Settings.IsMouseVisible);
+            Width = width * Settings.DisplayScale;
+            Height = height * Settings.DisplayScale;
         }
         
         private void ShowFullKeyboardLayout()

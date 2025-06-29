@@ -86,6 +86,25 @@ namespace KeyOverlayFPS.Layout
         }
 
         /// <summary>
+        /// ウィンドウサイズを取得
+        /// </summary>
+        /// <param name="includeMouseWidth">マウス表示用の幅を含めるかどうか</param>
+        /// <returns>ウィンドウサイズ（幅、高さ）</returns>
+        /// <exception cref="InvalidOperationException">レイアウトが読み込まれていない場合</exception>
+        public (double Width, double Height) GetWindowSize(bool includeMouseWidth = false)
+        {
+            if (CurrentLayout?.Window == null)
+            {
+                throw new InvalidOperationException("レイアウトが読み込まれていません。YAMLファイルの読み込みに失敗した可能性があります。");
+            }
+
+            double width = includeMouseWidth ? CurrentLayout.Window.Width : CurrentLayout.Window.WidthWithoutMouse;
+            double height = CurrentLayout.Window.Height;
+
+            return (width, height);
+        }
+
+        /// <summary>
         /// プロファイルに応じたレイアウトファイルパスを取得
         /// </summary>
         private static string GetLayoutPath(KeyboardProfile profile)

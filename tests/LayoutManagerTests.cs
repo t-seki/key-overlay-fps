@@ -211,8 +211,6 @@ keys:
                     MouseMoveHighlightColor = "#FF00FF",
                     MouseMoveHighlightDuration = 0.2,
                     MouseMoveThreshold = 3.0,
-                    WindowWidth = 600,
-                    WindowHeight = 200
                 },
                 Keys = new Dictionary<string, KeyDefinition>
                 {
@@ -271,8 +269,6 @@ keys:
             Assert.AreEqual(expected.Global.MouseMoveHighlightColor, actual.Global.MouseMoveHighlightColor);
             Assert.AreEqual(expected.Global.MouseMoveHighlightDuration, actual.Global.MouseMoveHighlightDuration, 0.001);
             Assert.AreEqual(expected.Global.MouseMoveThreshold, actual.Global.MouseMoveThreshold, 0.001);
-            Assert.AreEqual(expected.Global.WindowWidth, actual.Global.WindowWidth);
-            Assert.AreEqual(expected.Global.WindowHeight, actual.Global.WindowHeight);
 
             // Keys
             Assert.AreEqual(expected.Keys.Count, actual.Keys.Count);

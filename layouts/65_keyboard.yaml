@@ -19,13 +19,12 @@ global:
   mouseMoveHighlightColor: "#FF0000"
   mouseMoveHighlightDuration: 0.1
   mouseMoveThreshold: 5.0
-  windowWidth: 580
-  windowHeight: 160
   shiftDisplayEnabled: true
 
 window:
   width: 580
   height: 160
+  widthWithoutMouse: 510
   backgroundColor: "Transparent"
 
 keys:

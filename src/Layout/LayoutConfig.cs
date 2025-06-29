@@ -74,7 +74,7 @@ namespace KeyOverlayFPS.Layout
     public class WindowSettings
     {
         /// <summary>
-        /// ウィンドウ幅
+        /// ウィンドウ幅（マウス表示時）
         /// </summary>
         public double Width { get; set; } = 580;
 
@@ -82,6 +82,11 @@ namespace KeyOverlayFPS.Layout
         /// ウィンドウ高さ
         /// </summary>
         public double Height { get; set; } = 160;
+
+        /// <summary>
+        /// ウィンドウ幅（マウス非表示時）
+        /// </summary>
+        public double WidthWithoutMouse { get; set; } = 510;
 
         /// <summary>
         /// 背景色
@@ -289,15 +294,6 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         public double MouseMoveThreshold { get; set; } = 5.0;
 
-        /// <summary>
-        /// ウィンドウ幅
-        /// </summary>
-        public double WindowWidth { get; set; } = 580;
-
-        /// <summary>
-        /// ウィンドウ高さ
-        /// </summary>
-        public double WindowHeight { get; set; } = 160;
 
         /// <summary>
         /// Shift表示変更機能の有効/無効
