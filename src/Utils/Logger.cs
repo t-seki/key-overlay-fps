@@ -57,9 +57,12 @@ namespace KeyOverlayFPS.Utils
         /// <summary>
         /// 警告ログ出力
         /// </summary>
-        public static void Warning(string message)
+        public static void Warning(string message, Exception? exception = null)
         {
-            WriteLog("WARN", message);
+            var fullMessage = exception != null 
+                ? $"{message} - Exception: {exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}"
+                : message;
+            WriteLog("WARN", fullMessage);
         }
 
         /// <summary>

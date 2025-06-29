@@ -4,6 +4,7 @@ using System.Windows.Media;
 using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.UI;
 using KeyOverlayFPS.Constants;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.UI
 {
@@ -68,8 +69,7 @@ namespace KeyOverlayFPS.UI
             }
             catch (Exception ex)
             {
-                // 設定読み込みエラー時はデフォルト設定を使用
-                System.Diagnostics.Debug.WriteLine($"設定読み込みエラー: {ex.Message}");
+                Logger.Error("設定読み込みでエラーが発生", ex);
                 throw;
             }
         }
@@ -92,7 +92,7 @@ namespace KeyOverlayFPS.UI
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"設定保存エラー: {ex.Message}");
+                Logger.Warning("設定保存でエラーが発生、処理は継続", ex);
             }
         }
 
