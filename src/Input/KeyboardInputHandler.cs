@@ -39,7 +39,7 @@ namespace KeyOverlayFPS.Input
     }
 
     /// <summary>
-    /// キーボード入力処理クラス - キー状態検出、プロファイル管理、設定管理
+    /// キーボード入力処理クラス - キー状態検出、設定管理
     /// </summary>
     public class KeyboardInputHandler
     {
@@ -51,8 +51,6 @@ namespace KeyOverlayFPS.Input
         
 
         private readonly Layout.LayoutManager _layoutManager;
-        
-        public KeyboardProfile CurrentProfile { get; set; } = KeyboardProfile.FullKeyboard65;
 
         public KeyboardInputHandler(Layout.LayoutManager layoutManager)
         {

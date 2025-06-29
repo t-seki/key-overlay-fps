@@ -40,6 +40,9 @@ namespace KeyOverlayFPS
         private ProfileSwitcher? _profileSwitcher;
         private VisibilityController? _visibilityController;
         
+        // プロファイル管理
+        public ProfileManager? ProfileManager { get; set; }
+        
         // 動的レイアウトシステム
         public LayoutManager LayoutManager { get; }
         public UIElementLocator? ElementLocator { get; set; }
@@ -74,7 +77,7 @@ namespace KeyOverlayFPS
             _mouseElementManager = new MouseElementManager(LayoutManager, ElementLocator!);
             _profileSwitcher = new ProfileSwitcher(
                 LayoutManager,
-                Input.KeyboardHandler,
+                ProfileManager!,
                 SettingsManager.Instance,
                 ApplyProfileLayout,
                 UpdateMousePositions,
@@ -162,7 +165,7 @@ namespace KeyOverlayFPS
             var canvas = Content as Canvas;
             if (canvas == null) return;
             
-            switch (Input.KeyboardHandler.CurrentProfile)
+            switch (ProfileManager?.CurrentProfile ?? KeyboardProfile.FullKeyboard65)
             {
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();

@@ -14,11 +14,11 @@ namespace KeyOverlayFPS.Initialization.Steps
         {
             if (context.Settings == null)
                 throw new InitializationException(Name, "Settingsが初期化されていません");
-            if (context.KeyboardHandler == null)
-                throw new InitializationException(Name, "KeyboardHandlerが初期化されていません");
+            if (context.ProfileManager == null)
+                throw new InitializationException(Name, "ProfileManagerが初期化されていません");
 
             // メニュー管理システムを初期化
-            context.Menu = new MainWindowMenu(window, context.Settings, context.KeyboardHandler);
+            context.Menu = new MainWindowMenu(window, context.Settings, context.ProfileManager);
             window.InitializeMenuActions(context.Menu);
             
             // MainWindowのプロパティに設定

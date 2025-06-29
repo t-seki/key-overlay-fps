@@ -29,6 +29,11 @@ namespace KeyOverlayFPS.Initialization
         public KeyboardInputHandler? KeyboardHandler { get; set; }
         
         /// <summary>
+        /// プロファイル管理
+        /// </summary>
+        public ProfileManager? ProfileManager { get; set; }
+        
+        /// <summary>
         /// メニュー管理
         /// </summary>
         public MainWindowMenu? Menu { get; set; }

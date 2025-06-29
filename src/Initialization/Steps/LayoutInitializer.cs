@@ -17,14 +17,14 @@ namespace KeyOverlayFPS.Initialization.Steps
 
         public void Execute(MainWindow window, InitializationContext context)
         {
-            if (context.KeyboardHandler == null)
-                throw new InitializationException(Name, "KeyboardHandlerが初期化されていません");
+            if (context.ProfileManager == null)
+                throw new InitializationException(Name, "ProfileManagerが初期化されていません");
             if (context.MouseTracker == null)
                 throw new InitializationException(Name, "MouseTrackerが初期化されていません");
 
             // プロファイルに応じたレイアウトファイルを読み込み
-            Logger.Info($"レイアウトを読み込み中: {context.KeyboardHandler.CurrentProfile}");
-            window.LayoutManager.LoadLayout(context.KeyboardHandler.CurrentProfile);
+            Logger.Info($"レイアウトを読み込み中: {context.ProfileManager.CurrentProfile}");
+            window.LayoutManager.LoadLayout(context.ProfileManager.CurrentProfile);
 
             // UIを動的生成
             context.DynamicCanvas = UIGenerator.GenerateCanvas(window.LayoutManager.CurrentLayout!, window);

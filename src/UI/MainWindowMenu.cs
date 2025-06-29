@@ -15,7 +15,7 @@ namespace KeyOverlayFPS.UI
     {
         private readonly Window _window;
         private readonly MainWindowSettings _settings;
-        private readonly KeyboardInputHandler _keyboardHandler;
+        private readonly ProfileManager _profileManager;
         
         // メニューアイテムの参照を保持
         private MenuItem? _topmostMenuItem;
@@ -35,11 +35,11 @@ namespace KeyOverlayFPS.UI
         public Action<double>? SetDisplayScaleAction { get; set; }
         public Action<KeyboardProfile>? SwitchProfileAction { get; set; }
 
-        public MainWindowMenu(Window window, MainWindowSettings settings, KeyboardInputHandler keyboardHandler)
+        public MainWindowMenu(Window window, MainWindowSettings settings, ProfileManager profileManager)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _keyboardHandler = keyboardHandler ?? throw new ArgumentNullException(nameof(keyboardHandler));
+            _profileManager = profileManager ?? throw new ArgumentNullException(nameof(profileManager));
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace KeyOverlayFPS.UI
             { 
                 Header = "65%キーボード", 
                 IsCheckable = true, 
-                IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FullKeyboard65 
+                IsChecked = _profileManager.IsCurrentProfile(KeyboardProfile.FullKeyboard65) 
             };
             _fullKeyboardMenuItem.Click += (s, e) => 
             {
@@ -208,7 +208,7 @@ namespace KeyOverlayFPS.UI
             { 
                 Header = "FPSキーボード", 
                 IsCheckable = true, 
-                IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard 
+                IsChecked = _profileManager.IsCurrentProfile(KeyboardProfile.FPSKeyboard) 
             };
             _fpsKeyboardMenuItem.Click += (s, e) => 
             {
@@ -249,12 +249,12 @@ namespace KeyOverlayFPS.UI
             
             if (_fullKeyboardMenuItem != null)
             {
-                _fullKeyboardMenuItem.IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FullKeyboard65;
+                _fullKeyboardMenuItem.IsChecked = _profileManager.IsCurrentProfile(KeyboardProfile.FullKeyboard65);
             }
             
             if (_fpsKeyboardMenuItem != null)
             {
-                _fpsKeyboardMenuItem.IsChecked = _keyboardHandler.CurrentProfile == KeyboardProfile.FPSKeyboard;
+                _fpsKeyboardMenuItem.IsChecked = _profileManager.IsCurrentProfile(KeyboardProfile.FPSKeyboard);
             }
             
             // スケールメニューの更新

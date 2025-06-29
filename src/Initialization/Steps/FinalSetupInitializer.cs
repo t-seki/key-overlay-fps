@@ -16,6 +16,11 @@ namespace KeyOverlayFPS.Initialization.Steps
         {
             if (context.Settings == null)
                 throw new InitializationException(Name, "Settingsが初期化されていません");
+            if (context.ProfileManager == null)
+                throw new InitializationException(Name, "ProfileManagerが初期化されていません");
+
+            // ProfileManagerをMainWindowに設定（InitializeUIManagersより前に必要）
+            window.ProfileManager = context.ProfileManager;
 
             // アプリケーション終了時に設定を保存
             Application.Current.Exit += (s, e) => {
@@ -46,14 +51,10 @@ namespace KeyOverlayFPS.Initialization.Steps
         {
             try
             {
-                var savedProfile = context.SettingsManager.Current.CurrentProfile;
-                if (!string.IsNullOrEmpty(savedProfile) && Enum.TryParse<KeyboardProfile>(savedProfile, out var profile))
+                // ProfileManagerは自動的にファイルから設定を読み込んでいる
+                if (context.ProfileManager != null)
                 {
-                    if (window.Input?.KeyboardHandler != null)
-                    {
-                        window.Input.KeyboardHandler.CurrentProfile = profile;
-                        Logger.Info($"プロファイル設定を復元: {profile}");
-                    }
+                    Logger.Info($"プロファイル設定を復元: {context.ProfileManager.CurrentProfile}");
                 }
             }
             catch (Exception ex)

@@ -85,9 +85,9 @@ namespace KeyOverlayFPS.UI
                 _settingsService.UpdateWindowPosition(_window.Left, _window.Top);
                 
                 // MainWindowからプロファイル情報を取得して保存
-                if (_window is MainWindow mainWindow && mainWindow.Input?.KeyboardHandler != null)
+                if (_window is MainWindow mainWindow && mainWindow.ProfileManager != null)
                 {
-                    _settingsService.SetCurrentProfile(mainWindow.Input.KeyboardHandler.CurrentProfile.ToString());
+                    _settingsService.SetCurrentProfile(mainWindow.ProfileManager.GetCurrentProfileName());
                 }
             }
             catch (Exception ex)

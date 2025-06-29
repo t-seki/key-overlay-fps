@@ -1,4 +1,5 @@
 using KeyOverlayFPS.Utils;
+using KeyOverlayFPS.UI;
 
 namespace KeyOverlayFPS.Initialization.Steps
 {
@@ -12,6 +13,10 @@ namespace KeyOverlayFPS.Initialization.Steps
         public void Execute(MainWindow window, InitializationContext context)
         {
             window.InitializeComponent();
+            
+            // ProfileManagerを初期化（SettingsManagerを渡す）
+            context.ProfileManager = new ProfileManager(context.SettingsManager);
+            
             Logger.Info("InitializeComponent完了");
         }
     }
