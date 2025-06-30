@@ -14,11 +14,6 @@ namespace KeyOverlayFPS.Initialization.Steps
 
         public void Execute(MainWindow window)
         {
-            if (window.Settings == null)
-                throw new InitializationException(Name, "Settingsが初期化されていません");
-            if (window.ProfileManager == null)
-                throw new InitializationException(Name, "ProfileManagerが初期化されていません");
-
             // アプリケーション終了時に設定を保存
             Application.Current.Exit += (s, e) => {
                 window.Settings?.SaveSettings();

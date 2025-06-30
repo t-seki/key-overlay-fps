@@ -17,11 +17,6 @@ namespace KeyOverlayFPS.Initialization.Steps
 
         public void Execute(MainWindow window)
         {
-            if (window.ProfileManager == null)
-                throw new InitializationException(Name, "ProfileManagerが初期化されていません");
-            if (window.MouseTracker == null)
-                throw new InitializationException(Name, "MouseTrackerが初期化されていません");
-
             // プロファイルに応じたレイアウトファイルを読み込み
             Logger.Info($"レイアウトを読み込み中: {window.ProfileManager.CurrentProfile}");
             window.LayoutManager.LoadLayout(window.ProfileManager.CurrentProfile);
