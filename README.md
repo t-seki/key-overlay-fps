@@ -10,9 +10,9 @@ KeyOverlayFPSは、FPSゲームプレイ中のキーボードとマウス入力�
 
 ### 🎮 キーボード入力可視化
 - **リアルタイム検出**: 全キーの押下状態をリアルタイムで表示
-- **Shift表示**: Shift押下時の記号表示に自動切り替え
+- **Shift表示**: Shift押下時の記号表示に自動切り替え（65%レイアウト）
 - **65%キーボード**: フルキーボードレイアウトをサポート
-- **FPSモード**: FPSに特化したコンパクトレイアウト
+- **FPSモード**: FPSに特化したコンパクトレイアウト（WASD中心）
 
 ### 🖱️ マウス入力可視化
 - **クリック表示**: 左クリック、右クリック、中ボタン、サイドボタン対応
@@ -27,9 +27,9 @@ KeyOverlayFPSは、FPSゲームプレイ中のキーボードとマウス入力�
 - **プロファイル切替**: 65%キーボード ⇔ FPSキーボード
 
 ### 🔧 レイアウト管理
-- **レイアウトエディタ**: GUI ベースのキー配置編集
-- **インポート/エクスポート**: YAML形式でのレイアウト保存・読み込み
-- **ライブプレビュー**: 編集中のリアルタイムプレビュー
+- **カスタムレイアウト**: YAML形式でのレイアウトカスタマイズ
+- **動的読み込み**: アプリケーション実行中のレイアウト切替
+- **プリセット**: 65%キーボードとFPSキーボードのプリセット提供
 
 ## 🛠️ 技術仕様
 
@@ -41,21 +41,36 @@ KeyOverlayFPSは、FPSゲームプレイ中のキーボードとマウス入力�
 ### 技術スタック
 - **言語**: C# 12.0
 - **UI フレームワーク**: WPF (Windows Presentation Foundation)
-- **入力検出**: Win32 API (`GetAsyncKeyState`)
-- **マウス追跡**: Win32 API (`GetCursorPos`)
+- **入力検出**: Win32 API (グローバルフック: `SetWindowsHookEx`)
+- **マウス追跡**: Win32 API (フックベース検出)
 - **設定管理**: YamlDotNet
 - **テスト**: NUnit 3.14
 
 ### アーキテクチャ
 ```
-├── MainWindow.xaml.cs          # メインウィンドウとUI制御
+src/
+├── MainWindow.xaml.cs          # メインウィンドウ
+├── MainWindow/                 # メインウィンドウ機能分離
+│   ├── MainWindowSettings.cs   # 設定関連機能
+│   ├── MainWindowMenu.cs       # メニュー関連機能
+│   └── MainWindowInput.cs      # 入力処理
+├── Input/                      # 入力システム
+│   ├── KeyboardHook.cs         # Win32 APIキーボードフック
+│   ├── MouseHook.cs            # Win32 APIマウスフック
+│   └── InputStateManager.cs    # 統合入力状態管理
 ├── Layout/                     # レイアウト管理システム
 │   ├── LayoutManager.cs        # レイアウトの保存・読み込み
-│   ├── LayoutConfig.cs         # レイアウト設定データ構造
-│   └── LayoutEditorWindow.xaml # レイアウト編集GUI
+│   └── LayoutConfig.cs         # レイアウト設定データ構造
 ├── MouseVisualization/         # マウス入力可視化
-│   ├── MouseTracker.cs         # マウス位置・移動追跡
-│   └── DirectionCalculator.cs  # 16方向計算ロジック
+│   ├── DirectionCalculator.cs  # 16方向計算ロジック
+│   └── DirectionArcGenerator.cs # 円弧描画生成
+├── UI/                         # UI管理
+│   ├── KeyElementManager.cs    # キー要素管理
+│   └── MouseElementManager.cs  # マウス要素管理
+├── Settings/                   # 設定管理
+│   └── SettingsManager.cs      # 設定の保存・読み込み
+├── Initialization/             # 初期化システム
+│   └── Steps/                  # 各初期化ステップ
 └── tests/                      # 単体テスト
 ```
 
@@ -95,9 +110,9 @@ dotnet test --filter "TestClass=LayoutManagerTests"
 - **FPSキーボード**: WASD周辺のみ表示（ゲーム中用）
 
 ### レイアウトカスタマイズ
-1. 右クリック → 「レイアウト管理」を選択
-2. レイアウトエディタでキー位置・サイズを調整
-3. 「適用」ボタンでメインウィンドウに反映
+1. レイアウトファイル（YAML形式）を編集
+2. アプリケーションのレイアウトディレクトリに配置
+3. 右クリックメニューからレイアウトを選択
 
 ## 🎯 配信での活用
 
@@ -144,6 +159,7 @@ windowTop: 100
 - C# の標準命名規則に従う
 - XMLドキュメントコメントを記述
 - SOLID原則を意識した設計
+- ステップベースの初期化パターン（IInitializationStep）
 
 ## 📜 ライセンス
 
@@ -155,6 +171,7 @@ windowTop: 100
 - **CPU使用率**: 通常時 < 5%
 - **メモリ使用量**: 約 50MB
 - **入力遅延**: < 1フレーム
+- **スレッドセーフ**: ConcurrentDictionaryによる安全な状態管理
 
 ## 🔍 トラブルシューティング
 
