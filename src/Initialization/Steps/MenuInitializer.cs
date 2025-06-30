@@ -10,25 +10,21 @@ namespace KeyOverlayFPS.Initialization.Steps
     {
         public string Name => "メニューとイベント初期化";
 
-        public void Execute(MainWindow window, InitializationContext context)
+        public void Execute(MainWindow window)
         {
-            if (context.Settings == null)
+            if (window.Settings == null)
                 throw new InitializationException(Name, "Settingsが初期化されていません");
-            if (context.ProfileManager == null)
+            if (window.ProfileManager == null)
                 throw new InitializationException(Name, "ProfileManagerが初期化されていません");
 
             // メニュー管理システムを初期化
-            context.Menu = new MainWindowMenu(window, context.Settings, context.ProfileManager);
-            window.InitializeMenuActions(context.Menu);
-            
-            // MainWindowのプロパティに設定
-            window.Menu = context.Menu;
+            window.InitializeMenuActions(window.Menu);
             
             // イベントハンドラーはXAMLで設定済みのため、
             // プログラム的な登録は不要
             
             // コンテキストメニュー設定
-            context.Menu.SetupContextMenu();
+            window.Menu.SetupContextMenu();
         }
     }
 }

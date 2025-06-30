@@ -14,7 +14,6 @@ namespace KeyOverlayFPS.Initialization
         /// 初期化ステップを実行
         /// </summary>
         /// <param name="window">初期化対象のMainWindow</param>
-        /// <param name="context">初期化コンテキスト</param>
-        void Execute(MainWindow window, InitializationContext context);
+        void Execute(MainWindow window);
     }
 }

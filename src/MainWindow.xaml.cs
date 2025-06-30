@@ -26,38 +26,51 @@ namespace KeyOverlayFPS
     {
         
         // 設定管理
-        public MainWindowSettings Settings { get; set; } = null!;
+        public MainWindowSettings Settings { get; }
         
         // メニュー管理
-        public MainWindowMenu Menu { get; set; } = null!;
+        public MainWindowMenu Menu { get; }
         
         // 入力処理管理
-        public MainWindowInput Input { get; set; } = null!;
+        public MainWindowInput Input { get; }
         
         // UI管理クラス
         private WindowDragHandler? _dragHandler;
         private MouseElementManager? _mouseElementManager;
         private ProfileSwitcher? _profileSwitcher;
         private VisibilityController? _visibilityController;
-        
+
         // プロファイル管理
-        public ProfileManager? ProfileManager { get; set; }
+        public ProfileManager ProfileManager { get; }
         
         // 動的レイアウトシステム
         public LayoutManager LayoutManager { get; }
-        public UIElementLocator? ElementLocator { get; set; }
-        public MouseDirectionVisualizer? MouseVisualizer { get; set; }
-        
-        // マウス方向可視化設定はApplicationConstants.MouseVisualizationに移動済み
+        public UIElementLocator ElementLocator { get; }
+        public MouseDirectionVisualizer MouseVisualizer { get; }
+
+        // others
+        public KeyboardInputHandler KeyboardInputHandler { get; }
+        public MouseTracker MouseTracker { get; }   
 
         public MainWindow()
         {
             LayoutManager = new LayoutManager();
+            ElementLocator = new UIElementLocator();
+            MouseVisualizer = new MouseDirectionVisualizer(ElementLocator);
+            ProfileManager = new ProfileManager(SettingsManager.Instance);
+            Settings = new MainWindowSettings(this, SettingsManager.Instance);
+            Menu = new MainWindowMenu(this, Settings, ProfileManager);
+            KeyboardInputHandler = new KeyboardInputHandler(LayoutManager);
+            MouseTracker = new MouseTracker();
+            var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
+            Input = new MainWindowInput(this, Settings, KeyboardInputHandler,
+                MouseTracker, ElementLocator, LayoutManager, keyboardKeyBackgroundBrush);
+
             try
             {
                 var initializer = new WindowInitializer();
                 initializer.Initialize(this);
-                
+
                 // ウィンドウ終了時のリソース解放設定
                 this.Closed += MainWindow_Closed;
             }
@@ -77,7 +90,7 @@ namespace KeyOverlayFPS
             _mouseElementManager = new MouseElementManager(LayoutManager, ElementLocator!);
             _profileSwitcher = new ProfileSwitcher(
                 LayoutManager,
-                ProfileManager!,
+                ProfileManager,
                 SettingsManager.Instance,
                 ApplyProfileLayout,
                 UpdateMousePositions,
@@ -165,7 +178,7 @@ namespace KeyOverlayFPS
             var canvas = Content as Canvas;
             if (canvas == null) return;
             
-            switch (ProfileManager?.CurrentProfile ?? KeyboardProfile.FullKeyboard65)
+            switch (ProfileManager.CurrentProfile)
             {
                 case KeyboardProfile.FullKeyboard65:
                     ShowFullKeyboardLayout();

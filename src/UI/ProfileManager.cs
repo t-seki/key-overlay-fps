@@ -39,9 +39,9 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public event EventHandler<ProfileChangedEventArgs>? ProfileChanged;
         
-        public ProfileManager(ISettingsService? settingsService = null)
+        public ProfileManager(ISettingsService settingsService)
         {
-            _settingsService = settingsService ?? SettingsManager.Instance;
+            _settingsService = settingsService;
         }
         
         /// <summary>

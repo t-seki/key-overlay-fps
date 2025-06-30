@@ -12,23 +12,12 @@ namespace KeyOverlayFPS.Initialization.Steps
     {
         public string Name => "設定管理システム初期化";
 
-        public void Execute(MainWindow window, InitializationContext context)
+        public void Execute(MainWindow window)
         {
-            // キーボード入力ハンドラーを初期化
-            context.KeyboardHandler = new KeyboardInputHandler(window.LayoutManager);
-            
-            // マウストラッカーを初期化
-            context.MouseTracker = new MouseTracker();
-            
-            // MainWindow設定管理を初期化
-            context.Settings = new MainWindowSettings(window, context.SettingsManager);
-            context.Settings.SettingsChanged += window.OnSettingsChanged;
-            
-            // MainWindowのプロパティに設定
-            window.Settings = context.Settings;
+            window.Settings.SettingsChanged += window.OnSettingsChanged;
             
             // 設定システム初期化
-            context.Settings.Initialize();
+            window.Settings.Initialize();
         }
     }
 }

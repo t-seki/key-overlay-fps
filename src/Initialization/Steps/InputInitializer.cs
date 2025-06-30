@@ -11,32 +11,22 @@ namespace KeyOverlayFPS.Initialization.Steps
     {
         public string Name => "入力処理システム初期化";
 
-        public void Execute(MainWindow window, InitializationContext context)
+        public void Execute(MainWindow window)
         {
-            if (context.Settings == null)
+            if (window.Settings == null)
                 throw new InitializationException(Name, "Settingsが初期化されていません");
-            if (context.KeyboardHandler == null)
-                throw new InitializationException(Name, "KeyboardHandlerが初期化されていません");
-            if (context.ElementLocator == null)
+            if (window.KeyboardInputHandler == null)
+                throw new InitializationException(Name, "KeyboardInputHandlerが初期化されていません");
+            if (window.ElementLocator == null)
                 throw new InitializationException(Name, "ElementLocatorが初期化されていません");
-            if (context.MouseTracker == null)
+            if (window.MouseTracker == null)
                 throw new InitializationException(Name, "MouseTrackerが初期化されていません");
-
-            // ブラシを統一ファクトリーから初期化
-            var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
-            
-            // 入力処理管理システムを初期化
-            context.Input = new MainWindowInput(window, context.Settings, context.KeyboardHandler, 
-                context.MouseTracker, context.ElementLocator, window.LayoutManager, keyboardKeyBackgroundBrush);
             
             // 入力処理アクションを初期化
-            context.Input.UpdateAllTextForegroundAction = window.UpdateAllTextForeground;
-            
-            // MainWindowのプロパティに設定
-            window.Input = context.Input;
+            window.Input.UpdateAllTextForegroundAction = window.UpdateAllTextForeground;
             
             // 入力処理開始
-            context.Input.Start();
+            window.Input.Start();
         }
     }
 }

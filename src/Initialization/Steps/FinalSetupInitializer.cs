@@ -12,19 +12,16 @@ namespace KeyOverlayFPS.Initialization.Steps
     {
         public string Name => "最終設定適用";
 
-        public void Execute(MainWindow window, InitializationContext context)
+        public void Execute(MainWindow window)
         {
-            if (context.Settings == null)
+            if (window.Settings == null)
                 throw new InitializationException(Name, "Settingsが初期化されていません");
-            if (context.ProfileManager == null)
+            if (window.ProfileManager == null)
                 throw new InitializationException(Name, "ProfileManagerが初期化されていません");
-
-            // ProfileManagerをMainWindowに設定（InitializeUIManagersより前に必要）
-            window.ProfileManager = context.ProfileManager;
 
             // アプリケーション終了時に設定を保存
             Application.Current.Exit += (s, e) => {
-                context.Settings?.SaveSettings();
+                window.Settings?.SaveSettings();
                 Logger.Info("アプリケーション終了時の設定保存完了");
             };
             
@@ -33,7 +30,7 @@ namespace KeyOverlayFPS.Initialization.Steps
             window.InitializeVisibilityController();
             
             // 保存されたプロファイル設定を復元
-            RestoreProfileSettings(window, context);
+            RestoreProfileSettings(window);
             
             // 設定適用
             window.ApplyProfileLayout();
@@ -45,14 +42,14 @@ namespace KeyOverlayFPS.Initialization.Steps
         /// <summary>
         /// 保存されたプロファイル設定を復元
         /// </summary>
-        private void RestoreProfileSettings(MainWindow window, InitializationContext context)
+        private void RestoreProfileSettings(MainWindow window)
         {
             try
             {
                 // ProfileManagerは自動的にファイルから設定を読み込んでいる
-                if (context.ProfileManager != null)
+                if (window.ProfileManager != null)
                 {
-                    Logger.Info($"プロファイル設定を復元: {context.ProfileManager.CurrentProfile}");
+                    Logger.Info($"プロファイル設定を復元: {window.ProfileManager.CurrentProfile}");
                 }
             }
             catch (Exception ex)

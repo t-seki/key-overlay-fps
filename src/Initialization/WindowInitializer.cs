@@ -1,5 +1,6 @@
 using System;
 using KeyOverlayFPS.Initialization.Steps;
+using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Initialization
@@ -30,14 +31,12 @@ namespace KeyOverlayFPS.Initialization
         /// <param name="window">初期化対象のMainWindow</param>
         public void Initialize(MainWindow window)
         {
-            var context = new InitializationContext();
-            
             foreach (var step in _steps)
             {
-                try 
+                try
                 {
                     Logger.Info($"{step.Name}開始");
-                    step.Execute(window, context);
+                    step.Execute(window);
                     Logger.Info($"{step.Name}完了");
                 }
                 catch (Exception ex)

@@ -15,40 +15,34 @@ namespace KeyOverlayFPS.Initialization.Steps
     {
         public string Name => "動的レイアウトシステム初期化";
 
-        public void Execute(MainWindow window, InitializationContext context)
+        public void Execute(MainWindow window)
         {
-            if (context.ProfileManager == null)
+            if (window.ProfileManager == null)
                 throw new InitializationException(Name, "ProfileManagerが初期化されていません");
-            if (context.MouseTracker == null)
+            if (window.MouseTracker == null)
                 throw new InitializationException(Name, "MouseTrackerが初期化されていません");
 
             // プロファイルに応じたレイアウトファイルを読み込み
-            Logger.Info($"レイアウトを読み込み中: {context.ProfileManager.CurrentProfile}");
-            window.LayoutManager.LoadLayout(context.ProfileManager.CurrentProfile);
+            Logger.Info($"レイアウトを読み込み中: {window.ProfileManager.CurrentProfile}");
+            window.LayoutManager.LoadLayout(window.ProfileManager.CurrentProfile);
 
             // UIを動的生成
-            context.DynamicCanvas = UIGenerator.GenerateCanvas(window.LayoutManager.CurrentLayout!, window);
+            var dynamicCanvas = UIGenerator.GenerateCanvas(window.LayoutManager.CurrentLayout!, window);
 
             // 既存のCanvasと置き換え
-            window.Content = context.DynamicCanvas;
+            window.Content = dynamicCanvas;
 
             // ウィンドウ背景を設定
             window.Background = BrushFactory.CreateTransparentBackground();
 
             // 要素名を登録
-            UIGenerator.RegisterElementNames(context.DynamicCanvas, window);
+            UIGenerator.RegisterElementNames(dynamicCanvas, window);
 
             // UI要素検索管理を初期化
-            context.ElementLocator = new UIElementLocator();
-            context.ElementLocator.BuildCache(context.DynamicCanvas);
+            window.ElementLocator?.BuildCache(dynamicCanvas);
 
             // マウス方向可視化を初期化
-            context.MouseVisualizer = new MouseDirectionVisualizer(context.ElementLocator);
-            context.MouseVisualizer.Initialize(context.MouseTracker);
-
-            // MainWindowのプロパティに設定
-            window.ElementLocator = context.ElementLocator;
-            window.MouseVisualizer = context.MouseVisualizer;
+            window.MouseVisualizer?.Initialize(window.MouseTracker);
         }
     }
 }

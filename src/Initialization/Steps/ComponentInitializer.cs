@@ -10,12 +10,9 @@ namespace KeyOverlayFPS.Initialization.Steps
     {
         public string Name => "WPFコンポーネント初期化";
 
-        public void Execute(MainWindow window, InitializationContext context)
+        public void Execute(MainWindow window)
         {
             window.InitializeComponent();
-            
-            // ProfileManagerを初期化（SettingsManagerを渡す）
-            context.ProfileManager = new ProfileManager(context.SettingsManager);
         }
     }
 }
