@@ -141,61 +141,71 @@ keys:
   KeyQ:
     position: { x: 43, y: 33 }
     size: { width: 26, height: 26 }
-    text: "Q"
+    text: "q"
+    shiftText: "Q"
     virtualKey: VK_Q
     isVisible: true
   KeyW:
     position: { x: 71, y: 33 }
     size: { width: 26, height: 26 }
-    text: "W"
+    text: "w"
+    shiftText: "W"
     virtualKey: VK_W
     isVisible: true
   KeyE:
     position: { x: 99, y: 33 }
     size: { width: 26, height: 26 }
-    text: "E"
+    text: "e"
+    shiftText: "E"
     virtualKey: VK_E
     isVisible: true
   KeyR:
     position: { x: 127, y: 33 }
     size: { width: 26, height: 26 }
-    text: "R"
+    text: "r"
+    shiftText: "R"
     virtualKey: VK_R
     isVisible: true
   KeyT:
     position: { x: 155, y: 33 }
     size: { width: 26, height: 26 }
-    text: "T"
+    text: "t"
+    shiftText: "T"
     virtualKey: VK_T
     isVisible: true
   KeyY:
     position: { x: 183, y: 33 }
     size: { width: 26, height: 26 }
-    text: "Y"
+    text: "y"
+    shiftText: "Y"
     virtualKey: VK_Y
     isVisible: true
   KeyU:
     position: { x: 211, y: 33 }
     size: { width: 26, height: 26 }
-    text: "U"
+    text: "u"
+    shiftText: "U"
     virtualKey: VK_U
     isVisible: true
   KeyI:
     position: { x: 239, y: 33 }
     size: { width: 26, height: 26 }
-    text: "I"
+    text: "i"
+    shiftText: "I"
     virtualKey: VK_I
     isVisible: true
   KeyO:
     position: { x: 267, y: 33 }
     size: { width: 26, height: 26 }
-    text: "O"
+    text: "o"
+    shiftText: "O"
     virtualKey: VK_O
     isVisible: true
   KeyP:
     position: { x: 295, y: 33 }
     size: { width: 26, height: 26 }
-    text: "P"
+    text: "p"
+    shiftText: "P"
     virtualKey: VK_P
     isVisible: true
   KeyOpenBracket:
@@ -231,55 +241,64 @@ keys:
   KeyA:
     position: { x: 53, y: 61 }
     size: { width: 26, height: 26 }
-    text: "A"
+    text: "a"
+    shiftText: "A"
     virtualKey: VK_A
     isVisible: true
   KeyS:
     position: { x: 81, y: 61 }
     size: { width: 26, height: 26 }
-    text: "S"
+    text: "s"
+    shiftText: "S"
     virtualKey: VK_S
     isVisible: true
   KeyD:
     position: { x: 109, y: 61 }
     size: { width: 26, height: 26 }
-    text: "D"
+    text: "d"
+    shiftText: "D"
     virtualKey: VK_D
     isVisible: true
   KeyF:
     position: { x: 137, y: 61 }
     size: { width: 26, height: 26 }
-    text: "F"
+    text: "f"
+    shiftText: "F"
     virtualKey: VK_F
     isVisible: true
   KeyG:
     position: { x: 165, y: 61 }
     size: { width: 26, height: 26 }
-    text: "G"
+    text: "g"
+    shiftText: "G"
     virtualKey: VK_G
     isVisible: true
   KeyH:
     position: { x: 193, y: 61 }
     size: { width: 26, height: 26 }
-    text: "H"
+    text: "h"
+    shiftText: "H"
     virtualKey: VK_H
     isVisible: true
   KeyJ:
     position: { x: 221, y: 61 }
     size: { width: 26, height: 26 }
-    text: "J"
+    text: "j"
+    shiftText: "J"
     virtualKey: VK_J
     isVisible: true
   KeyK:
     position: { x: 249, y: 61 }
     size: { width: 26, height: 26 }
-    text: "K"
+    text: "k"
+    shiftText: "K"
     virtualKey: VK_K
     isVisible: true
   KeyL:
     position: { x: 277, y: 61 }
     size: { width: 26, height: 26 }
-    text: "L"
+    text: "l"
+    shiftText: "L"
     virtualKey: VK_L
     isVisible: true
   KeySemicolon:
@@ -315,43 +334,50 @@ keys:
   KeyZ:
     position: { x: 65, y: 89 }
     size: { width: 26, height: 26 }
-    text: "Z"
+    text: "z"
+    shiftText: "Z"
     virtualKey: VK_Z
     isVisible: true
   KeyX:
     position: { x: 93, y: 89 }
     size: { width: 26, height: 26 }
-    text: "X"
+    text: "x"
+    shiftText: "X"
     virtualKey: VK_X
     isVisible: true
   KeyC:
     position: { x: 121, y: 89 }
     size: { width: 26, height: 26 }
-    text: "C"
+    text: "c"
+    shiftText: "C"
     virtualKey: VK_C
     isVisible: true
   KeyV:
     position: { x: 149, y: 89 }
     size: { width: 26, height: 26 }
-    text: "V"
+    text: "v"
+    shiftText: "V"
     virtualKey: VK_V
     isVisible: true
   KeyB:
     position: { x: 177, y: 89 }
     size: { width: 26, height: 26 }
-    text: "B"
+    text: "b"
+    shiftText: "B"
     virtualKey: VK_B
     isVisible: true
   KeyN:
     position: { x: 205, y: 89 }
     size: { width: 26, height: 26 }
-    text: "N"
+    text: "n"
+    shiftText: "N"
     virtualKey: VK_N
     isVisible: true
   KeyM:
     position: { x: 233, y: 89 }
     size: { width: 26, height: 26 }
-    text: "M"
+    text: "m"
+    shiftText: "M"
     virtualKey: VK_M
     isVisible: true
   KeyComma:
