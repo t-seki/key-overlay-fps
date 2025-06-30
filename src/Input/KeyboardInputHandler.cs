@@ -59,8 +59,10 @@ namespace KeyOverlayFPS.Input
 
         /// <summary>
         /// 指定された仮想キーが現在押されているかを判定
+        /// 注意: このメソッドは非推奨です。新しいコードではKeyStateManager.IsKeyPressed()を使用してください。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Obsolete("このメソッドは非推奨です。KeyStateManager.IsKeyPressed()を使用してください。", false)]
         public static bool IsKeyPressed(int virtualKeyCode)
         {
             // 特殊キー（検出不可能）の場合は常にfalseを返す

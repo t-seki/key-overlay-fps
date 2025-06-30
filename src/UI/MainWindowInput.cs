@@ -27,8 +27,11 @@ namespace KeyOverlayFPS.UI
         // タイマー管理
         private readonly DispatcherTimer _timer;
         
-        // マウスホイールフック
-        private readonly MouseWheelHook _mouseWheelHook;
+        // マウスフック
+        private readonly MouseHook _mouseHook;
+        
+        // キー状態管理
+        private readonly KeyStateManager _keyStateManager;
         
         // スクロール表示タイマー
         private int _scrollUpTimer = 0;
@@ -51,6 +54,11 @@ namespace KeyOverlayFPS.UI
         /// キーボード入力ハンドラーへのアクセス
         /// </summary>
         public KeyboardInputHandler KeyboardHandler => _keyboardHandler;
+
+        /// <summary>
+        /// キー状態管理へのアクセス
+        /// </summary>
+        public KeyStateManager KeyStateManager => _keyStateManager;
 
         public MainWindowInput(
             Window window,
@@ -76,9 +84,12 @@ namespace KeyOverlayFPS.UI
             };
             _timer.Tick += Timer_Tick;
             
-            // マウスホイールフック初期化
-            _mouseWheelHook = new MouseWheelHook();
-            _mouseWheelHook.MouseWheelDetected += OnMouseWheelDetected;
+            // マウスフック初期化
+            _mouseHook = new MouseHook();
+            _mouseHook.MouseWheelDetected += OnMouseWheelDetected;
+            
+            // キー状態管理初期化
+            _keyStateManager = new KeyStateManager();
             
             // マウス移動可視化はMouseDirectionVisualizerで処理
         }
@@ -89,7 +100,8 @@ namespace KeyOverlayFPS.UI
         public void Start()
         {
             _timer.Start();
-            _mouseWheelHook.StartHook();
+            _mouseHook.StartHook();
+            _keyStateManager.Start();
         }
 
         /// <summary>
@@ -98,7 +110,8 @@ namespace KeyOverlayFPS.UI
         public void Stop()
         {
             _timer.Stop();
-            _mouseWheelHook.StopHook();
+            _mouseHook.StopHook();
+            _keyStateManager.Stop();
         }
 
         /// <summary>
@@ -110,7 +123,8 @@ namespace KeyOverlayFPS.UI
             _mouseTracker.Update();
 
             // キーボード入力更新
-            bool isShiftPressed = KeyboardInputHandler.IsKeyPressed(VirtualKeyCodes.VK_SHIFT);
+            bool isShiftPressed = _keyStateManager.IsKeyPressed(VirtualKeyCodes.VK_LSHIFT) || 
+                                  _keyStateManager.IsKeyPressed(VirtualKeyCodes.VK_RSHIFT);
             UpdateKeys(isShiftPressed);
             
             // マウス入力（表示時のみ更新）
@@ -151,7 +165,7 @@ namespace KeyOverlayFPS.UI
             if (keyConfig == null) return;
 
             // ハイライトの表示
-            bool isPressed = KeyboardInputHandler.IsKeyPressed(keyConfig.VirtualKey);
+            bool isPressed = _keyStateManager.IsKeyPressed(keyConfig.VirtualKey);
             keyBorder.Background = isPressed ? _settings.ActiveBrush : _inactiveBrush;
 
             // テキストの更新
@@ -191,7 +205,7 @@ namespace KeyOverlayFPS.UI
             var keyBorder = GetCachedElement<Border>(keyName);
             if (keyBorder != null)
             {
-                bool isPressed = KeyboardInputHandler.IsKeyPressed(virtualKeyCode);
+                bool isPressed = _mouseHook.IsButtonPressed(virtualKeyCode);
                 keyBorder.Background = isPressed ? _settings.ActiveBrush : _inactiveBrush;
             }
         }
@@ -316,7 +330,8 @@ namespace KeyOverlayFPS.UI
                 {
                     // マネージリソースの解放
                     Stop(); // タイマーとフックを停止
-                    _mouseWheelHook?.Dispose();
+                    _mouseHook?.Dispose();
+                    _keyStateManager?.Dispose();
                 }
                 _disposed = true;
             }
