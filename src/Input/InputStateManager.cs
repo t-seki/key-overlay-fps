@@ -5,14 +5,15 @@ using System.Diagnostics;
 namespace KeyOverlayFPS.Input
 {
     /// <summary>
-    /// キーボード状態管理クラス
-    /// KeyboardHookからのイベントを受け取り、各キーの押下状態を管理する
+    /// 入力状態管理クラス
+    /// キーボードとマウスの両方の入力状態を統一的に管理する
     /// </summary>
-    public class KeyStateManager : IDisposable
+    public class InputStateManager : IDisposable
     {
         #region フィールド
 
         private readonly KeyboardHook _keyboardHook;
+        private readonly MouseHook _mouseHook;
         private readonly ConcurrentDictionary<int, bool> _keyStates;
         private bool _disposed = false;
         private bool _isEnabled = false;
@@ -31,22 +32,27 @@ namespace KeyOverlayFPS.Input
         #region コンストラクタ・デストラクタ
 
         /// <summary>
-        /// KeyStateManagerクラスの新しいインスタンスを初期化
+        /// InputStateManagerクラスの新しいインスタンスを初期化
         /// </summary>
-        public KeyStateManager()
+        public InputStateManager()
         {
             _keyStates = new ConcurrentDictionary<int, bool>();
             _keyboardHook = new KeyboardHook();
+            _mouseHook = new MouseHook();
             
             // キーボードフックのイベントを購読
             _keyboardHook.KeyPressed += OnKeyPressed;
             _keyboardHook.KeyReleased += OnKeyReleased;
+            
+            // マウスフックのイベントを購読
+            _mouseHook.MouseButtonPressed += OnMouseButtonPressed;
+            _mouseHook.MouseButtonReleased += OnMouseButtonReleased;
         }
 
         /// <summary>
         /// デストラクタ
         /// </summary>
-        ~KeyStateManager()
+        ~InputStateManager()
         {
             Dispose(false);
         }
@@ -68,21 +74,27 @@ namespace KeyOverlayFPS.Input
 
             try
             {
-                bool success = _keyboardHook.StartHook();
-                if (success)
+                bool keyboardSuccess = _keyboardHook.StartHook();
+                bool mouseSuccess = _mouseHook.StartHook();
+                
+                if (keyboardSuccess && mouseSuccess)
                 {
                     _isEnabled = true;
-                    Debug.WriteLine("KeyStateManager: キー状態管理を開始しました");
+                    Debug.WriteLine("InputStateManager: 入力状態管理を開始しました");
+                    return true;
                 }
                 else
                 {
-                    Debug.WriteLine("KeyStateManager: キーボードフックの開始に失敗しました");
+                    Debug.WriteLine($"InputStateManager: フック開始に失敗 - Keyboard: {keyboardSuccess}, Mouse: {mouseSuccess}");
+                    // 部分的に成功したフックを停止
+                    if (keyboardSuccess) _keyboardHook.StopHook();
+                    if (mouseSuccess) _mouseHook.StopHook();
+                    return false;
                 }
-                return success;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"KeyStateManager.Start でエラーが発生: {ex.Message}");
+                Debug.WriteLine($"InputStateManager.Start でエラーが発生: {ex.Message}");
                 return false;
             }
         }
@@ -100,13 +112,14 @@ namespace KeyOverlayFPS.Input
             try
             {
                 _keyboardHook.StopHook();
+                _mouseHook.StopHook();
                 _keyStates.Clear();
                 _isEnabled = false;
-                Debug.WriteLine("KeyStateManager: キー状態管理を停止しました");
+                Debug.WriteLine("InputStateManager: 入力状態管理を停止しました");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"KeyStateManager.Stop でエラーが発生: {ex.Message}");
+                Debug.WriteLine($"InputStateManager.Stop でエラーが発生: {ex.Message}");
             }
         }
 
@@ -137,7 +150,7 @@ namespace KeyOverlayFPS.Input
         /// <summary>
         /// 管理が有効かどうかを取得
         /// </summary>
-        public bool IsEnabled => _isEnabled && _keyboardHook.IsHookActive;
+        public bool IsEnabled => _isEnabled && _keyboardHook.IsHookActive && _mouseHook.IsHookActive;
 
         /// <summary>
         /// 現在管理されているキーの数を取得
@@ -168,7 +181,7 @@ namespace KeyOverlayFPS.Input
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"KeyStateManager.OnKeyPressed でエラーが発生: {ex.Message}");
+                Debug.WriteLine($"InputStateManager.OnKeyPressed でエラーが発生: {ex.Message}");
             }
         }
 
@@ -192,7 +205,55 @@ namespace KeyOverlayFPS.Input
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"KeyStateManager.OnKeyReleased でエラーが発生: {ex.Message}");
+                Debug.WriteLine($"InputStateManager.OnKeyReleased でエラーが発生: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// マウスボタン押下イベントハンドラー
+        /// </summary>
+        private void OnMouseButtonPressed(object? sender, MouseButtonHookEventArgs e)
+        {
+            try
+            {
+                bool previousState = _keyStates.TryGetValue(e.VirtualKeyCode, out bool current) && current;
+                
+                // ボタン状態を更新（押下状態にする）
+                _keyStates.AddOrUpdate(e.VirtualKeyCode, true, (key, oldValue) => true);
+                
+                // 状態が変化した場合のみイベントを発火
+                if (!previousState)
+                {
+                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(e.VirtualKeyCode, true));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"InputStateManager.OnMouseButtonPressed でエラーが発生: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// マウスボタン離放イベントハンドラー
+        /// </summary>
+        private void OnMouseButtonReleased(object? sender, MouseButtonHookEventArgs e)
+        {
+            try
+            {
+                bool previousState = _keyStates.TryGetValue(e.VirtualKeyCode, out bool current) && current;
+                
+                // ボタン状態を更新（離放状態にする）
+                _keyStates.AddOrUpdate(e.VirtualKeyCode, false, (key, oldValue) => false);
+                
+                // 状態が変化した場合のみイベントを発火
+                if (previousState)
+                {
+                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(e.VirtualKeyCode, false));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"InputStateManager.OnMouseButtonReleased でエラーが発生: {ex.Message}");
             }
         }
 
@@ -223,8 +284,11 @@ namespace KeyOverlayFPS.Input
                     // イベントの購読解除
                     _keyboardHook.KeyPressed -= OnKeyPressed;
                     _keyboardHook.KeyReleased -= OnKeyReleased;
+                    _mouseHook.MouseButtonPressed -= OnMouseButtonPressed;
+                    _mouseHook.MouseButtonReleased -= OnMouseButtonReleased;
                     
                     _keyboardHook?.Dispose();
+                    _mouseHook?.Dispose();
                 }
                 _disposed = true;
             }
