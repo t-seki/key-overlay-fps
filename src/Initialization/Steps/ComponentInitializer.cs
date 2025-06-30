@@ -16,8 +16,6 @@ namespace KeyOverlayFPS.Initialization.Steps
             
             // ProfileManagerを初期化（SettingsManagerを渡す）
             context.ProfileManager = new ProfileManager(context.SettingsManager);
-            
-            Logger.Info("InitializeComponent完了");
         }
     }
 }

@@ -49,8 +49,6 @@ namespace KeyOverlayFPS.Initialization.Steps
             // MainWindowのプロパティに設定
             window.ElementLocator = context.ElementLocator;
             window.MouseVisualizer = context.MouseVisualizer;
-
-            Logger.Info("動的レイアウトシステム初期化完了");
         }
     }
 }

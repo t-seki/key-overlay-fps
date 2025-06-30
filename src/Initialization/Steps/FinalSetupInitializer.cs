@@ -40,8 +40,6 @@ namespace KeyOverlayFPS.Initialization.Steps
             window.ApplyDisplayScale();
             window.UpdateMousePositions();
             window.UpdateAllTextForeground();
-            
-            Logger.Info("最終設定適用完了");
         }
 
         /// <summary>

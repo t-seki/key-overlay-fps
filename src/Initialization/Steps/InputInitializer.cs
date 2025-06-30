@@ -37,8 +37,6 @@ namespace KeyOverlayFPS.Initialization.Steps
             
             // 入力処理開始
             context.Input.Start();
-            
-            Logger.Info("入力処理システム初期化完了");
         }
     }
 }

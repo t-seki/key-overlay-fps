@@ -29,8 +29,6 @@ namespace KeyOverlayFPS.Initialization.Steps
             
             // コンテキストメニュー設定
             context.Menu.SetupContextMenu();
-            
-            Logger.Info("メニューとイベント初期化完了");
         }
     }
 }

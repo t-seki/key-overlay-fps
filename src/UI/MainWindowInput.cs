@@ -65,7 +65,7 @@ namespace KeyOverlayFPS.UI
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _keyboardHandler = keyboardHandler ?? throw new ArgumentNullException(nameof(keyboardHandler));
             _mouseTracker = mouseTracker ?? throw new ArgumentNullException(nameof(mouseTracker));
-            _elementLocator = elementLocator;
+            _elementLocator = elementLocator ?? throw new ArgumentNullException(nameof(elementLocator));
             _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
             _inactiveBrush = inactiveBrush ?? throw new ArgumentNullException(nameof(inactiveBrush));
 

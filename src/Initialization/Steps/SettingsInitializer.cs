@@ -29,8 +29,6 @@ namespace KeyOverlayFPS.Initialization.Steps
             
             // 設定システム初期化
             context.Settings.Initialize();
-            
-            Logger.Info("設定管理システム初期化完了");
         }
     }
 }
