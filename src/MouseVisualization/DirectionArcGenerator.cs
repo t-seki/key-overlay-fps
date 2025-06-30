@@ -42,22 +42,23 @@ namespace KeyOverlayFPS.MouseVisualization
             var startRadians = startAngle * Math.PI / 180;
             var endRadians = endAngle * Math.PI / 180;
             
-            // 円周上の開始点と終了点を計算
-            var centerX = radius;
-            var centerY = radius;
-            
-            var startX = centerX + radius * Math.Cos(startRadians);
-            var startY = centerY - radius * Math.Sin(startRadians); // Y軸反転（WPF座標系）
-            var endX = centerX + radius * Math.Cos(endRadians);
-            var endY = centerY - radius * Math.Sin(endRadians); // Y軸反転（WPF座標系）
+            // 原点(0,0)を中心とした円周上の点を計算
+            var startX = radius * Math.Cos(startRadians);
+            var startY = -radius * Math.Sin(startRadians); // Y軸反転（WPF座標系）
+            var endX = radius * Math.Cos(endRadians);
+            var endY = -radius * Math.Sin(endRadians); // Y軸反転（WPF座標系）
             
             // 円弧のPath要素を作成
             var pathGeometry = new PathGeometry();
             var pathFigure = new PathFigure
             {
-                StartPoint = new Point(startX, startY)
+                StartPoint = new Point(startX, startY)  // 円周上の開始点
             };
             
+            // 変換を適用して正しい位置に配置
+            pathGeometry.Transform = new TranslateTransform(radius, radius);
+            
+            // 円周上を通る円弧
             var arcSegment = new ArcSegment
             {
                 Point = new Point(endX, endY),
@@ -65,7 +66,6 @@ namespace KeyOverlayFPS.MouseVisualization
                 SweepDirection = SweepDirection.Clockwise,
                 IsLargeArc = false
             };
-            
             pathFigure.Segments.Add(arcSegment);
             pathGeometry.Figures.Add(pathFigure);
             
