@@ -145,16 +145,17 @@ namespace KeyOverlayFPS.MouseVisualization
             canvas.Children.Add(baseCircle);
             
             // 中心点を作成
+            var centerPointSize = ApplicationConstants.MouseVisualization.CenterPointSize;
             var centerPoint = new System.Windows.Shapes.Ellipse
             {
                 Name = "MouseDirectionCenterPoint",
-                Width = 1,
-                Height = 1,
+                Width = centerPointSize,
+                Height = centerPointSize,
                 Fill = BrushFactory.CreateMouseDirectionCenterBrush(),
                 Opacity = 0.8
             };
-            System.Windows.Controls.Canvas.SetLeft(centerPoint, radius - 0.5);
-            System.Windows.Controls.Canvas.SetTop(centerPoint, radius - 0.5);
+            System.Windows.Controls.Canvas.SetLeft(centerPoint, radius - centerPointSize / 2);
+            System.Windows.Controls.Canvas.SetTop(centerPoint, radius - centerPointSize / 2);
             canvas.Children.Add(centerPoint);
         }
     }

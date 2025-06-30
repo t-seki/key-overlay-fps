@@ -202,6 +202,11 @@ namespace KeyOverlayFPS.Constants
             public const double MovementThreshold = 5.0;
             
             /// <summary>
+            /// 方向表示中心点のサイズ
+            /// </summary>
+            public const double CenterPointSize = 2.0;
+            
+            /// <summary>
             /// 方向表示キャンバスのサイズ
             /// </summary>
             public static double CanvasSize => CircleRadius * 2;
