@@ -1,4 +1,3 @@
-using System.IO;
 using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Constants;

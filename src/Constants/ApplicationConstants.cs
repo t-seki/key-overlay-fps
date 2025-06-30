@@ -139,10 +139,6 @@ namespace KeyOverlayFPS.Constants
             /// </summary>
             public const double RadiansToDegrees = 180.0;
             
-            /// <summary>
-            /// 度からラジアンへの変換係数
-            /// </summary>
-            public static double DegreesToRadians => RadiansToDegrees / Math.PI;
         }
         
         /// <summary>
