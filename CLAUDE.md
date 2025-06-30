@@ -36,5 +36,6 @@ KeyOverlayFPS is a Windows WPF application that provides real-time keyboard and 
    - Provide meaningful error messages in Japanese for user-facing errors
    - Log errors with System.Diagnostics.Debug for development
 
-[... rest of the existing content remains unchanged ...]
+## Development Workflow Notes
 
+- Commands such as `dotnet build`, `dotnet test`, and `dotnet run` must be run on Windows for WPF applications, but since Claude code is running on WSL, the dotnet command run on Claude Code will result in an error. As the development flow of this project, dotnet commands are done manually, so please do not execute them in Claude Code.

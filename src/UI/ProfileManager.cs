@@ -1,5 +1,5 @@
 using System;
-using KeyOverlayFPS.Input;
+using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.Settings;
 
 namespace KeyOverlayFPS.UI

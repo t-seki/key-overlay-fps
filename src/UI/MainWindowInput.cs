@@ -18,7 +18,6 @@ namespace KeyOverlayFPS.UI
     {
         private readonly Window _window;
         private readonly MainWindowSettings _settings;
-        private readonly KeyboardInputHandler _keyboardHandler;
         private readonly MouseTracker _mouseTracker;
         private readonly UIElementLocator? _elementLocator;
         private readonly LayoutManager _layoutManager;
@@ -50,10 +49,6 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public Action? UpdateAllTextForegroundAction { get; set; }
         
-        /// <summary>
-        /// キーボード入力ハンドラーへのアクセス
-        /// </summary>
-        public KeyboardInputHandler KeyboardHandler => _keyboardHandler;
 
         /// <summary>
         /// 入力状態管理へのアクセス
@@ -63,7 +58,6 @@ namespace KeyOverlayFPS.UI
         public MainWindowInput(
             Window window,
             MainWindowSettings settings,
-            KeyboardInputHandler keyboardHandler,
             MouseTracker mouseTracker,
             UIElementLocator? elementLocator,
             LayoutManager layoutManager,
@@ -71,7 +65,6 @@ namespace KeyOverlayFPS.UI
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _keyboardHandler = keyboardHandler ?? throw new ArgumentNullException(nameof(keyboardHandler));
             _mouseTracker = mouseTracker ?? throw new ArgumentNullException(nameof(mouseTracker));
             _elementLocator = elementLocator ?? throw new ArgumentNullException(nameof(elementLocator));
             _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
@@ -161,11 +154,10 @@ namespace KeyOverlayFPS.UI
             var keyBorder = GetCachedElement<Border>(keyName);
             if (keyBorder == null) return;
 
-            var keyConfig = _keyboardHandler.GetKeyConfig(keyName);
-            if (keyConfig == null) return;
+            if (_layoutManager.CurrentLayout?.Keys?.TryGetValue(keyName, out var keyDefinition) != true) return;
 
             // ハイライトの表示
-            bool isPressed = _inputStateManager.IsKeyPressed(keyConfig.VirtualKey);
+            bool isPressed = _inputStateManager.IsKeyPressed(keyDefinition!.VirtualKey);
             keyBorder.Background = isPressed ? _settings.ActiveBrush : _inactiveBrush;
 
             // テキストの更新
@@ -173,14 +165,15 @@ namespace KeyOverlayFPS.UI
             if (textBlock != null)
             {
                 bool shouldShowShiftText = isShiftPressed && _layoutManager.IsShiftDisplayEnabled();
+                bool hasShiftVariant = !string.IsNullOrEmpty(keyDefinition.ShiftText);
 
-                if (shouldShowShiftText && keyConfig.HasShiftVariant)
+                if (shouldShowShiftText && hasShiftVariant)
                 {
-                    textBlock.Text = keyConfig.ShiftText;
+                    textBlock.Text = keyDefinition.ShiftText;
                 }
                 else
                 {
-                    textBlock.Text = keyConfig.NormalText;
+                    textBlock.Text = keyDefinition.Text ?? "";
                 }
             }
         }

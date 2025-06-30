@@ -140,7 +140,7 @@ namespace KeyOverlayFPS.Settings
             try
             {
                 var layoutManager = new LayoutManager();
-                layoutManager.LoadLayout(Input.KeyboardProfile.FullKeyboard65);
+                layoutManager.LoadLayout(Layout.KeyboardProfile.FullKeyboard65);
                 var layout = layoutManager.CurrentLayout;
 
                 var settings = new AppSettings

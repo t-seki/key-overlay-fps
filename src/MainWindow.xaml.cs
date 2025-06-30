@@ -10,7 +10,6 @@ using System.Windows.Threading;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Colors;
-using KeyOverlayFPS.Input;
 using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.UI;
@@ -49,7 +48,6 @@ namespace KeyOverlayFPS
         public MouseDirectionVisualizer MouseVisualizer { get; }
 
         // others
-        public KeyboardInputHandler KeyboardInputHandler { get; }
         public MouseTracker MouseTracker { get; }   
 
         public MainWindow()
@@ -60,11 +58,9 @@ namespace KeyOverlayFPS
             ProfileManager = new ProfileManager(SettingsManager.Instance);
             Settings = new MainWindowSettings(this, SettingsManager.Instance);
             Menu = new MainWindowMenu(this, Settings, ProfileManager);
-            KeyboardInputHandler = new KeyboardInputHandler(LayoutManager);
             MouseTracker = new MouseTracker();
             var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
-            Input = new MainWindowInput(this, Settings, KeyboardInputHandler,
-                MouseTracker, ElementLocator, LayoutManager, keyboardKeyBackgroundBrush);
+            Input = new MainWindowInput(this, Settings, MouseTracker, ElementLocator, LayoutManager, keyboardKeyBackgroundBrush);
 
             try
             {

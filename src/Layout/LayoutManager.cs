@@ -10,6 +10,15 @@ using KeyOverlayFPS.Constants;
 namespace KeyOverlayFPS.Layout
 {
     /// <summary>
+    /// キーボードプロファイル
+    /// </summary>
+    public enum KeyboardProfile
+    {
+        FullKeyboard65,  // 現在の65%キーボード
+        FPSKeyboard      // FPS用コンパクトキーボード
+    }
+
+    /// <summary>
     /// レイアウト管理クラス
     /// </summary>
     public class LayoutManager

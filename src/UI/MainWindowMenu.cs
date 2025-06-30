@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using KeyOverlayFPS.Colors;
 using KeyOverlayFPS.Constants;
-using KeyOverlayFPS.Input;
+using KeyOverlayFPS.Layout;
 
 namespace KeyOverlayFPS.UI
 {
