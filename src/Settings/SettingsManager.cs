@@ -15,7 +15,7 @@ namespace KeyOverlayFPS.Settings
     /// <summary>
     /// 統一された設定管理クラス
     /// </summary>
-    public class SettingsManager : ISettingsService
+    public class SettingsManager
     {
         private static SettingsManager? _instance;
         private static readonly object _lock = new object();

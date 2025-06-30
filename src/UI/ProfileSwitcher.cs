@@ -13,7 +13,7 @@ namespace KeyOverlayFPS.UI
     {
         private readonly LayoutManager _layoutManager;
         private readonly ProfileManager _profileManager;
-        private readonly ISettingsService _settingsService;
+        private readonly SettingsManager _settingsService;
         private readonly Action _applyLayoutAction;
         private readonly Action _updateMousePositionsAction;
         private readonly Action _updateMenuStateAction;
@@ -21,7 +21,7 @@ namespace KeyOverlayFPS.UI
         public ProfileSwitcher(
             LayoutManager layoutManager,
             ProfileManager profileManager,
-            ISettingsService settingsService,
+            SettingsManager settingsService,
             Action applyLayoutAction,
             Action updateMousePositionsAction,
             Action updateMenuStateAction)

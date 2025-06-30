@@ -14,7 +14,7 @@ namespace KeyOverlayFPS.UI
     public class MainWindowSettings
     {
         private readonly Window _window;
-        private readonly ISettingsService _settingsService;
+        private readonly SettingsManager _settingsService;
 
         /// <summary>
         /// 前景ブラシ
@@ -45,7 +45,7 @@ namespace KeyOverlayFPS.UI
             remove => _settingsService.SettingsChanged -= value;
         }
 
-        public MainWindowSettings(Window window, ISettingsService settingsService)
+        public MainWindowSettings(Window window, SettingsManager settingsService)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));

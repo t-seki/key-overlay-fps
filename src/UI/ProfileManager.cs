@@ -9,7 +9,7 @@ namespace KeyOverlayFPS.UI
     /// </summary>
     public class ProfileManager
     {
-        private readonly ISettingsService _settingsService;
+        private readonly SettingsManager _settingsService;
         
         /// <summary>
         /// 現在のキーボードプロファイル
@@ -39,7 +39,7 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public event EventHandler<ProfileChangedEventArgs>? ProfileChanged;
         
-        public ProfileManager(ISettingsService settingsService)
+        public ProfileManager(SettingsManager settingsService)
         {
             _settingsService = settingsService;
         }
