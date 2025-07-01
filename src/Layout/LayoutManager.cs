@@ -26,24 +26,12 @@ namespace KeyOverlayFPS.Layout
         private LayoutConfig? _currentLayout;
 
         /// <summary>
-        /// レイアウト変更イベント
-        /// </summary>
-        public event EventHandler<LayoutConfig?>? LayoutChanged;
-
-        /// <summary>
         /// 現在のレイアウト設定
         /// </summary>
         public LayoutConfig? CurrentLayout
         {
             get => _currentLayout;
-            private set
-            {
-                if (_currentLayout != value)
-                {
-                    _currentLayout = value;
-                    LayoutChanged?.Invoke(this, value);
-                }
-            }
+            private set => _currentLayout = value;
         }
 
         /// <summary>
