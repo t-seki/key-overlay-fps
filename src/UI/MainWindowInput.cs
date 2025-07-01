@@ -213,11 +213,13 @@ namespace KeyOverlayFPS.UI
             {
                 if (_scrollUpTimer > 0)
                 {
+                    scrollUpIndicator.Visibility = Visibility.Visible;
                     scrollUpIndicator.Foreground = _settings.ActiveBrush; // ハイライト色を使用
                     _scrollUpTimer--;
                 }
                 else
                 {
+                    scrollUpIndicator.Visibility = Visibility.Hidden;
                     scrollUpIndicator.Foreground = _inactiveBrush;
                 }
             }
@@ -228,11 +230,13 @@ namespace KeyOverlayFPS.UI
             {
                 if (_scrollDownTimer > 0)
                 {
+                    scrollDownIndicator.Visibility = Visibility.Visible;
                     scrollDownIndicator.Foreground = _settings.ActiveBrush; // ハイライト色を使用
                     _scrollDownTimer--;
                 }
                 else
                 {
+                    scrollDownIndicator.Visibility = Visibility.Hidden;
                     scrollDownIndicator.Foreground = _inactiveBrush;
                 }
             }

@@ -229,6 +229,7 @@ namespace KeyOverlayFPS.Layout
                     FontSize = 8,
                     FontWeight = FontWeights.Bold,
                     Foreground = Brushes.Transparent,
+                    Visibility = Visibility.Hidden,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -240,6 +241,7 @@ namespace KeyOverlayFPS.Layout
                     FontSize = 8,
                     FontWeight = FontWeights.Bold,
                     Foreground = Brushes.Transparent,
+                    Visibility = Visibility.Hidden,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
