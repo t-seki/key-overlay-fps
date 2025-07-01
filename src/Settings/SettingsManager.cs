@@ -261,17 +261,6 @@ namespace KeyOverlayFPS.Settings
             return BrushFactory.CreateBrushFromString(colorName, Brushes.White);
         }
 
-        /// <summary>
-        /// Brushから色名を取得
-        /// </summary>
-        public string GetColorNameFromBrush(Brush brush)
-        {
-            if (brush is SolidColorBrush solidBrush)
-            {
-                return GetColorNameFromColor(solidBrush.Color);
-            }
-            return "White";
-        }
 
         /// <summary>
         /// Colorから色名を取得
