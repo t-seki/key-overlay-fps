@@ -111,7 +111,7 @@ keys:
             Assert.That(layout.Window.Height, Is.EqualTo(160));
             Assert.That(layout.Keys.Count, Is.GreaterThan(60)); // 65%キーボードなので60キー以上
             Assert.That(layout.Mouse, Is.Not.Null);
-            Assert.That(layout.Mouse.IsVisible, Is.True);
+            // マウス要素が定義されていることを確認（IsVisibleプロパティは削除済み）
         }
 
         [Test]
@@ -132,7 +132,7 @@ keys:
             Assert.That(layout.Window.Height, Is.EqualTo(160));
             Assert.That(layout.Keys.Count, Is.GreaterThan(20)); // FPSキーボードなので20キー以上
             Assert.That(layout.Mouse, Is.Not.Null);
-            Assert.That(layout.Mouse.IsVisible, Is.True);
+            // マウス要素が定義されていることを確認（IsVisibleプロパティは削除済み）
             Assert.That(layout.Mouse.Position.X, Is.EqualTo(290)); // FPS用位置
         }
 
@@ -188,8 +188,7 @@ keys:
                 },
                 Mouse = new MouseSettings
                 {
-                    Position = new PositionConfig { X = 290, Y = 20 },
-                    IsVisible = true
+                    Position = new PositionConfig { X = 290, Y = 20 }
                 }
             };
         }
@@ -241,7 +240,6 @@ keys:
                 Mouse = new MouseSettings
                 {
                     Position = new PositionConfig { X = 290, Y = 20 },
-                    IsVisible = true,
                     Movement = new MouseMovementConfig
                     {
                         CircleSize = 25,
@@ -300,7 +298,7 @@ keys:
             // Mouse settings
             Assert.AreEqual(expected.Mouse.Position.X, actual.Mouse.Position.X);
             Assert.AreEqual(expected.Mouse.Position.Y, actual.Mouse.Position.Y);
-            Assert.AreEqual(expected.Mouse.IsVisible, actual.Mouse.IsVisible);
+            // IsVisibleプロパティは削除済み - マウス要素の存在自体が表示を意味する
             
             if (expected.Mouse.Movement != null && actual.Mouse.Movement != null)
             {

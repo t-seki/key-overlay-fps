@@ -81,7 +81,7 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         private static void GenerateMouseElements(Canvas canvas, LayoutConfig layout)
         {
-            if (layout.Mouse == null || !layout.Mouse.IsVisible) return;
+            if (layout.Mouse == null) return;
 
             // マウス本体を生成
             var mouseBody = CreateMouseBody(layout.Mouse);
@@ -159,6 +159,11 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         private static Border CreateMouseBody(MouseSettings mouseSettings)
         {
+            if (mouseSettings == null)
+            {
+                throw new ArgumentNullException(nameof(mouseSettings));
+            }
+            
             var border = new Border
             {
                 Name = "MouseBody",

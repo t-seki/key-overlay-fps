@@ -515,7 +515,6 @@ keys:
     isVisible: true
 
 mouse:
-  isVisible: true
   position: { x: 475, y: 20 }
   movement:
     circleSize: 15

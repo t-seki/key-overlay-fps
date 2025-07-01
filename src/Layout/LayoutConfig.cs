@@ -99,10 +99,6 @@ namespace KeyOverlayFPS.Layout
     /// </summary>
     public class MouseSettings
     {
-        /// <summary>
-        /// マウス表示可否
-        /// </summary>
-        public bool IsVisible { get; set; } = true;
 
         /// <summary>
         /// マウス位置

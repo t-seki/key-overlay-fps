@@ -377,7 +377,6 @@ keys:
     isVisible: false
 
 mouse:
-  isVisible: true
   position: { x: 290, y: 20 }  # FPS用に左に配置
   movement:
     circleSize: 15

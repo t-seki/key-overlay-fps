@@ -1,13 +1,11 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using KeyOverlayFPS.Utils;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.Layout;
-using KeyOverlayFPS.Colors;
 using KeyOverlayFPS.UI;
 
 namespace KeyOverlayFPS.Settings
@@ -140,28 +138,17 @@ namespace KeyOverlayFPS.Settings
             try
             {
                 var layoutManager = new LayoutManager();
-                layoutManager.LoadLayout(Layout.KeyboardProfile.FullKeyboard65);
+                layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);
                 var layout = layoutManager.CurrentLayout;
 
-                var settings = new AppSettings
+                if (layout == null)
                 {
-                    // ウィンドウ位置のみデフォルト値使用
-                    WindowLeft = ApplicationConstants.UILayout.CanvasMargin * 12.5, // 100
-                    WindowTop = ApplicationConstants.UILayout.CanvasMargin * 12.5,  // 100
-                    IsTopmost = true,
-                    
-                    // レイアウトから色設定を取得
-                    BackgroundColor = layout?.Global?.BackgroundColor ?? "Transparent",
-                    ForegroundColor = layout?.Global?.ForegroundColor ?? "White", 
-                    HighlightColor = layout?.Global?.HighlightColor ?? "Green",
-                    
-                    // その他はデフォルト値
-                    DisplayScale = 1.0,
-                    IsMouseVisible = true,
-                    CurrentProfile = "FullKeyboard65",
-                    IsMouseTrackingEnabled = true
-                };
+                    Logger.Warning("レイアウトがnullのため、デフォルト設定を使用");
+                    return new AppSettings();
+                }
 
+                var settings = AppSettings.CreateFromLayout(layout);
+                
                 Logger.Info("65%キーボードYAMLから初期設定を作成完了");
                 return settings;
             }
