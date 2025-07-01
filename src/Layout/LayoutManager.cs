@@ -66,9 +66,18 @@ namespace KeyOverlayFPS.Layout
         /// <summary>
         /// マウス位置を取得
         /// </summary>
+        /// <returns>マウス位置（左, 上）</returns>
+        /// <exception cref="InvalidOperationException">マウス位置が定義されていない場合</exception>
         public (double Left, double Top) GetMousePosition()
         {
-            return (CurrentLayout?.Mouse?.Position?.X ?? 475, CurrentLayout?.Mouse?.Position?.Y ?? 20);
+            if (CurrentLayout?.Mouse?.Position == null)
+            {
+                throw new InvalidOperationException(
+                    "マウス位置が定義されていません。YAMLファイルにmouse.positionセクションを追加してください。"
+                );
+            }
+            
+            return (CurrentLayout.Mouse.Position.X, CurrentLayout.Mouse.Position.Y);
         }
 
         /// <summary>
