@@ -15,34 +15,10 @@ namespace KeyOverlayFPS.Settings
     /// </summary>
     public class SettingsManager
     {
-        private static SettingsManager? _instance;
-        private static readonly object _lock = new object();
-        
         private AppSettings _settings;
         private readonly string _settingsPath;
         private readonly ISerializer _serializer;
         private readonly IDeserializer _deserializer;
-
-        /// <summary>
-        /// シングルトンインスタンス
-        /// </summary>
-        public static SettingsManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new SettingsManager();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
 
         /// <summary>
         /// 設定変更時のイベント
@@ -60,7 +36,7 @@ namespace KeyOverlayFPS.Settings
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        private SettingsManager()
+        public SettingsManager()
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var appFolder = Path.Combine(appDataPath, "KeyOverlayFPS");

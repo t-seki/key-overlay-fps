@@ -38,6 +38,9 @@ namespace KeyOverlayFPS
         // プロファイル管理
         public ProfileManager ProfileManager { get; }
         
+        // 設定管理
+        private readonly SettingsManager _settingsManager;
+        
         // 動的レイアウトシステム
         public LayoutManager LayoutManager { get; }
         public UIElementLocator ElementLocator { get; }
@@ -53,8 +56,9 @@ namespace KeyOverlayFPS
             LayoutManager = new LayoutManager();
             ElementLocator = new UIElementLocator();
             MouseVisualizer = new MouseDirectionVisualizer(ElementLocator);
-            ProfileManager = new ProfileManager(SettingsManager.Instance);
-            Settings = new MainWindowSettings(this, SettingsManager.Instance);
+            _settingsManager = new SettingsManager();
+            ProfileManager = new ProfileManager(_settingsManager);
+            Settings = new MainWindowSettings(this, _settingsManager);
             Menu = new MainWindowMenu(this, Settings, ProfileManager);
             MouseTracker = new MouseTracker();
             var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
@@ -85,7 +89,7 @@ namespace KeyOverlayFPS
             _profileSwitcher = new ProfileSwitcher(
                 LayoutManager,
                 ProfileManager,
-                SettingsManager.Instance,
+                _settingsManager,
                 ApplyProfileLayout,
                 UpdateMousePositions,
                 () => Menu.UpdateMenuCheckedState()
