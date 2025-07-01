@@ -170,6 +170,16 @@ namespace KeyOverlayFPS.Constants
             /// Canvas のマージン
             /// </summary>
             public const double CanvasMargin = 8.0;
+            
+            /// <summary>
+            /// ウィンドウのデフォルト X 座標
+            /// </summary>
+            public const double DefaultWindowLeft = 100;
+            
+            /// <summary>
+            /// ウィンドウのデフォルト Y 座標
+            /// </summary>
+            public const double DefaultWindowTop = 100;
         }
         
         /// <summary>

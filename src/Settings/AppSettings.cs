@@ -9,9 +9,9 @@ namespace KeyOverlayFPS.Settings
     /// </summary>
     public class AppSettings
     {
-        // ウィンドウ設定 - 位置のみフォールバック値として定数使用
-        public double WindowLeft { get; set; } = ApplicationConstants.UILayout.CanvasMargin * 12.5; // 100
-        public double WindowTop { get; set; } = ApplicationConstants.UILayout.CanvasMargin * 12.5;  // 100
+        // ウィンドウ設定
+        public double WindowLeft { get; set; } = ApplicationConstants.UILayout.DefaultWindowLeft;
+        public double WindowTop { get; set; } = ApplicationConstants.UILayout.DefaultWindowTop;
         public bool IsTopmost { get; set; } = true;
         
         // 表示設定
