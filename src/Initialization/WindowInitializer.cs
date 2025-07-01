@@ -16,7 +16,6 @@ namespace KeyOverlayFPS.Initialization
         {
             _steps = new IInitializationStep[]
             {
-                new ComponentInitializer(),
                 new SettingsInitializer(),
                 new LayoutInitializer(),
                 new InputInitializer(),

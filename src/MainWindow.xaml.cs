@@ -48,6 +48,8 @@ namespace KeyOverlayFPS
 
         public MainWindow()
         {
+            InitializeComponent();
+            
             LayoutManager = new LayoutManager();
             ElementLocator = new UIElementLocator();
             MouseVisualizer = new MouseDirectionVisualizer(ElementLocator);
