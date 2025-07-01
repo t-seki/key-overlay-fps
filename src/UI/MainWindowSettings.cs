@@ -19,12 +19,12 @@ namespace KeyOverlayFPS.UI
         /// <summary>
         /// 前景ブラシ
         /// </summary>
-        public Brush ForegroundBrush => _settingsManager.GetBrushFromColorName(_settingsManager.Current.ForegroundColor);
+        public Brush ForegroundBrush => BrushFactory.CreateBrushFromString(_settingsManager.Current.ForegroundColor, Brushes.White);
         
         /// <summary>
         /// アクティブブラシ
         /// </summary>
-        public Brush ActiveBrush => _settingsManager.GetBrushFromColorName(_settingsManager.Current.HighlightColor);
+        public Brush ActiveBrush => BrushFactory.CreateBrushFromString(_settingsManager.Current.HighlightColor, Brushes.White);
         
         /// <summary>
         /// 表示スケール
@@ -167,7 +167,7 @@ namespace KeyOverlayFPS.UI
             }
             else
             {
-                var backgroundBrush = _settingsManager.GetBrushFromColorName(settings.BackgroundColor);
+                var backgroundBrush = BrushFactory.CreateBrushFromString(settings.BackgroundColor, Brushes.White);
                 _window.Background = backgroundBrush;
             }
         }

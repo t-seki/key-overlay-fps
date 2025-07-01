@@ -253,13 +253,6 @@ namespace KeyOverlayFPS.Settings
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// 色名からBrushを取得
-        /// </summary>
-        public Brush GetBrushFromColorName(string colorName)
-        {
-            return BrushFactory.CreateBrushFromString(colorName, Brushes.White);
-        }
 
 
         /// <summary>
