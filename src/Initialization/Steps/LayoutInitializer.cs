@@ -1,3 +1,4 @@
+using System.Windows.Controls;
 using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Constants;
@@ -16,6 +17,12 @@ namespace KeyOverlayFPS.Initialization.Steps
 
         public void Execute(MainWindow window)
         {
+            // 既存のCanvas要素の名前を解除
+            if (window.Content is Canvas oldCanvas)
+            {
+                UIGenerator.UnregisterElementNames(oldCanvas, window);
+            }
+
             // プロファイルに応じたレイアウトファイルを読み込み
             Logger.Info($"レイアウトを読み込み中: {window.ProfileManager.CurrentProfile}");
             window.LayoutManager.LoadLayout(window.ProfileManager.CurrentProfile);
