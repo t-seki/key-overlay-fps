@@ -10,25 +10,25 @@ namespace KeyOverlayFPS.UI
     /// </summary>
     public class ProfileSwitcher
     {
-        private readonly LayoutManager _layoutManager;
         private readonly ProfileManager _profileManager;
         private readonly SettingsManager _settingsService;
-        private readonly Action _applyLayoutAction;
+        private readonly CanvasRebuilder _canvasRebuilder;
+        private readonly MainWindow _mainWindow;
         private readonly Action _updateMousePositionsAction;
         private readonly Action _updateMenuStateAction;
 
         public ProfileSwitcher(
-            LayoutManager layoutManager,
             ProfileManager profileManager,
             SettingsManager settingsService,
-            Action applyLayoutAction,
+            CanvasRebuilder canvasRebuilder,
+            MainWindow mainWindow,
             Action updateMousePositionsAction,
             Action updateMenuStateAction)
         {
-            _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
             _profileManager = profileManager ?? throw new ArgumentNullException(nameof(profileManager));
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-            _applyLayoutAction = applyLayoutAction ?? throw new ArgumentNullException(nameof(applyLayoutAction));
+            _canvasRebuilder = canvasRebuilder ?? throw new ArgumentNullException(nameof(canvasRebuilder));
+            _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
             _updateMousePositionsAction = updateMousePositionsAction ?? throw new ArgumentNullException(nameof(updateMousePositionsAction));
             _updateMenuStateAction = updateMenuStateAction ?? throw new ArgumentNullException(nameof(updateMenuStateAction));
         }
@@ -38,23 +38,29 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void SwitchProfile(KeyboardProfile profile)
         {
+            Logger.Info($"プロファイル切り替え開始: {profile}");
+            
             _profileManager.SwitchProfile(profile);
             
-            // プロファイルに対応する新しいYAMLファイルを読み込み
+            // CanvasRebuilderを使用してキャンバスを完全に再構築（スケール適用を含む）
             try
             {
-                _layoutManager.LoadLayout(profile);
+                _canvasRebuilder.RebuildCanvas(_mainWindow, profile);
             }
             catch (Exception ex)
             {
-                Logger.Error($"レイアウトファイル読み込みエラー: {ex.Message}", ex);
+                Logger.Error($"キャンバス再構築エラー: {ex.Message}", ex);
+                throw;
             }
             
+            // 設定を保存
             _settingsService.SetCurrentProfile(_profileManager.GetCurrentProfileName());
             
-            _applyLayoutAction();
+            // 追加の更新処理を実行
             _updateMousePositionsAction();
             _updateMenuStateAction();
+            
+            Logger.Info($"プロファイル切り替え完了: {profile}");
         }
     }
 }

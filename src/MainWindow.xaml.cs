@@ -33,7 +33,6 @@ namespace KeyOverlayFPS
         private WindowDragHandler? _dragHandler;
         private MouseElementManager? _mouseElementManager;
         private ProfileSwitcher? _profileSwitcher;
-        private VisibilityController? _visibilityController;
 
         // プロファイル管理
         public ProfileManager ProfileManager { get; }
@@ -86,27 +85,20 @@ namespace KeyOverlayFPS
         {
             _dragHandler = new WindowDragHandler(this);
             _mouseElementManager = new MouseElementManager(LayoutManager, ElementLocator!);
+            
+            // CanvasRebuilderを作成
+            var canvasRebuilder = new CanvasRebuilder();
+            
             _profileSwitcher = new ProfileSwitcher(
-                LayoutManager,
                 ProfileManager,
                 _settingsManager,
-                ApplyProfileLayout,
+                canvasRebuilder,
+                this,
                 UpdateMousePositions,
                 () => Menu.UpdateMenuCheckedState()
             );
         }
         
-        /// <summary>
-        /// VisibilityControllerを初期化（Canvas準備後）
-        /// </summary>
-        internal void InitializeVisibilityController()
-        {
-            var canvas = Content as Canvas;
-            if (canvas != null)
-            {
-                _visibilityController = new VisibilityController(LayoutManager, canvas, () => Settings.IsMouseVisible);
-            }
-        }
         
                 
         private void SetBackgroundColor(Color color, bool transparent)
@@ -138,8 +130,8 @@ namespace KeyOverlayFPS
         
         private void UpdateMouseVisibility()
         {
-            // プロファイルレイアウトを再適用してマウス表示状態を反映
-            ApplyProfileLayout();
+            // マウス表示状態の変更をレイアウトに反映するため、現在のプロファイルでキャンバスを再構築
+            _profileSwitcher?.SwitchProfile(ProfileManager.CurrentProfile);
         }
         
         private void SetDisplayScale(double scale)
@@ -171,37 +163,6 @@ namespace KeyOverlayFPS
             _profileSwitcher?.SwitchProfile(profile);
         }
         
-        internal void ApplyProfileLayout()
-        {
-            var canvas = Content as Canvas;
-            if (canvas == null) return;
-            
-            switch (ProfileManager.CurrentProfile)
-            {
-                case KeyboardProfile.FullKeyboard65:
-                    ShowFullKeyboardLayout();
-                    break;
-                    
-                case KeyboardProfile.FPSKeyboard:
-                    ShowFPSKeyboardLayout();
-                    break;
-            }
-            
-            // YAMLファイルからウィンドウサイズを取得してサイズ調整
-            var (width, height) = LayoutManager.GetWindowSize(Settings.IsMouseVisible);
-            Width = width * Settings.DisplayScale;
-            Height = height * Settings.DisplayScale;
-        }
-        
-        private void ShowFullKeyboardLayout()
-        {
-            _visibilityController?.ShowFullKeyboardLayout();
-        }
-        
-        private void ShowFPSKeyboardLayout()
-        {
-            _visibilityController?.ShowFPSKeyboardLayout();
-        }
         
         
         internal void UpdateMousePositions()

@@ -14,6 +14,7 @@ namespace KeyOverlayFPS.MouseVisualization
     {
         private readonly UIElementLocator _elementLocator;
         private DispatcherTimer? _hideTimer;
+        private MouseTracker? _currentMouseTracker;
         private bool _disposed = false;
 
         public MouseDirectionVisualizer(UIElementLocator elementLocator)
@@ -28,7 +29,15 @@ namespace KeyOverlayFPS.MouseVisualization
         {
             if (mouseTracker == null) throw new ArgumentNullException(nameof(mouseTracker));
             
-            mouseTracker.MouseMoved += OnMouseMoved;
+            // 既存のイベントハンドラーを解除（重複登録防止）
+            if (_currentMouseTracker != null)
+            {
+                _currentMouseTracker.MouseMoved -= OnMouseMoved;
+            }
+            
+            // 新しいMouseTrackerを設定
+            _currentMouseTracker = mouseTracker;
+            _currentMouseTracker.MouseMoved += OnMouseMoved;
         }
 
         private void OnMouseMoved(object? sender, MouseMoveEventArgs e)
@@ -101,6 +110,14 @@ namespace KeyOverlayFPS.MouseVisualization
             {
                 if (disposing)
                 {
+                    // イベントハンドラーを解除
+                    if (_currentMouseTracker != null)
+                    {
+                        _currentMouseTracker.MouseMoved -= OnMouseMoved;
+                        _currentMouseTracker = null;
+                    }
+                    
+                    // タイマーを停止・解放
                     _hideTimer?.Stop();
                     _hideTimer = null;
                 }

@@ -22,13 +22,11 @@ namespace KeyOverlayFPS.Initialization.Steps
             
             // UI管理クラスを初期化
             window.InitializeUIManagers();
-            window.InitializeVisibilityController();
             
             // 保存されたプロファイル設定を復元
             RestoreProfileSettings(window);
             
             // 設定適用
-            window.ApplyProfileLayout();
             window.ApplyDisplayScale();
             window.UpdateMousePositions();
             window.UpdateAllTextForeground();
