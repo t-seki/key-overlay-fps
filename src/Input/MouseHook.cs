@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Input
 {
@@ -216,7 +217,7 @@ namespace KeyOverlayFPS.Input
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"MouseHook.HookCallback でエラーが発生: {ex.Message}");
+                Logger.Error("MouseHook.HookCallback でエラーが発生", ex);
             }
 
             // 次のフックプロシージャに処理を渡す

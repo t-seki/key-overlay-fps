@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Input
 {
@@ -68,7 +69,7 @@ namespace KeyOverlayFPS.Input
         {
             if (IsHookActive)
             {
-                Debug.WriteLine("フックは既にアクティブです");
+                Logger.Debug("フックは既にアクティブです");
                 return true;
             }
 
@@ -89,16 +90,16 @@ namespace KeyOverlayFPS.Input
 
                 if (_hookID == IntPtr.Zero)
                 {
-                    Debug.WriteLine("フックの設定に失敗しました");
+                    Logger.Error("フックの設定に失敗しました");
                     return false;
                 }
 
-                Debug.WriteLine("フックが正常に設定されました");
+                Logger.Info("フックが正常に設定されました");
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"フック設定でエラーが発生: {ex.Message}");
+                Logger.Error("フック設定でエラーが発生", ex);
                 return false;
             }
         }
@@ -118,16 +119,16 @@ namespace KeyOverlayFPS.Input
                 if (UnhookWindowsHookEx(_hookID))
                 {
                     _hookID = IntPtr.Zero;
-                    Debug.WriteLine("フックが正常に解除されました");
+                    Logger.Info("フックが正常に解除されました");
                 }
                 else
                 {
-                    Debug.WriteLine("フック解除に失敗しました");
+                    Logger.Error("フック解除に失敗しました");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"フック解除でエラーが発生: {ex.Message}");
+                Logger.Error("フック解除でエラーが発生", ex);
             }
         }
 
