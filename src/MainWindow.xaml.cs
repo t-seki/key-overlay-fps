@@ -33,6 +33,11 @@ namespace KeyOverlayFPS
         private WindowDragHandler? _dragHandler;
         private MouseElementManager? _mouseElementManager;
         private ProfileSwitcher? _profileSwitcher;
+        
+        // 設定ハンドラークラス
+        private ColorSettingsHandler? _colorHandler;
+        private ScaleSettingsHandler? _scaleHandler;
+        private WindowSettingsHandler? _windowHandler;
 
         // プロファイル管理
         public ProfileManager ProfileManager { get; }
@@ -62,6 +67,11 @@ namespace KeyOverlayFPS
             MouseTracker = new MouseTracker();
             var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
             Input = new MainWindowInput(this, Settings, MouseTracker, ElementLocator, LayoutManager, keyboardKeyBackgroundBrush);
+
+            // 設定ハンドラークラスを初期化
+            _colorHandler = new ColorSettingsHandler(Settings, this);
+            _scaleHandler = new ScaleSettingsHandler(Settings, LayoutManager, this);
+            _windowHandler = new WindowSettingsHandler(Settings, ProfileManager);
 
             try
             {
@@ -97,70 +107,51 @@ namespace KeyOverlayFPS
                 UpdateMousePositions,
                 () => Menu.UpdateMenuCheckedState()
             );
+            
+            // WindowHandlerにProfileSwitcherを設定
+            _windowHandler!.ProfileSwitcher = _profileSwitcher;
         }
         
         
                 
         private void SetBackgroundColor(Color color, bool transparent)
         {
-            Settings.SetBackgroundColor(color, transparent);
+            _colorHandler?.SetBackgroundColor(color, transparent);
         }
         
         private void SetForegroundColor(Color color)
         {
-            Settings.SetForegroundColor(color);
-            UpdateAllTextForeground();
+            _colorHandler?.SetForegroundColor(color);
         }
         
         private void SetHighlightColor(Color color)
         {
-            Settings.SetHighlightColor(color);
+            _colorHandler?.SetHighlightColor(color);
         }
         
         private void ToggleTopmost()
         {
-            Settings.ToggleTopmost();
+            _windowHandler?.ToggleTopmost();
         }
         
         private void ToggleMouseVisibility()
         {
-            Settings.ToggleMouseVisibility();
-            UpdateMouseVisibility();
-        }
-        
-        private void UpdateMouseVisibility()
-        {
-            // マウス表示状態の変更をレイアウトに反映するため、現在のプロファイルでキャンバスを再構築
-            _profileSwitcher?.SwitchProfile(ProfileManager.CurrentProfile);
+            _windowHandler?.ToggleMouseVisibility();
         }
         
         private void SetDisplayScale(double scale)
         {
-            Settings.SetDisplayScale(scale);
-            ApplyDisplayScale();
+            _scaleHandler?.SetDisplayScale(scale);
         }
         
         internal void ApplyDisplayScale()
         {
-            var canvas = Content as Canvas;
-            if (canvas != null)
-            {
-                // Canvas全体にスケール変換を適用
-                var transform = new ScaleTransform(Settings.DisplayScale, Settings.DisplayScale);
-                canvas.RenderTransform = transform;
-                
-                // YAMLファイルからウィンドウサイズを取得
-                var (baseWidth, baseHeight) = LayoutManager.GetWindowSize(Settings.IsMouseVisible);
-                
-                Width = baseWidth * Settings.DisplayScale;
-                Height = baseHeight * Settings.DisplayScale;
-            }
+            _scaleHandler?.ApplyDisplayScale();
         }
-        
         
         private void SwitchProfile(KeyboardProfile profile)
         {
-            _profileSwitcher?.SwitchProfile(profile);
+            _windowHandler?.SwitchProfile(profile);
         }
         
         
@@ -172,36 +163,7 @@ namespace KeyOverlayFPS
 
         internal void UpdateAllTextForeground()
         {
-            // Canvas内のすべてのTextBlockを探してフォアグラウンド色を更新
-            var canvas = Content as Canvas;
-            if (canvas != null)
-            {
-                foreach (var child in canvas.Children)
-                {
-                    if (child is Border border)
-                    {
-                        UpdateBorderTextForeground(border);
-                    }
-                }
-            }
-        }
-        
-        private void UpdateBorderTextForeground(Border border)
-        {
-            if (border.Child is TextBlock textBlock)
-            {
-                textBlock.Foreground = Settings.ForegroundBrush;
-            }
-            else if (border.Child is StackPanel stackPanel)
-            {
-                foreach (var child in stackPanel.Children)
-                {
-                    if (child is TextBlock tb)
-                    {
-                        tb.Foreground = Settings.ForegroundBrush;
-                    }
-                }
-            }
+            _colorHandler?.UpdateAllTextForeground();
         }
 
         internal void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

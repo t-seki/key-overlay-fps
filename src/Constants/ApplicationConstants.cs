@@ -105,6 +105,7 @@ namespace KeyOverlayFPS.Constants
             /// </summary>
             public static readonly Color MouseBodyBorderColor = Color.FromRgb(0xCC, 0xCC, 0xCC);
             public static readonly Color MouseButtonBorderColor = Color.FromRgb(0x88, 0x88, 0x88);
+            public static readonly Color MouseButtonTextColor = Color.FromRgb(0xEE, 0xEE, 0xEE);
         }
         
         
@@ -180,6 +181,81 @@ namespace KeyOverlayFPS.Constants
             /// ウィンドウのデフォルト Y 座標
             /// </summary>
             public const double DefaultWindowTop = 100;
+            
+            /// <summary>
+            /// マウス本体のボーダー太さ
+            /// </summary>
+            public const double MouseBodyBorderThickness = 2.0;
+            
+            /// <summary>
+            /// マウスボタンのボーダー太さ
+            /// </summary>
+            public const double MouseButtonBorderThickness = 1.0;
+            
+            /// <summary>
+            /// マウス本体の影のぼかし半径
+            /// </summary>
+            public const double MouseBodyShadowBlur = 3.0;
+            
+            /// <summary>
+            /// マウス本体の影の深さ
+            /// </summary>
+            public const double MouseBodyShadowDepth = 2.0;
+            
+            /// <summary>
+            /// マウス本体の影の不透明度
+            /// </summary>
+            public const double MouseBodyShadowOpacity = 0.5;
+            
+            /// <summary>
+            /// マウスボタンの影のぼかし半径
+            /// </summary>
+            public const double MouseButtonShadowBlur = 2.0;
+            
+            /// <summary>
+            /// マウスボタンの影の深さ
+            /// </summary>
+            public const double MouseButtonShadowDepth = 1.0;
+            
+            /// <summary>
+            /// マウスボタンの影の不透明度
+            /// </summary>
+            public const double MouseButtonShadowOpacity = 0.3;
+            
+            /// <summary>
+            /// マウス左ボタンの角丸半径
+            /// </summary>
+            public const double MouseLeftButtonRadius = 12.0;
+            
+            /// <summary>
+            /// マウス右ボタンの角丸半径
+            /// </summary>
+            public const double MouseRightButtonRadius = 12.0;
+            
+            /// <summary>
+            /// マウス一般ボタンの角丸半径
+            /// </summary>
+            public const double MouseButtonRadius = 5.0;
+            
+            /// <summary>
+            /// マウスホイールボタンの角丸半径
+            /// </summary>
+            public const double MouseWheelButtonRadius = 5.0;
+            
+            /// <summary>
+            /// マウスサイドボタンの角丸半径
+            /// </summary>
+            public const double MouseSideButtonRadius = 2.0;
+            
+            /// <summary>
+            /// スクロールインジケーターのフォントサイズ
+            /// </summary>
+            public const double ScrollIndicatorFontSize = 8.0;
+            
+            /// <summary>
+            /// マウスボタンテキストのフォントサイズ
+            /// </summary>
+            public const double MouseButtonTextFontSize = 11.0;
         }
         
         /// <summary>
@@ -216,6 +292,16 @@ namespace KeyOverlayFPS.Constants
             /// 方向表示キャンバスのサイズ
             /// </summary>
             public static double CanvasSize => CircleRadius * 2;
+            
+            /// <summary>
+            /// 方向表示キャンバスのX軸オフセット
+            /// </summary>
+            public const double DirectionCanvasOffsetX = 15.0;
+            
+            /// <summary>
+            /// 方向表示キャンバスのY軸オフセット
+            /// </summary>
+            public const double DirectionCanvasOffsetY = 50.0;
         }
     }
 }
