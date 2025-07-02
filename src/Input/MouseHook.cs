@@ -9,22 +9,9 @@ namespace KeyOverlayFPS.Input
     /// マウス入力のグローバル検知を担当するクラス
     /// Win32 低レベルマウスフックを使用してフォーカスに依存しないマウス入力を検知
     /// </summary>
-    public class MouseHook : IDisposable
+    public class MouseHook : BaseHook
     {
-        #region Win32 API定義
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
+        #region デリゲート定義
 
         private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -42,7 +29,6 @@ namespace KeyOverlayFPS.Input
         private const int WM_MOUSEWHEEL = 0x020A;
         private const int WM_XBUTTONDOWN = 0x020B;
         private const int WM_XBUTTONUP = 0x020C;
-        private const int HC_ACTION = 0;
 
         #endregion
 
@@ -70,8 +56,6 @@ namespace KeyOverlayFPS.Input
         #region フィールド
 
         private readonly LowLevelMouseProc _proc;
-        private IntPtr _hookID = IntPtr.Zero;
-        private bool _disposed = false;
         
         // マウスボタン状態管理
         private readonly ConcurrentDictionary<int, bool> _buttonStates;
@@ -108,72 +92,38 @@ namespace KeyOverlayFPS.Input
             _buttonStates = new ConcurrentDictionary<int, bool>();
         }
 
+        #endregion
+
+        #region BaseHook実装
+
         /// <summary>
-        /// デストラクタ
+        /// マウスフック固有のID取得
         /// </summary>
-        ~MouseHook()
+        protected override int GetHookType()
         {
-            Dispose(false);
+            return WH_MOUSE_LL;
+        }
+
+        /// <summary>
+        /// マウスフック固有のデリゲート取得
+        /// </summary>
+        protected override Delegate GetHookDelegate()
+        {
+            return _proc;
+        }
+
+        /// <summary>
+        /// フック停止時の追加処理
+        /// </summary>
+        public override void StopHook()
+        {
+            base.StopHook();
+            _buttonStates.Clear();
         }
 
         #endregion
 
-        #region パブリックメソッド
-
-        /// <summary>
-        /// マウスフックを開始
-        /// </summary>
-        /// <returns>フック設定に成功した場合true</returns>
-        public bool StartHook()
-        {
-            if (_hookID != IntPtr.Zero)
-            {
-                return true; // 既に開始済み
-            }
-
-            try
-            {
-                using (var curProcess = Process.GetCurrentProcess())
-                using (var curModule = curProcess.MainModule)
-                {
-                    if (curModule?.ModuleName != null)
-                    {
-                        _hookID = SetWindowsHookEx(
-                            WH_MOUSE_LL,
-                            _proc,
-                            GetModuleHandle(curModule.ModuleName),
-                            0
-                        );
-                    }
-                }
-
-                return _hookID != IntPtr.Zero;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"MouseHook.StartHook でエラーが発生: {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// マウスフックを停止
-        /// </summary>
-        public void StopHook()
-        {
-            if (_hookID != IntPtr.Zero)
-            {
-                UnhookWindowsHookEx(_hookID);
-                _hookID = IntPtr.Zero;
-            }
-            _buttonStates.Clear();
-        }
-
-        /// <summary>
-        /// フックが有効かどうかを取得
-        /// </summary>
-        public bool IsHookActive => _hookID != IntPtr.Zero;
-        
+        #region ユーティリティメソッド
         /// <summary>
         /// 指定されたマウスボタンが現在押されているかを判定
         /// </summary>
@@ -203,7 +153,7 @@ namespace KeyOverlayFPS.Input
         {
             try
             {
-                if (nCode >= HC_ACTION)
+                if (nCode >= BaseHook.HC_ACTION)
                 {
                     var hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
                     var message = wParam.ToInt32();
@@ -275,30 +225,6 @@ namespace KeyOverlayFPS.Input
 
         #endregion
 
-        #region IDisposable実装
-
-        /// <summary>
-        /// リソースを解放
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// リソースを解放
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                StopHook();
-                _disposed = true;
-            }
-        }
-
-        #endregion
     }
 
     /// <summary>
