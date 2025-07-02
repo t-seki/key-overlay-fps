@@ -4,18 +4,18 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.Constants;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.MouseVisualization
 {
     /// <summary>
     /// マウス移動方向の可視化を担当するクラス
     /// </summary>
-    public class MouseDirectionVisualizer : IDisposable
+    public class MouseDirectionVisualizer : DisposableBase
     {
         private readonly UIElementLocator _elementLocator;
         private DispatcherTimer? _hideTimer;
         private MouseTracker? _currentMouseTracker;
-        private bool _disposed = false;
 
         public MouseDirectionVisualizer(UIElementLocator elementLocator)
         {
@@ -96,33 +96,20 @@ namespace KeyOverlayFPS.MouseVisualization
         }
 
         /// <summary>
-        /// リソースを解放
+        /// マネージリソースの解放
         /// </summary>
-        public void Dispose()
+        protected override void DisposeManagedResources()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
+            // イベントハンドラーを解除
+            if (_currentMouseTracker != null)
             {
-                if (disposing)
-                {
-                    // イベントハンドラーを解除
-                    if (_currentMouseTracker != null)
-                    {
-                        _currentMouseTracker.MouseMoved -= OnMouseMoved;
-                        _currentMouseTracker = null;
-                    }
-                    
-                    // タイマーを停止・解放
-                    _hideTimer?.Stop();
-                    _hideTimer = null;
-                }
-                _disposed = true;
+                _currentMouseTracker.MouseMoved -= OnMouseMoved;
+                _currentMouseTracker = null;
             }
+            
+            // タイマーを停止・解放
+            _hideTimer?.Stop();
+            _hideTimer = null;
         }
     }
 }

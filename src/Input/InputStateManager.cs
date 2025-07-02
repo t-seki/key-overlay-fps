@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Input
 {
@@ -8,14 +9,13 @@ namespace KeyOverlayFPS.Input
     /// 入力状態管理クラス
     /// キーボードとマウスの両方の入力状態を統一的に管理する
     /// </summary>
-    public class InputStateManager : IDisposable
+    public class InputStateManager : DisposableBase
     {
         #region フィールド
 
         private readonly KeyboardHook _keyboardHook;
         private readonly MouseHook _mouseHook;
         private readonly ConcurrentDictionary<int, bool> _keyStates;
-        private bool _disposed = false;
         private bool _isEnabled = false;
 
         #endregion
@@ -259,39 +259,23 @@ namespace KeyOverlayFPS.Input
 
         #endregion
 
-        #region IDisposable実装
+        #region DisposableBase実装
 
         /// <summary>
-        /// リソースを解放
+        /// マネージリソースの解放
         /// </summary>
-        public void Dispose()
+        protected override void DisposeManagedResources()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// リソースを解放
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    Stop();
-                    
-                    // イベントの購読解除
-                    _keyboardHook.KeyPressed -= OnKeyPressed;
-                    _keyboardHook.KeyReleased -= OnKeyReleased;
-                    _mouseHook.MouseButtonPressed -= OnMouseButtonPressed;
-                    _mouseHook.MouseButtonReleased -= OnMouseButtonReleased;
-                    
-                    _keyboardHook?.Dispose();
-                    _mouseHook?.Dispose();
-                }
-                _disposed = true;
-            }
+            Stop();
+            
+            // イベントの購読解除
+            _keyboardHook.KeyPressed -= OnKeyPressed;
+            _keyboardHook.KeyReleased -= OnKeyReleased;
+            _mouseHook.MouseButtonPressed -= OnMouseButtonPressed;
+            _mouseHook.MouseButtonReleased -= OnMouseButtonReleased;
+            
+            _keyboardHook?.Dispose();
+            _mouseHook?.Dispose();
         }
 
         #endregion

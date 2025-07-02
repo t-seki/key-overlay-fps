@@ -7,13 +7,14 @@ using KeyOverlayFPS.Input;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.Layout;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.UI
 {
     /// <summary>
     /// MainWindowの入力処理責務を担当するクラス
     /// </summary>
-    public class MainWindowInput : IDisposable
+    public class MainWindowInput : DisposableBase
     {
         private readonly Window _window;
         private readonly MainWindowSettings _settings;
@@ -40,7 +41,6 @@ namespace KeyOverlayFPS.UI
         private volatile bool _wheelDownDetected = false;
         
         // リソース管理
-        private bool _disposed = false;
         
 
         /// <summary>
@@ -304,33 +304,16 @@ namespace KeyOverlayFPS.UI
             return _elementLocator?.FindElement<T>(name);
         }
 
-        #region IDisposable実装
+        #region DisposableBase実装
 
         /// <summary>
-        /// リソースを解放
+        /// マネージリソースの解放
         /// </summary>
-        public void Dispose()
+        protected override void DisposeManagedResources()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// リソースを解放
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    // マネージリソースの解放
-                    Stop(); // タイマーとフックを停止
-                    _inputStateManager?.Dispose();
-                    _mouseWheelHook?.Dispose();
-                }
-                _disposed = true;
-            }
+            Stop(); // タイマーとフックを停止
+            _inputStateManager?.Dispose();
+            _mouseWheelHook?.Dispose();
         }
 
         #endregion
