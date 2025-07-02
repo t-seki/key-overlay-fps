@@ -34,10 +34,6 @@ namespace KeyOverlayFPS
         private MouseElementManager? _mouseElementManager;
         private ProfileSwitcher? _profileSwitcher;
         
-        // 設定ハンドラークラス
-        private ColorSettingsHandler? _colorHandler;
-        private ScaleSettingsHandler? _scaleHandler;
-        private WindowSettingsHandler? _windowHandler;
 
         // プロファイル管理
         public ProfileManager ProfileManager { get; }
@@ -62,16 +58,11 @@ namespace KeyOverlayFPS
             MouseVisualizer = new MouseDirectionVisualizer(ElementLocator);
             _settingsManager = new SettingsManager();
             ProfileManager = new ProfileManager(_settingsManager);
-            Settings = new MainWindowSettings(this, _settingsManager);
+            Settings = new MainWindowSettings(this, _settingsManager, LayoutManager, ProfileManager);
             Menu = new MainWindowMenu(this, Settings, ProfileManager);
             MouseTracker = new MouseTracker();
             var keyboardKeyBackgroundBrush = BrushFactory.CreateKeyboardKeyBackground();
             Input = new MainWindowInput(this, Settings, MouseTracker, ElementLocator, LayoutManager, keyboardKeyBackgroundBrush);
-
-            // 設定ハンドラークラスを初期化
-            _colorHandler = new ColorSettingsHandler(Settings, this);
-            _scaleHandler = new ScaleSettingsHandler(Settings, LayoutManager, this);
-            _windowHandler = new WindowSettingsHandler(Settings, ProfileManager);
 
             try
             {
@@ -108,50 +99,50 @@ namespace KeyOverlayFPS
                 () => Menu.UpdateMenuCheckedState()
             );
             
-            // WindowHandlerにProfileSwitcherを設定
-            _windowHandler!.ProfileSwitcher = _profileSwitcher;
+            // SettingsにProfileSwitcherを設定
+            Settings.ProfileSwitcher = _profileSwitcher;
         }
         
         
                 
         private void SetBackgroundColor(Color color, bool transparent)
         {
-            _colorHandler?.SetBackgroundColor(color, transparent);
+            Settings.SetBackgroundColor(color, transparent);
         }
         
         private void SetForegroundColor(Color color)
         {
-            _colorHandler?.SetForegroundColor(color);
+            Settings.SetForegroundColor(color);
         }
         
         private void SetHighlightColor(Color color)
         {
-            _colorHandler?.SetHighlightColor(color);
+            Settings.SetHighlightColor(color);
         }
         
         private void ToggleTopmost()
         {
-            _windowHandler?.ToggleTopmost();
+            Settings.ToggleTopmost();
         }
         
         private void ToggleMouseVisibility()
         {
-            _windowHandler?.ToggleMouseVisibility();
+            Settings.ToggleMouseVisibility();
         }
         
         private void SetDisplayScale(double scale)
         {
-            _scaleHandler?.SetDisplayScale(scale);
+            Settings.SetDisplayScale(scale);
         }
         
         internal void ApplyDisplayScale()
         {
-            _scaleHandler?.ApplyDisplayScale();
+            Settings.ApplyDisplayScale();
         }
         
         private void SwitchProfile(KeyboardProfile profile)
         {
-            _windowHandler?.SwitchProfile(profile);
+            Settings.SwitchProfile(profile);
         }
         
         
@@ -163,7 +154,7 @@ namespace KeyOverlayFPS
 
         internal void UpdateAllTextForeground()
         {
-            _colorHandler?.UpdateAllTextForeground();
+            Settings.UpdateAllTextForeground();
         }
 
         internal void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

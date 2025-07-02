@@ -1,8 +1,10 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.UI;
+using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.Utils;
 
@@ -15,6 +17,8 @@ namespace KeyOverlayFPS.UI
     {
         private readonly Window _window;
         private readonly SettingsManager _settingsManager;
+        private readonly LayoutManager _layoutManager;
+        private readonly ProfileManager _profileManager;
 
         /// <summary>
         /// 前景ブラシ
@@ -37,6 +41,11 @@ namespace KeyOverlayFPS.UI
         public bool IsMouseVisible => _settingsManager.Current.IsMouseVisible;
 
         /// <summary>
+        /// ProfileSwitcherを設定（後から注入）
+        /// </summary>
+        public ProfileSwitcher? ProfileSwitcher { get; set; }
+
+        /// <summary>
         /// 設定変更時のイベント
         /// </summary>
         public event EventHandler? SettingsChanged
@@ -45,10 +54,12 @@ namespace KeyOverlayFPS.UI
             remove => _settingsManager.SettingsChanged -= value;
         }
 
-        public MainWindowSettings(Window window, SettingsManager settingsManager)
+        public MainWindowSettings(Window window, SettingsManager settingsManager, LayoutManager layoutManager, ProfileManager profileManager)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
             _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            _layoutManager = layoutManager ?? throw new ArgumentNullException(nameof(layoutManager));
+            _profileManager = profileManager ?? throw new ArgumentNullException(nameof(profileManager));
         }
 
         /// <summary>
@@ -111,6 +122,7 @@ namespace KeyOverlayFPS.UI
         public void SetForegroundColor(Color color)
         {
             _settingsManager.SetForegroundColor(color);
+            UpdateAllTextForeground();
         }
 
         /// <summary>
@@ -136,6 +148,7 @@ namespace KeyOverlayFPS.UI
         public void ToggleMouseVisibility()
         {
             _settingsManager.ToggleMouseVisibility();
+            UpdateMouseVisibility();
         }
 
         /// <summary>
@@ -144,6 +157,7 @@ namespace KeyOverlayFPS.UI
         public void SetDisplayScale(double scale)
         {
             _settingsManager.SetDisplayScale(scale);
+            ApplyDisplayScale();
         }
 
         /// <summary>
@@ -170,6 +184,82 @@ namespace KeyOverlayFPS.UI
                 var backgroundBrush = BrushFactory.CreateBrushFromString(settings.BackgroundColor, Brushes.White);
                 _window.Background = backgroundBrush;
             }
+        }
+
+        /// <summary>
+        /// 全てのテキスト要素の前景色を更新（設定変更なし）
+        /// </summary>
+        public void UpdateAllTextForeground()
+        {
+            var canvas = _window.Content as Canvas;
+            if (canvas != null)
+            {
+                foreach (var child in canvas.Children)
+                {
+                    if (child is Border border)
+                    {
+                        UpdateBorderTextForeground(border);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Border内のテキスト要素の前景色を更新
+        /// </summary>
+        private void UpdateBorderTextForeground(Border border)
+        {
+            if (border.Child is TextBlock textBlock)
+            {
+                textBlock.Foreground = ForegroundBrush;
+            }
+            else if (border.Child is StackPanel stackPanel)
+            {
+                foreach (var child in stackPanel.Children)
+                {
+                    if (child is TextBlock tb)
+                    {
+                        tb.Foreground = ForegroundBrush;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 表示スケールを適用
+        /// </summary>
+        public void ApplyDisplayScale()
+        {
+            var canvas = _window.Content as Canvas;
+            if (canvas != null)
+            {
+                // Canvas全体にスケール変換を適用
+                var transform = new ScaleTransform(DisplayScale, DisplayScale);
+                canvas.RenderTransform = transform;
+                
+                // YAMLファイルからウィンドウサイズを取得
+                var (baseWidth, baseHeight) = _layoutManager.GetWindowSize(IsMouseVisible);
+                
+                _window.Width = baseWidth * DisplayScale;
+                _window.Height = baseHeight * DisplayScale;
+            }
+        }
+
+        /// <summary>
+        /// マウス表示状態の変更を反映
+        /// </summary>
+        private void UpdateMouseVisibility()
+        {
+            // マウス表示状態の変更をレイアウトに反映するため、現在のプロファイルでキャンバスを再構築
+            ProfileSwitcher?.SwitchProfile(_profileManager.CurrentProfile);
+        }
+
+        /// <summary>
+        /// プロファイルを切り替え
+        /// </summary>
+        public void SwitchProfile(KeyboardProfile profile)
+        {
+            ProfileSwitcher?.SwitchProfile(profile);
         }
     }
 }
