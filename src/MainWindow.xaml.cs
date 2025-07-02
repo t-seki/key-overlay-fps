@@ -105,44 +105,9 @@ namespace KeyOverlayFPS
         
         
                 
-        private void SetBackgroundColor(Color color, bool transparent)
-        {
-            Settings.SetBackgroundColor(color, transparent);
-        }
-        
-        private void SetForegroundColor(Color color)
-        {
-            Settings.SetForegroundColor(color);
-        }
-        
-        private void SetHighlightColor(Color color)
-        {
-            Settings.SetHighlightColor(color);
-        }
-        
-        private void ToggleTopmost()
-        {
-            Settings.ToggleTopmost();
-        }
-        
-        private void ToggleMouseVisibility()
-        {
-            Settings.ToggleMouseVisibility();
-        }
-        
-        private void SetDisplayScale(double scale)
-        {
-            Settings.SetDisplayScale(scale);
-        }
-        
         internal void ApplyDisplayScale()
         {
             Settings.ApplyDisplayScale();
-        }
-        
-        private void SwitchProfile(KeyboardProfile profile)
-        {
-            Settings.SwitchProfile(profile);
         }
         
         
@@ -192,13 +157,13 @@ namespace KeyOverlayFPS
         /// </summary>
         internal void InitializeMenuActions(MainWindowMenu menu)
         {
-            menu.SetBackgroundColorAction = SetBackgroundColor;
-            menu.SetForegroundColorAction = SetForegroundColor;
-            menu.SetHighlightColorAction = SetHighlightColor;
-            menu.ToggleTopmostAction = ToggleTopmost;
-            menu.ToggleMouseVisibilityAction = ToggleMouseVisibility;
-            menu.SetDisplayScaleAction = SetDisplayScale;
-            menu.SwitchProfileAction = SwitchProfile;
+            menu.SetBackgroundColorAction = Settings.SetBackgroundColor;
+            menu.SetForegroundColorAction = Settings.SetForegroundColor;
+            menu.SetHighlightColorAction = Settings.SetHighlightColor;
+            menu.ToggleTopmostAction = Settings.ToggleTopmost;
+            menu.ToggleMouseVisibilityAction = Settings.ToggleMouseVisibility;
+            menu.SetDisplayScaleAction = Settings.SetDisplayScale;
+            menu.SwitchProfileAction = Settings.SwitchProfile;
         }
         
         

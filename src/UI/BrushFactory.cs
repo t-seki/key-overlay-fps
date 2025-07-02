@@ -11,10 +11,10 @@ namespace KeyOverlayFPS.UI
     public static class BrushFactory
     {
         /// <summary>
-        /// キーボードキー用の背景グラデーションブラシを作成
+        /// 標準背景グラデーションブラシを作成（キーボードキー・マウス本体共用）
         /// </summary>
-        /// <returns>キーボードキー用LinearGradientBrush</returns>
-        public static LinearGradientBrush CreateKeyboardKeyBackground()
+        /// <returns>標準背景用LinearGradientBrush</returns>
+        public static LinearGradientBrush CreateStandardBackground()
         {
             return new LinearGradientBrush(
                 new GradientStopCollection
@@ -28,20 +28,21 @@ namespace KeyOverlayFPS.UI
         }
         
         /// <summary>
+        /// キーボードキー用の背景グラデーションブラシを作成
+        /// </summary>
+        /// <returns>キーボードキー用LinearGradientBrush</returns>
+        public static LinearGradientBrush CreateKeyboardKeyBackground()
+        {
+            return CreateStandardBackground();
+        }
+        
+        /// <summary>
         /// マウス本体用の背景グラデーションブラシを作成
         /// </summary>
         /// <returns>マウス本体用LinearGradientBrush</returns>
         public static LinearGradientBrush CreateMouseBodyBackground()
         {
-            return new LinearGradientBrush(
-                new GradientStopCollection
-                {
-                    new GradientStop(ApplicationConstants.Colors.KeyBackground1, 0),
-                    new GradientStop(ApplicationConstants.Colors.KeyBackground2, 1)
-                },
-                new Point(0, 0),
-                new Point(1, 1)
-            );
+            return CreateStandardBackground();
         }
         
         /// <summary>
