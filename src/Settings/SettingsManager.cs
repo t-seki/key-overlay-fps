@@ -107,6 +107,17 @@ namespace KeyOverlayFPS.Settings
         }
 
         /// <summary>
+        /// 設定を更新して保存・通知する共通メソッド
+        /// </summary>
+        /// <param name="updateAction">設定を更新する処理</param>
+        private void UpdateSettingsAndNotify(Action updateAction)
+        {
+            updateAction();
+            Save();
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
         /// 65%キーボードYAMLから初期設定を作成
         /// </summary>
         private AppSettings CreateSettingsFromLayout()
@@ -140,10 +151,11 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void UpdateWindowPosition(double left, double top)
         {
-            _settings.WindowLeft = left;
-            _settings.WindowTop = top;
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() =>
+            {
+                _settings.WindowLeft = left;
+                _settings.WindowTop = top;
+            });
         }
 
         /// <summary>
@@ -151,9 +163,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void ToggleTopmost()
         {
-            _settings.IsTopmost = !_settings.IsTopmost;
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() => _settings.IsTopmost = !_settings.IsTopmost);
         }
 
         /// <summary>
@@ -161,9 +171,8 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void SetBackgroundColor(Color color, bool transparent)
         {
-            _settings.BackgroundColor = transparent ? "Transparent" : GetColorNameFromColor(color);
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() => 
+                _settings.BackgroundColor = transparent ? "Transparent" : GetColorNameFromColor(color));
         }
 
         /// <summary>
@@ -171,9 +180,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void SetForegroundColor(Color color)
         {
-            _settings.ForegroundColor = GetColorNameFromColor(color);
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() => _settings.ForegroundColor = GetColorNameFromColor(color));
         }
 
         /// <summary>
@@ -181,9 +188,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void SetHighlightColor(Color color)
         {
-            _settings.HighlightColor = GetColorNameFromColor(color);
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() => _settings.HighlightColor = GetColorNameFromColor(color));
         }
 
         /// <summary>
@@ -191,9 +196,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void SetDisplayScale(double scale)
         {
-            _settings.DisplayScale = scale;
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() => _settings.DisplayScale = scale);
         }
 
         /// <summary>
@@ -201,9 +204,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void ToggleMouseVisibility()
         {
-            _settings.IsMouseVisible = !_settings.IsMouseVisible;
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() => _settings.IsMouseVisible = !_settings.IsMouseVisible);
         }
 
         /// <summary>
@@ -211,9 +212,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void SetCurrentProfile(string profile)
         {
-            _settings.CurrentProfile = profile;
-            Save();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            UpdateSettingsAndNotify(() => _settings.CurrentProfile = profile);
         }
 
 
