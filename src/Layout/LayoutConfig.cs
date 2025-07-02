@@ -111,11 +111,6 @@ namespace KeyOverlayFPS.Layout
         public Dictionary<string, ButtonConfig> Buttons { get; set; } = new();
 
         /// <summary>
-        /// 移動可視化設定
-        /// </summary>
-        public MouseMovementConfig Movement { get; set; } = new();
-
-        /// <summary>
         /// マウス本体設定
         /// </summary>
         public MouseElementConfig Body { get; set; } = new();
@@ -123,13 +118,13 @@ namespace KeyOverlayFPS.Layout
         /// <summary>
         /// 方向表示キャンバス設定
         /// </summary>
-        public MouseElementConfig DirectionCanvas { get; set; } = new();
+        public MouseDirectionCanvasConfig DirectionCanvas { get; set; } = new();
     }
 
     /// <summary>
-    /// マウス移動可視化設定
+    /// 方向可視化設定
     /// </summary>
-    public class MouseMovementConfig
+    public class DirectionVisualizationConfig
     {
         /// <summary>
         /// 円のサイズ
@@ -176,6 +171,17 @@ namespace KeyOverlayFPS.Layout
         /// 表示可否
         /// </summary>
         public bool IsVisible { get; set; } = true;
+    }
+
+    /// <summary>
+    /// マウス方向表示キャンバス設定
+    /// </summary>
+    public class MouseDirectionCanvasConfig : MouseElementConfig
+    {
+        /// <summary>
+        /// 方向可視化設定
+        /// </summary>
+        public DirectionVisualizationConfig Visualization { get; set; } = new();
     }
 
     /// <summary>
@@ -295,32 +301,6 @@ namespace KeyOverlayFPS.Layout
         /// 前景色（文字色）
         /// </summary>
         public string ForegroundColor { get; set; } = "#FFFFFF";
-
-        /// <summary>
-        /// マウス円のサイズ
-        /// </summary>
-        public double MouseCircleSize { get; set; } = 20;
-
-        /// <summary>
-        /// マウス円の色
-        /// </summary>
-        public string MouseCircleColor { get; set; } = "#FFFFFF";
-
-        /// <summary>
-        /// マウス移動ハイライト色
-        /// </summary>
-        public string MouseMoveHighlightColor { get; set; } = "#FF0000";
-
-        /// <summary>
-        /// マウス移動ハイライト継続時間（秒）
-        /// </summary>
-        public double MouseMoveHighlightDuration { get; set; } = 0.1;
-
-        /// <summary>
-        /// マウス移動感度（ピクセル）
-        /// </summary>
-        public double MouseMoveThreshold { get; set; } = 5.0;
-
 
         /// <summary>
         /// Shift表示変更機能の有効/無効

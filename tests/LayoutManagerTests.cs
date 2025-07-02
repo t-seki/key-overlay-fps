@@ -204,12 +204,7 @@ keys:
                     KeySize = new SizeConfig { Width = 28, Height = 28 },
                     BackgroundColor = "#FF0000",
                     HighlightColor = "#00FF00",
-                    ForegroundColor = "#0000FF",
-                    MouseCircleSize = 25,
-                    MouseCircleColor = "#FFFF00",
-                    MouseMoveHighlightColor = "#FF00FF",
-                    MouseMoveHighlightDuration = 0.2,
-                    MouseMoveThreshold = 3.0,
+                    ForegroundColor = "#0000FF"
                 },
                 Keys = new Dictionary<string, KeyDefinition>
                 {
@@ -240,13 +235,19 @@ keys:
                 Mouse = new MouseSettings
                 {
                     Position = new PositionConfig { X = 290, Y = 20 },
-                    Movement = new MouseMovementConfig
+                    DirectionCanvas = new MouseDirectionCanvasConfig
                     {
-                        CircleSize = 25,
-                        CircleColor = "#FFFF00",
-                        HighlightColor = "#FF00FF",
-                        HighlightDuration = 200,
-                        Threshold = 3.0
+                        Offset = new PositionConfig { X = 15, Y = 50 },
+                        Size = new SizeConfig { Width = 30, Height = 30 },
+                        IsVisible = true,
+                        Visualization = new DirectionVisualizationConfig
+                        {
+                            CircleSize = 25,
+                            CircleColor = "#FFFF00",
+                            HighlightColor = "#FF00FF",
+                            HighlightDuration = 200,
+                            Threshold = 3.0
+                        }
                     }
                 }
             };
@@ -262,11 +263,6 @@ keys:
             Assert.AreEqual(expected.Global.BackgroundColor, actual.Global.BackgroundColor);
             Assert.AreEqual(expected.Global.HighlightColor, actual.Global.HighlightColor);
             Assert.AreEqual(expected.Global.ForegroundColor, actual.Global.ForegroundColor);
-            Assert.AreEqual(expected.Global.MouseCircleSize, actual.Global.MouseCircleSize);
-            Assert.AreEqual(expected.Global.MouseCircleColor, actual.Global.MouseCircleColor);
-            Assert.AreEqual(expected.Global.MouseMoveHighlightColor, actual.Global.MouseMoveHighlightColor);
-            Assert.AreEqual(expected.Global.MouseMoveHighlightDuration, actual.Global.MouseMoveHighlightDuration, 0.001);
-            Assert.AreEqual(expected.Global.MouseMoveThreshold, actual.Global.MouseMoveThreshold, 0.001);
 
             // Keys
             Assert.AreEqual(expected.Keys.Count, actual.Keys.Count);
@@ -300,13 +296,22 @@ keys:
             Assert.AreEqual(expected.Mouse.Position.Y, actual.Mouse.Position.Y);
             // IsVisibleプロパティは削除済み - マウス要素の存在自体が表示を意味する
             
-            if (expected.Mouse.Movement != null && actual.Mouse.Movement != null)
+            if (expected.Mouse.DirectionCanvas != null && actual.Mouse.DirectionCanvas != null)
             {
-                Assert.AreEqual(expected.Mouse.Movement.CircleSize, actual.Mouse.Movement.CircleSize);
-                Assert.AreEqual(expected.Mouse.Movement.CircleColor, actual.Mouse.Movement.CircleColor);
-                Assert.AreEqual(expected.Mouse.Movement.HighlightColor, actual.Mouse.Movement.HighlightColor);
-                Assert.AreEqual(expected.Mouse.Movement.HighlightDuration, actual.Mouse.Movement.HighlightDuration);
-                Assert.AreEqual(expected.Mouse.Movement.Threshold, actual.Mouse.Movement.Threshold);
+                Assert.AreEqual(expected.Mouse.DirectionCanvas.Offset.X, actual.Mouse.DirectionCanvas.Offset.X);
+                Assert.AreEqual(expected.Mouse.DirectionCanvas.Offset.Y, actual.Mouse.DirectionCanvas.Offset.Y);
+                Assert.AreEqual(expected.Mouse.DirectionCanvas.Size.Width, actual.Mouse.DirectionCanvas.Size.Width);
+                Assert.AreEqual(expected.Mouse.DirectionCanvas.Size.Height, actual.Mouse.DirectionCanvas.Size.Height);
+                Assert.AreEqual(expected.Mouse.DirectionCanvas.IsVisible, actual.Mouse.DirectionCanvas.IsVisible);
+                
+                if (expected.Mouse.DirectionCanvas.Visualization != null && actual.Mouse.DirectionCanvas.Visualization != null)
+                {
+                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.CircleSize, actual.Mouse.DirectionCanvas.Visualization.CircleSize);
+                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.CircleColor, actual.Mouse.DirectionCanvas.Visualization.CircleColor);
+                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.HighlightColor, actual.Mouse.DirectionCanvas.Visualization.HighlightColor);
+                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.HighlightDuration, actual.Mouse.DirectionCanvas.Visualization.HighlightDuration);
+                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.Threshold, actual.Mouse.DirectionCanvas.Visualization.Threshold);
+                }
             }
         }
     }

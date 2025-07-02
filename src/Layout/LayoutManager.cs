@@ -215,12 +215,12 @@ namespace KeyOverlayFPS.Layout
             // マウス設定の検証
             if (layout.Mouse != null)
             {
-                if (layout.Mouse.Movement != null)
+                if (layout.Mouse.DirectionCanvas?.Visualization != null)
                 {
-                    if (layout.Mouse.Movement.Threshold < 0)
+                    if (layout.Mouse.DirectionCanvas.Visualization.Threshold < 0)
                         throw new InvalidOperationException("マウス移動感度は0以上である必要があります");
 
-                    if (layout.Mouse.Movement.HighlightDuration < 0)
+                    if (layout.Mouse.DirectionCanvas.Visualization.HighlightDuration < 0)
                         throw new InvalidOperationException("ハイライト継続時間は0以上である必要があります");
                 }
             }

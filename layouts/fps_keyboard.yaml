@@ -14,11 +14,6 @@ global:
   backgroundColor: "#2A2A2A"
   highlightColor: "#00FF00"
   foregroundColor: "#FFFFFF"
-  mouseCircleSize: 20
-  mouseCircleColor: "#FFFFFF"
-  mouseMoveHighlightColor: "#FF0000"
-  mouseMoveHighlightDuration: 0.1
-  mouseMoveThreshold: 5.0
   shiftDisplayEnabled: false
 
 window:
@@ -378,12 +373,6 @@ keys:
 
 mouse:
   position: { x: 290, y: 20 }  # FPS用に左に配置
-  movement:
-    circleSize: 15
-    circleColor: "#FFFFFF"
-    highlightColor: "#00FF00"
-    highlightDuration: 100
-    threshold: 5.0
   buttons:
     MouseLeft:
       offset: { x: 3, y: 3 }
@@ -426,3 +415,9 @@ mouse:
     offset: { x: 15, y: 50 }
     size: { width: 30, height: 30 }
     isVisible: true
+    visualization:
+      circleSize: 15
+      circleColor: "#FFFFFF"
+      highlightColor: "#00FF00"
+      highlightDuration: 100
+      threshold: 5.0
