@@ -37,18 +37,12 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         private static Border CreateKeyBorder(string keyName, KeyDefinition keyDef, GlobalSettings global)
         {
-            var border = new Border
-            {
-                Name = keyName,
-                Width = keyDef.Size.Width,
-                Height = keyDef.Size.Height,
-                BorderBrush = BrushFactory.CreateBrushFromString(global.ForegroundColor, Brushes.White),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(2),
-                Background = BrushFactory.CreateKeyboardKeyBackground()
-            };
-
-            return border;
+            return UIElementFactory.CreateKeyboardKeyBorder(
+                keyName,
+                keyDef.Size.Width,
+                keyDef.Size.Height,
+                global.ForegroundColor
+            );
         }
 
         /// <summary>
@@ -58,23 +52,13 @@ namespace KeyOverlayFPS.Layout
         {
             var fontSize = keyDef.FontSize ?? global.FontSize;
             
-            var textBlock = new TextBlock
-            {
-                Name = keyName + "Text",
-                Text = keyDef.Text,
-                FontSize = fontSize,
-                FontWeight = FontWeights.Bold,
-                Foreground = BrushFactory.CreateBrushFromString(global.ForegroundColor, Brushes.White),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            if (!string.IsNullOrEmpty(global.FontFamily))
-            {
-                textBlock.FontFamily = new FontFamily(global.FontFamily);
-            }
-
-            return textBlock;
+            return UIElementFactory.CreateKeyboardKeyTextBlock(
+                keyName + "Text",
+                keyDef.Text,
+                fontSize,
+                global.ForegroundColor,
+                global.FontFamily
+            );
         }
     }
 }

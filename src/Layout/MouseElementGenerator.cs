@@ -55,29 +55,7 @@ namespace KeyOverlayFPS.Layout
                 throw new ArgumentNullException(nameof(mouseSettings));
             }
             
-            var border = new Border
-            {
-                Name = "MouseBody",
-                Width = ApplicationConstants.UILayout.MouseBodyWidth,
-                Height = ApplicationConstants.UILayout.MouseBodyHeight,
-                BorderBrush = new SolidColorBrush(ApplicationConstants.Colors.MouseBodyBorderColor),
-                BorderThickness = new Thickness(ApplicationConstants.UILayout.MouseBodyBorderThickness),
-                CornerRadius = new CornerRadius(
-                    ApplicationConstants.UILayout.KeyCornerRadiusX,
-                    ApplicationConstants.UILayout.KeyCornerRadiusX,
-                    ApplicationConstants.UILayout.KeyCornerRadiusY,
-                    ApplicationConstants.UILayout.KeyCornerRadiusY),
-                Background = BrushFactory.CreateMouseBodyBackground(),
-                Effect = new DropShadowEffect
-                {
-                    Color = System.Windows.Media.Colors.Black,
-                    BlurRadius = ApplicationConstants.UILayout.MouseBodyShadowBlur,
-                    ShadowDepth = ApplicationConstants.UILayout.MouseBodyShadowDepth,
-                    Opacity = ApplicationConstants.UILayout.MouseBodyShadowOpacity
-                }
-            };
-
-            return border;
+            return UIElementFactory.CreateMouseBodyBorder();
         }
 
         /// <summary>
@@ -85,25 +63,11 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         private static Border CreateMouseButton(string buttonName, ButtonConfig buttonConfig)
         {
-            var border = new Border
-            {
-                Name = buttonName,
-                Width = buttonConfig.Size.Width,
-                Height = buttonConfig.Size.Height,
-                BorderBrush = new SolidColorBrush(ApplicationConstants.Colors.MouseButtonBorderColor),
-                BorderThickness = new Thickness(ApplicationConstants.UILayout.MouseButtonBorderThickness),
-                Background = BrushFactory.CreateMouseButtonBackground(),
-                Effect = new DropShadowEffect
-                {
-                    Color = System.Windows.Media.Colors.Black,
-                    BlurRadius = ApplicationConstants.UILayout.MouseButtonShadowBlur,
-                    ShadowDepth = ApplicationConstants.UILayout.MouseButtonShadowDepth,
-                    Opacity = ApplicationConstants.UILayout.MouseButtonShadowOpacity
-                }
-            };
-
-            // ボタン種類に応じてCornerRadiusを設定
-            border.CornerRadius = GetCornerRadiusForButton(buttonName);
+            var border = UIElementFactory.CreateMouseButtonBorder(
+                buttonName,
+                buttonConfig.Size.Width,
+                buttonConfig.Size.Height
+            );
 
             // ホイールボタンの場合はスクロールインジケーターを追加
             if (buttonName == "MouseWheelButton")
@@ -118,32 +82,6 @@ namespace KeyOverlayFPS.Layout
             return border;
         }
 
-        /// <summary>
-        /// ボタン種類に応じたCornerRadiusを取得
-        /// </summary>
-        private static CornerRadius GetCornerRadiusForButton(string buttonName)
-        {
-            return buttonName switch
-            {
-                "MouseLeft" => new CornerRadius(
-                    ApplicationConstants.UILayout.MouseLeftButtonRadius,
-                    ApplicationConstants.UILayout.MouseButtonRadius,
-                    ApplicationConstants.UILayout.MouseButtonRadius,
-                    ApplicationConstants.UILayout.MouseButtonRadius),
-                "MouseRight" => new CornerRadius(
-                    ApplicationConstants.UILayout.MouseButtonRadius,
-                    ApplicationConstants.UILayout.MouseRightButtonRadius,
-                    ApplicationConstants.UILayout.MouseButtonRadius,
-                    ApplicationConstants.UILayout.MouseButtonRadius),
-                "MouseWheelButton" => new CornerRadius(ApplicationConstants.UILayout.MouseWheelButtonRadius),
-                "MouseButton4" or "MouseButton5" => new CornerRadius(
-                    ApplicationConstants.UILayout.MouseButtonRadius,
-                    ApplicationConstants.UILayout.MouseSideButtonRadius,
-                    ApplicationConstants.UILayout.MouseSideButtonRadius,
-                    ApplicationConstants.UILayout.MouseButtonRadius),
-                _ => new CornerRadius(ApplicationConstants.UILayout.MouseButtonRadius)
-            };
-        }
 
         /// <summary>
         /// スクロールインジケーターを作成
@@ -152,29 +90,8 @@ namespace KeyOverlayFPS.Layout
         {
             var stackPanel = new StackPanel();
             
-            var scrollUpIndicator = new TextBlock
-            {
-                Name = "ScrollUpIndicator",
-                Text = "▲",
-                FontSize = ApplicationConstants.UILayout.ScrollIndicatorFontSize,
-                FontWeight = FontWeights.Bold,
-                Foreground = Brushes.Transparent,
-                Visibility = Visibility.Hidden,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            var scrollDownIndicator = new TextBlock
-            {
-                Name = "ScrollDownIndicator",
-                Text = "▼",
-                FontSize = ApplicationConstants.UILayout.ScrollIndicatorFontSize,
-                FontWeight = FontWeights.Bold,
-                Foreground = Brushes.Transparent,
-                Visibility = Visibility.Hidden,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+            var scrollUpIndicator = UIElementFactory.CreateScrollIndicatorTextBlock("ScrollUpIndicator", "▲");
+            var scrollDownIndicator = UIElementFactory.CreateScrollIndicatorTextBlock("ScrollDownIndicator", "▼");
 
             stackPanel.Children.Add(scrollUpIndicator);
             stackPanel.Children.Add(scrollDownIndicator);
@@ -186,18 +103,7 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         private static TextBlock CreateEmptyButtonContent()
         {
-            return new TextBlock
-            {
-                Text = "",
-                FontSize = ApplicationConstants.UILayout.MouseButtonTextFontSize,
-                FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromRgb(
-                    ApplicationConstants.Colors.MouseButtonTextColor.R,
-                    ApplicationConstants.Colors.MouseButtonTextColor.G,
-                    ApplicationConstants.Colors.MouseButtonTextColor.B)),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+            return UIElementFactory.CreateMouseButtonTextBlock();
         }
 
         /// <summary>
