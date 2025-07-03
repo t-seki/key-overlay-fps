@@ -68,11 +68,6 @@ jobs:
           -p:PublishSingleFile=false
       shell: bash
       
-    - name: Copy layouts to folder version
-      run: |
-        Copy-Item -Path "layouts" -Destination "./publish-folder-${{ matrix.arch }}/layouts" -Recurse
-      shell: powershell
-      
     - name: Create Zip package
       run: |
         Compress-Archive -Path "./publish-folder-${{ matrix.arch }}/*" -DestinationPath "./KeyOverlayFPS-win-${{ matrix.arch }}.zip"
