@@ -51,8 +51,8 @@ namespace KeyOverlayFPS.UI
             // マウス方向可視化を初期化
             window.MouseVisualizer?.Initialize(window.MouseTracker);
 
-            // 表示スケールを適用
-            window.ApplyDisplayScale();
+            // 注意: 表示スケールの適用はWindowInitializer.ApplyFinalSetup()の
+            // ApplySettingsOverride()で一括して行うため、ここでは行わない
 
             Logger.Info($"キャンバス再構築完了: {profile}");
         }

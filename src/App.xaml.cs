@@ -1,13 +1,42 @@
 using System;
 using System.Windows;
+using System.Windows.Interop;
+using System.Runtime.InteropServices;
 using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS
 {
     public partial class App : Application
     {
+        // DPI認識のためのWin32 API定義
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+
+        [DllImport("shcore.dll")]
+        private static extern int SetProcessDpiAwareness(ProcessDpiAwareness value);
+
+        private enum ProcessDpiAwareness
+        {
+            DpiUnaware = 0,
+            SystemDpiAware = 1,
+            PerMonitorDpiAware = 2
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            // DPI認識を設定（スケール問題を防ぐため）
+            try
+            {
+                SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware);
+                Logger.Info("Per-Monitor DPI認識を有効化");
+            }
+            catch
+            {
+                // フォールバックとしてレガシーAPIを使用
+                SetProcessDPIAware();
+                Logger.Info("System DPI認識を有効化（フォールバック）");
+            }
+
             // ログシステム初期化
             Logger.Initialize();
             Logger.Info("アプリケーション開始");

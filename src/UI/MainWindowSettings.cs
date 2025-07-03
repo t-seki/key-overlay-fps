@@ -227,6 +227,8 @@ namespace KeyOverlayFPS.UI
             var canvas = _window.Content as Canvas;
             if (canvas != null)
             {
+                Logger.Info($"スケール適用開始 - DisplayScale: {DisplayScale}, IsMouseVisible: {IsMouseVisible}");
+                
                 // Canvas全体にスケール変換を適用
                 var transform = new ScaleTransform(DisplayScale, DisplayScale);
                 canvas.RenderTransform = transform;
@@ -234,8 +236,17 @@ namespace KeyOverlayFPS.UI
                 // YAMLファイルからウィンドウサイズを取得
                 var (baseWidth, baseHeight) = _layoutManager.GetWindowSize(IsMouseVisible);
                 
-                _window.Width = baseWidth * DisplayScale;
-                _window.Height = baseHeight * DisplayScale;
+                var newWidth = baseWidth * DisplayScale;
+                var newHeight = baseHeight * DisplayScale;
+                
+                Logger.Info($"ウィンドウサイズ更新 - ベース: {baseWidth}x{baseHeight}, スケール適用後: {newWidth}x{newHeight}");
+                
+                _window.Width = newWidth;
+                _window.Height = newHeight;
+            }
+            else
+            {
+                Logger.Warning("Canvas要素が見つからないため、スケール適用をスキップ");
             }
         }
 
