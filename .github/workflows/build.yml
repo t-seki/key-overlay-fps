@@ -24,10 +24,10 @@ jobs:
         dotnet-version: '8.0.x'
         
     - name: Restore dependencies
-      run: dotnet restore src/KeyOverlayFPS.csproj
+      run: dotnet restore key-overlay-fps.sln
       
-    - name: Build application
-      run: dotnet build src/KeyOverlayFPS.csproj --configuration ${{ matrix.configuration }} --no-restore
+    - name: Build solution
+      run: dotnet build key-overlay-fps.sln --configuration ${{ matrix.configuration }} --no-restore
       
     - name: Run tests
       run: dotnet test tests/KeyOverlayFPS.Tests.csproj --configuration ${{ matrix.configuration }} --no-build --verbosity normal

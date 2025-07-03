@@ -5,56 +5,13 @@ on:
     tags:
       - 'v*'  # v1.0.0 形式のタグでトリガー
 
-jobs:
-  create-release:
-    runs-on: windows-latest
-    
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: KeyOverlayFPS ${{ github.ref }}
-        body: |
-          ## KeyOverlayFPS ${{ github.ref }}
-          
-          ゲーム配信・録画用のリアルタイムキーボード・マウス入力可視化ツールです。
-          
-          ### ダウンロード方法
-          
-          #### 簡単インストール（推奨）
-          - **KeyOverlayFPS-win-x64.exe**: 単一実行ファイル（すぐに実行可能）
-          - **KeyOverlayFPS-win-x86.exe**: 32bit版単一実行ファイル
-          
-          #### Zip版（カスタマイズ可能）
-          - **KeyOverlayFPS-win-x64.zip**: 64bit版Zipファイル（レイアウトファイル同梱）
-          - **KeyOverlayFPS-win-x86.zip**: 32bit版Zipファイル（レイアウトファイル同梱）
-          
-          ### 使用方法
-          1. ダウンロードしたファイルを実行または展開
-          2. `KeyOverlayFPS.exe`を管理者権限で実行
-          3. 右クリックメニューから設定をカスタマイズ
-          
-          ### システム要件
-          - Windows 10/11 (x64 または x86)
-          - .NET 8 Runtime（単一実行ファイル版では不要）
-          
-          ---
-          **注意**: このアプリケーションはキーボード・マウスフックを使用するため、初回実行時にウイルス対策ソフトの警告が表示される場合があります。
-        draft: false
-        prerelease: false
+permissions:
+  contents: write
+  actions: write
+  packages: write
 
-  build-and-upload:
-    needs: create-release
+jobs:
+  build-and-release:
     runs-on: windows-latest
     
     strategy:
@@ -87,7 +44,7 @@ jobs:
       shell: powershell
       
     - name: Restore dependencies
-      run: dotnet restore src/KeyOverlayFPS.csproj
+      run: dotnet restore key-overlay-fps.sln
       
     - name: Publish single file (${{ matrix.arch }})
       run: |
@@ -121,22 +78,43 @@ jobs:
         Compress-Archive -Path "./publish-folder-${{ matrix.arch }}/*" -DestinationPath "./KeyOverlayFPS-win-${{ matrix.arch }}.zip"
       shell: powershell
       
-    - name: Upload single file release asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Rename single file for upload
+      run: |
+        Copy-Item "./publish-single-${{ matrix.arch }}/KeyOverlayFPS.exe" "./KeyOverlayFPS-win-${{ matrix.arch }}.exe"
+      shell: powershell
+      
+    - name: Create Release and Upload Assets
+      uses: softprops/action-gh-release@v1
       with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./publish-single-${{ matrix.arch }}/KeyOverlayFPS.exe
-        asset_name: KeyOverlayFPS-win-${{ matrix.arch }}.exe
-        asset_content_type: application/octet-stream
-        
-    - name: Upload Zip release asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./KeyOverlayFPS-win-${{ matrix.arch }}.zip
-        asset_name: KeyOverlayFPS-win-${{ matrix.arch }}.zip
-        asset_content_type: application/zip
+        name: KeyOverlayFPS ${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## KeyOverlayFPS v${{ steps.get_version.outputs.VERSION }}
+          
+          ゲーム配信・録画用のリアルタイムキーボード・マウス入力可視化ツールです。
+          
+          ### ダウンロード方法
+          
+          #### 簡単インストール（推奨）
+          - **KeyOverlayFPS-win-x64.exe**: 単一実行ファイル（すぐに実行可能）
+          - **KeyOverlayFPS-win-x86.exe**: 32bit版単一実行ファイル
+          
+          #### Zip版（カスタマイズ可能）
+          - **KeyOverlayFPS-win-x64.zip**: 64bit版Zipファイル（レイアウトファイル同梱）
+          - **KeyOverlayFPS-win-x86.zip**: 32bit版Zipファイル（レイアウトファイル同梱）
+          
+          ### 使用方法
+          1. ダウンロードしたファイルを実行または展開
+          2. `KeyOverlayFPS.exe`を管理者権限で実行
+          3. 右クリックメニューから設定をカスタマイズ
+          
+          ### システム要件
+          - Windows 10/11 (x64 または x86)
+          - .NET 8 Runtime（単一実行ファイル版では不要）
+          
+          ---
+          **注意**: このアプリケーションはキーボード・マウスフックを使用するため、初回実行時にウイルス対策ソフトの警告が表示される場合があります。
+        files: |
+          ./KeyOverlayFPS-win-${{ matrix.arch }}.exe
+          ./KeyOverlayFPS-win-${{ matrix.arch }}.zip
+        draft: false
+        prerelease: false
