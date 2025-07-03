@@ -1,0 +1,142 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # v1.0.0 形式のタグでトリガー
+
+jobs:
+  create-release:
+    runs-on: windows-latest
+    
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: KeyOverlayFPS ${{ github.ref }}
+        body: |
+          ## KeyOverlayFPS ${{ github.ref }}
+          
+          ゲーム配信・録画用のリアルタイムキーボード・マウス入力可視化ツールです。
+          
+          ### ダウンロード方法
+          
+          #### 簡単インストール（推奨）
+          - **KeyOverlayFPS-win-x64.exe**: 単一実行ファイル（すぐに実行可能）
+          - **KeyOverlayFPS-win-x86.exe**: 32bit版単一実行ファイル
+          
+          #### Zip版（カスタマイズ可能）
+          - **KeyOverlayFPS-win-x64.zip**: 64bit版Zipファイル（レイアウトファイル同梱）
+          - **KeyOverlayFPS-win-x86.zip**: 32bit版Zipファイル（レイアウトファイル同梱）
+          
+          ### 使用方法
+          1. ダウンロードしたファイルを実行または展開
+          2. `KeyOverlayFPS.exe`を管理者権限で実行
+          3. 右クリックメニューから設定をカスタマイズ
+          
+          ### システム要件
+          - Windows 10/11 (x64 または x86)
+          - .NET 8 Runtime（単一実行ファイル版では不要）
+          
+          ---
+          **注意**: このアプリケーションはキーボード・マウスフックを使用するため、初回実行時にウイルス対策ソフトの警告が表示される場合があります。
+        draft: false
+        prerelease: false
+
+  build-and-upload:
+    needs: create-release
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        arch: [x64, x86]
+        
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      shell: bash
+      
+    - name: Update project version
+      run: |
+        $version = "${{ steps.get_version.outputs.VERSION }}"
+        $csprojPath = "src/KeyOverlayFPS.csproj"
+        $content = Get-Content $csprojPath
+        $content = $content -replace '<Version>.*</Version>', "<Version>$version</Version>"
+        $content = $content -replace '<AssemblyVersion>.*</AssemblyVersion>', "<AssemblyVersion>$version.0</AssemblyVersion>"
+        $content = $content -replace '<FileVersion>.*</FileVersion>', "<FileVersion>$version.0</FileVersion>"
+        Set-Content $csprojPath $content
+      shell: powershell
+      
+    - name: Restore dependencies
+      run: dotnet restore src/KeyOverlayFPS.csproj
+      
+    - name: Publish single file (${{ matrix.arch }})
+      run: |
+        dotnet publish src/KeyOverlayFPS.csproj \
+          --configuration Release \
+          --runtime win-${{ matrix.arch }} \
+          --self-contained true \
+          --output ./publish-single-${{ matrix.arch }} \
+          -p:PublishSingleFile=true \
+          -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:EnableCompressionInSingleFile=true
+      shell: bash
+      
+    - name: Publish folder version (${{ matrix.arch }})
+      run: |
+        dotnet publish src/KeyOverlayFPS.csproj \
+          --configuration Release \
+          --runtime win-${{ matrix.arch }} \
+          --self-contained true \
+          --output ./publish-folder-${{ matrix.arch }} \
+          -p:PublishSingleFile=false
+      shell: bash
+      
+    - name: Copy layouts to folder version
+      run: |
+        Copy-Item -Path "layouts" -Destination "./publish-folder-${{ matrix.arch }}/layouts" -Recurse
+      shell: powershell
+      
+    - name: Create Zip package
+      run: |
+        Compress-Archive -Path "./publish-folder-${{ matrix.arch }}/*" -DestinationPath "./KeyOverlayFPS-win-${{ matrix.arch }}.zip"
+      shell: powershell
+      
+    - name: Upload single file release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./publish-single-${{ matrix.arch }}/KeyOverlayFPS.exe
+        asset_name: KeyOverlayFPS-win-${{ matrix.arch }}.exe
+        asset_content_type: application/octet-stream
+        
+    - name: Upload Zip release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./KeyOverlayFPS-win-${{ matrix.arch }}.zip
+        asset_name: KeyOverlayFPS-win-${{ matrix.arch }}.zip
+        asset_content_type: application/zip

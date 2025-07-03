@@ -5,10 +5,30 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
+    
+    <!-- アセンブリ情報 -->
     <AssemblyTitle>KeyOverlayFPS</AssemblyTitle>
     <AssemblyProduct>KeyOverlayFPS</AssemblyProduct>
+    <AssemblyDescription>Real-time keyboard and mouse input visualization for FPS gaming streams</AssemblyDescription>
+    <AssemblyCompany>KeyOverlayFPS</AssemblyCompany>
+    <AssemblyCopyright>Copyright © 2024 KeyOverlayFPS</AssemblyCopyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0</Version>
+    
+    <!-- 配布設定 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    
+    <!-- アプリケーションアイコン（今後追加予定） -->
+    <!-- <ApplicationIcon>icon.ico</ApplicationIcon> -->
+    
+    <!-- トリムとAOT設定（WPFでは通常無効） -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
   </PropertyGroup>
 
   <ItemGroup>
