@@ -40,6 +40,7 @@ namespace KeyOverlayFPS
         
         // 設定管理
         private readonly SettingsManager _settingsManager;
+        public SettingsManager SettingsManager => _settingsManager;
         
         // 動的レイアウトシステム
         public LayoutManager LayoutManager { get; }
@@ -88,7 +89,7 @@ namespace KeyOverlayFPS
             _mouseElementManager = new MouseElementManager(LayoutManager, ElementLocator!);
             
             // CanvasRebuilderを作成
-            var canvasRebuilder = new CanvasRebuilder();
+            var canvasRebuilder = new CanvasRebuilder(_settingsManager);
             
             _profileSwitcher = new ProfileSwitcher(
                 ProfileManager,

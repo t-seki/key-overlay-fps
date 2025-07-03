@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using KeyOverlayFPS.UI;
 using KeyOverlayFPS.Utils;
+using KeyOverlayFPS.Settings;
 
 namespace KeyOverlayFPS.Initialization
 {
@@ -10,11 +11,10 @@ namespace KeyOverlayFPS.Initialization
     /// </summary>
     public class WindowInitializer
     {
-        private readonly CanvasRebuilder _canvasRebuilder;
+        private CanvasRebuilder? _canvasRebuilder;
 
         public WindowInitializer()
         {
-            _canvasRebuilder = new CanvasRebuilder();
         }
 
         /// <summary>
@@ -73,6 +73,8 @@ namespace KeyOverlayFPS.Initialization
         /// </summary>
         private void InitializeLayout(MainWindow window)
         {
+            // SettingsManagerをプロパティから取得してCanvasRebuilderを作成
+            _canvasRebuilder = new CanvasRebuilder(window.SettingsManager);
             _canvasRebuilder.RebuildCanvas(window, window.ProfileManager.CurrentProfile);
         }
 
@@ -115,6 +117,9 @@ namespace KeyOverlayFPS.Initialization
             window.ApplyDisplayScale();
             window.UpdateMousePositions();
             window.UpdateAllTextForeground();
+            
+            // 設定オーバーライドを適用
+            window.Settings?.ApplySettingsOverride();
         }
 
         /// <summary>

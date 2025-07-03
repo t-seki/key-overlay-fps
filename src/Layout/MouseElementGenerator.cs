@@ -6,6 +6,7 @@ using System.Windows.Media.Effects;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.UI;
+using KeyOverlayFPS.Settings;
 
 namespace KeyOverlayFPS.Layout
 {
@@ -17,12 +18,20 @@ namespace KeyOverlayFPS.Layout
         /// <summary>
         /// マウス要素を生成
         /// </summary>
-        public static void GenerateMouseElements(Canvas canvas, LayoutConfig layout)
+        /// <param name="canvas">マウス要素を追加するキャンバス</param>
+        /// <param name="layout">レイアウト設定</param>
+        /// <param name="settings">アプリケーション設定（マウス可視性制御用）</param>
+        public static void GenerateMouseElements(Canvas canvas, LayoutConfig layout, AppSettings? settings = null)
         {
             if (layout.Mouse == null) return;
 
+            // 設定でマウスが非表示の場合はマウス要素を生成しない
+            bool isMouseVisible = settings?.IsMouseVisible ?? true;
+            var visibility = isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+
             // マウス本体を生成
             var mouseBody = CreateMouseBody(layout.Mouse);
+            mouseBody.Visibility = visibility;
             Canvas.SetLeft(mouseBody, layout.Mouse.Position.X);
             Canvas.SetTop(mouseBody, layout.Mouse.Position.Y);
             canvas.Children.Add(mouseBody);
@@ -33,6 +42,7 @@ namespace KeyOverlayFPS.Layout
                 if (!buttonConfig.IsVisible) continue;
 
                 var button = CreateMouseButton(buttonName, buttonConfig);
+                button.Visibility = visibility;
                 Canvas.SetLeft(button, layout.Mouse.Position.X + buttonConfig.Offset.X);
                 Canvas.SetTop(button, layout.Mouse.Position.Y + buttonConfig.Offset.Y);
                 canvas.Children.Add(button);
@@ -40,6 +50,7 @@ namespace KeyOverlayFPS.Layout
 
             // マウス移動可視化キャンバスを生成
             var directionCanvas = CreateMouseDirectionCanvas(layout.Mouse);
+            directionCanvas.Visibility = visibility;
             Canvas.SetLeft(directionCanvas, layout.Mouse.Position.X + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetX);
             Canvas.SetTop(directionCanvas, layout.Mouse.Position.Y + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetY);
             canvas.Children.Add(directionCanvas);

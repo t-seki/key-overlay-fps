@@ -295,5 +295,30 @@ namespace KeyOverlayFPS.UI
         {
             ProfileSwitcher?.SwitchProfile(profile);
         }
+
+        /// <summary>
+        /// 設定オーバーライドを適用
+        /// レイアウトYAMLファイルの設定値をsettings.yamlの設定値でオーバーライドする
+        /// currentProfile以外の全ての設定項目を対象とする
+        /// </summary>
+        public void ApplySettingsOverride()
+        {
+            var settings = _settingsManager.Current;
+            
+            // マウス可視性のオーバーライド
+            UpdateMouseVisibility();
+            
+            // 表示スケールのオーバーライド
+            ApplyDisplayScale();
+            
+            // 色設定のオーバーライド
+            UpdateAllTextForeground();
+            
+            // ウィンドウ設定のオーバーライド
+            ApplyWindowSettings(settings);
+            
+            // 背景色設定のオーバーライド
+            ApplyBackgroundSettings(settings);
+        }
     }
 }

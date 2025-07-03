@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.Utils;
+using KeyOverlayFPS.Settings;
 
 namespace KeyOverlayFPS.UI
 {
@@ -12,6 +13,13 @@ namespace KeyOverlayFPS.UI
     /// </summary>
     public class CanvasRebuilder
     {
+        private readonly SettingsManager _settingsManager;
+
+        public CanvasRebuilder(SettingsManager settingsManager)
+        {
+            _settingsManager = settingsManager;
+        }
+
         /// <summary>
         /// キャンバスを完全に再構築する
         /// </summary>
@@ -21,18 +29,14 @@ namespace KeyOverlayFPS.UI
         {
             Logger.Info($"キャンバス再構築開始: {profile}");
 
-            // 既存のCanvas要素の名前を解除
-            if (window.Content is Canvas oldCanvas)
-            {
-                UIGenerator.UnregisterElementNames(oldCanvas, window);
-            }
 
             // プロファイルに応じたレイアウトファイルを読み込み
             Logger.Info($"レイアウトを読み込み中: {profile}");
             window.LayoutManager.LoadLayout(profile);
 
-            // UIを動的生成
-            var dynamicCanvas = UIGenerator.GenerateCanvas(window.LayoutManager.CurrentLayout!, window);
+            // UIを動的生成（設定を考慮）
+            var settings = _settingsManager.Current;
+            var dynamicCanvas = UIGenerator.GenerateCanvas(window.LayoutManager.CurrentLayout!, window, settings);
 
             // 既存のCanvasと置き換え
             window.Content = dynamicCanvas;
@@ -40,8 +44,6 @@ namespace KeyOverlayFPS.UI
             // ウィンドウ背景を設定
             window.Background = BrushFactory.CreateTransparentBackground();
 
-            // 要素名を登録
-            UIGenerator.RegisterElementNames(dynamicCanvas, window);
 
             // UI要素検索管理を初期化
             window.ElementLocator?.BuildCache(dynamicCanvas);
