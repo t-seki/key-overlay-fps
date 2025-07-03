@@ -250,8 +250,42 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private void UpdateMouseVisibility()
         {
-            // マウス表示状態の変更をレイアウトに反映するため、現在のプロファイルでキャンバスを再構築
-            ProfileSwitcher?.SwitchProfile(_profileManager.CurrentProfile);
+            var canvas = _window.Content as Canvas;
+            if (canvas != null)
+            {
+                // Canvas内のマウス要素の可視性を直接制御
+                foreach (var child in canvas.Children)
+                {
+                    if (child is FrameworkElement element && IsMouseElement(element.Name))
+                    {
+                        element.Visibility = IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                }
+                
+                // ウィンドウサイズをマウス可視性に応じて調整
+                var (baseWidth, baseHeight) = _layoutManager.GetWindowSize(IsMouseVisible);
+                _window.Width = baseWidth * DisplayScale;
+                _window.Height = baseHeight * DisplayScale;
+            }
+        }
+        
+        /// <summary>
+        /// 指定された要素名がマウス要素かどうかを判定
+        /// </summary>
+        private bool IsMouseElement(string? elementName)
+        {
+            if (string.IsNullOrEmpty(elementName))
+                return false;
+                
+            return elementName == "MouseBody" ||
+                   elementName == "MouseLeft" ||
+                   elementName == "MouseRight" ||
+                   elementName == "MouseWheelButton" ||
+                   elementName == "MouseButton4" ||
+                   elementName == "MouseButton5" ||
+                   elementName == "ScrollUp" ||
+                   elementName == "ScrollDown" ||
+                   elementName == "MouseDirectionCanvas";
         }
 
         /// <summary>

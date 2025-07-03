@@ -17,9 +17,9 @@ global:
   shiftDisplayEnabled: true
 
 window:
-  width: 580
+  width: 560
   height: 160
-  widthWithoutMouse: 510
+  widthWithoutMouse: 480
   backgroundColor: "Transparent"
 
 keys:

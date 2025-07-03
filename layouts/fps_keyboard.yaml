@@ -17,9 +17,9 @@ global:
   shiftDisplayEnabled: false
 
 window:
-  width: 520
+  width: 370
   height: 160
-  widthWithoutMouse: 450
+  widthWithoutMouse: 290
   backgroundColor: "Transparent"
 
 keys:
