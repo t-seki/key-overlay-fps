@@ -37,24 +37,12 @@ namespace KeyOverlayFPS.Layout
 
         /// <summary>
         /// プロファイルに応じたレイアウトを読み込み
-        /// 埋め込みリソース → 外部ファイル → エラーの順で試行
+        /// 外部ファイル → 埋め込みリソース → デフォルトの順で試行（カスタマイズ優先）
         /// </summary>
         /// <param name="profile">キーボードプロファイル</param>
         public void LoadLayout(KeyboardProfile profile)
         {
-            try
-            {
-                // 1. 埋め込みリソースから読み込みを試行
-                CurrentLayout = LoadEmbeddedLayout(profile);
-                Logger.Info($"埋め込みリソースからレイアウトを読み込み: {profile}");
-                return;
-            }
-            catch (Exception ex)
-            {
-                Logger.Warning($"埋め込みリソースからの読み込みに失敗: {ex.Message}");
-            }
-
-            // 2. 外部ファイルから読み込みを試行
+            // 1. 外部ファイルから読み込みを試行（カスタマイズ優先）
             string layoutPath = GetLayoutPath(profile);
             if (File.Exists(layoutPath))
             {
@@ -68,6 +56,18 @@ namespace KeyOverlayFPS.Layout
                 {
                     Logger.Warning($"外部ファイルからの読み込みに失敗: {ex.Message}");
                 }
+            }
+
+            // 2. 埋め込みリソースから読み込みを試行（フォールバック）
+            try
+            {
+                CurrentLayout = LoadEmbeddedLayout(profile);
+                Logger.Info($"埋め込みリソースからレイアウトを読み込み: {profile}");
+                return;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"埋め込みリソースからの読み込みに失敗: {ex.Message}");
             }
 
             // 3. フォールバック: デフォルトレイアウトを作成
