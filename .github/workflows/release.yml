@@ -11,7 +11,7 @@ permissions:
   packages: write
 
 jobs:
-  build-and-release:
+  build:
     runs-on: windows-latest
     
     strategy:
@@ -83,6 +83,38 @@ jobs:
         Copy-Item "./publish-single-${{ matrix.arch }}/KeyOverlayFPS.exe" "./KeyOverlayFPS-win-${{ matrix.arch }}.exe"
       shell: powershell
       
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-assets-${{ matrix.arch }}
+        path: |
+          ./KeyOverlayFPS-win-${{ matrix.arch }}.exe
+          ./KeyOverlayFPS-win-${{ matrix.arch }}.zip
+        retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+        
+    - name: Move artifacts to root
+      run: |
+        find ./artifacts -name "*.exe" -exec cp {} . \;
+        find ./artifacts -name "*.zip" -exec cp {} . \;
+        ls -la *.exe *.zip
+      
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v1
       with:
@@ -114,7 +146,9 @@ jobs:
           ---
           **注意**: このアプリケーションはキーボード・マウスフックを使用するため、初回実行時にウイルス対策ソフトの警告が表示される場合があります。
         files: |
-          ./KeyOverlayFPS-win-${{ matrix.arch }}.exe
-          ./KeyOverlayFPS-win-${{ matrix.arch }}.zip
+          ./KeyOverlayFPS-win-x64.exe
+          ./KeyOverlayFPS-win-x86.exe
+          ./KeyOverlayFPS-win-x64.zip
+          ./KeyOverlayFPS-win-x86.zip
         draft: false
         prerelease: false
