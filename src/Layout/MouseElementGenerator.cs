@@ -7,6 +7,7 @@ using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.MouseVisualization;
 using KeyOverlayFPS.UI;
 using KeyOverlayFPS.Settings;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Layout
 {
@@ -32,8 +33,7 @@ namespace KeyOverlayFPS.Layout
             // マウス本体を生成
             var mouseBody = CreateMouseBody(layout.Mouse);
             mouseBody.Visibility = visibility;
-            Canvas.SetLeft(mouseBody, layout.Mouse.Position.X);
-            Canvas.SetTop(mouseBody, layout.Mouse.Position.Y);
+            CanvasElementHelper.SetPosition(mouseBody, layout.Mouse.Position.X, layout.Mouse.Position.Y);
             canvas.Children.Add(mouseBody);
 
             // マウスボタンを生成
@@ -43,16 +43,18 @@ namespace KeyOverlayFPS.Layout
 
                 var button = CreateMouseButton(buttonName, buttonConfig);
                 button.Visibility = visibility;
-                Canvas.SetLeft(button, layout.Mouse.Position.X + buttonConfig.Offset.X);
-                Canvas.SetTop(button, layout.Mouse.Position.Y + buttonConfig.Offset.Y);
+                CanvasElementHelper.SetPosition(button, 
+                    layout.Mouse.Position.X + buttonConfig.Offset.X, 
+                    layout.Mouse.Position.Y + buttonConfig.Offset.Y);
                 canvas.Children.Add(button);
             }
 
             // マウス移動可視化キャンバスを生成
             var directionCanvas = CreateMouseDirectionCanvas(layout.Mouse);
             directionCanvas.Visibility = visibility;
-            Canvas.SetLeft(directionCanvas, layout.Mouse.Position.X + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetX);
-            Canvas.SetTop(directionCanvas, layout.Mouse.Position.Y + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetY);
+            CanvasElementHelper.SetPosition(directionCanvas, 
+                layout.Mouse.Position.X + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetX,
+                layout.Mouse.Position.Y + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetY);
             canvas.Children.Add(directionCanvas);
         }
 

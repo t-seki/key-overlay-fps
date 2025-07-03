@@ -59,23 +59,7 @@ namespace KeyOverlayFPS.Layout
         /// </summary>
         private static void SetCanvasBackground(Canvas canvas, string colorString)
         {
-            try
-            {
-                if (colorString.Equals("Transparent", StringComparison.OrdinalIgnoreCase))
-                {
-                    canvas.Background = BrushFactory.CreateTransparentBackground();
-                }
-                else
-                {
-                    var color = (Color)ColorConverter.ConvertFromString(colorString);
-                    canvas.Background = new SolidColorBrush(color);
-                }
-            }
-            catch
-            {
-                // 色変換エラー時は透明背景を使用
-                canvas.Background = BrushFactory.CreateTransparentBackground();
-            }
+            canvas.Background = BrushFactory.CreateBrushFromString(colorString, BrushFactory.CreateTransparentBackground());
         }
     }
 }

@@ -194,13 +194,7 @@ namespace KeyOverlayFPS.UI
             var canvas = _window.Content as Canvas;
             if (canvas != null)
             {
-                foreach (var child in canvas.Children)
-                {
-                    if (child is Border border)
-                    {
-                        UpdateBorderTextForeground(border);
-                    }
-                }
+                CanvasElementHelper.ForEachBorderElement(canvas, UpdateBorderTextForeground);
             }
         }
 
@@ -254,13 +248,9 @@ namespace KeyOverlayFPS.UI
             if (canvas != null)
             {
                 // Canvas内のマウス要素の可視性を直接制御
-                foreach (var child in canvas.Children)
-                {
-                    if (child is FrameworkElement element && IsMouseElement(element.Name))
-                    {
-                        element.Visibility = IsMouseVisible ? Visibility.Visible : Visibility.Collapsed;
-                    }
-                }
+                CanvasElementHelper.ForEachMatchingElement(canvas, 
+                    element => IsMouseElement(element.Name),
+                    element => CanvasElementHelper.SetVisibility(element, IsMouseVisible));
                 
                 // ウィンドウサイズをマウス可視性に応じて調整
                 var (baseWidth, baseHeight) = _layoutManager.GetWindowSize(IsMouseVisible);
@@ -274,18 +264,7 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private bool IsMouseElement(string? elementName)
         {
-            if (string.IsNullOrEmpty(elementName))
-                return false;
-                
-            return elementName == "MouseBody" ||
-                   elementName == "MouseLeft" ||
-                   elementName == "MouseRight" ||
-                   elementName == "MouseWheelButton" ||
-                   elementName == "MouseButton4" ||
-                   elementName == "MouseButton5" ||
-                   elementName == "ScrollUp" ||
-                   elementName == "ScrollDown" ||
-                   elementName == "MouseDirectionCanvas";
+            return MouseElementManager.IsMouseElement(elementName ?? string.Empty);
         }
 
         /// <summary>

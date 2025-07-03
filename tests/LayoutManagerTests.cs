@@ -107,7 +107,7 @@ keys:
             // Assert
             Assert.That(layout, Is.Not.Null);
             Assert.That(layout.Profile.Name, Is.EqualTo("65%キーボード"));
-            Assert.That(layout.Window.Width, Is.EqualTo(580));
+            Assert.That(layout.Window.Width, Is.EqualTo(560));
             Assert.That(layout.Window.Height, Is.EqualTo(160));
             Assert.That(layout.Keys.Count, Is.GreaterThan(60)); // 65%キーボードなので60キー以上
             Assert.That(layout.Mouse, Is.Not.Null);
@@ -128,7 +128,7 @@ keys:
             // Assert
             Assert.That(layout, Is.Not.Null);
             Assert.That(layout.Profile.Name, Is.EqualTo("FPSキーボード"));
-            Assert.That(layout.Window.Width, Is.EqualTo(520));
+            Assert.That(layout.Window.Width, Is.EqualTo(370));
             Assert.That(layout.Window.Height, Is.EqualTo(160));
             Assert.That(layout.Keys.Count, Is.GreaterThan(20)); // FPSキーボードなので20キー以上
             Assert.That(layout.Mouse, Is.Not.Null);

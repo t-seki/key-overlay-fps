@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using KeyOverlayFPS.Input;
 using KeyOverlayFPS.Constants;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Layout
 {
@@ -122,14 +122,8 @@ namespace KeyOverlayFPS.Layout
             };
         }
 
-        private static readonly ISerializer Serializer = new SerializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .Build();
-
-        private static readonly IDeserializer Deserializer = new DeserializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .WithTypeConverter(new VirtualKeyCodeConverter())
-            .Build();
+        private static readonly ISerializer Serializer = YamlSerializerFactory.CreateLayoutSerializer();
+        private static readonly IDeserializer Deserializer = YamlSerializerFactory.CreateLayoutDeserializer();
 
         /// <summary>
         /// レイアウトファイルをエクスポート

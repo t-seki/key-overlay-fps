@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Windows.Media;
 using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using KeyOverlayFPS.Utils;
 using KeyOverlayFPS.Constants;
 using KeyOverlayFPS.Layout;
@@ -48,13 +47,8 @@ namespace KeyOverlayFPS.Settings
             
             _settingsPath = Path.Combine(appFolder, "settings.yaml");
             
-            _serializer = new SerializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-            
-            _deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
+            _serializer = YamlSerializerFactory.CreateSettingsSerializer();
+            _deserializer = YamlSerializerFactory.CreateSettingsDeserializer();
             
             _settings = new AppSettings();
         }

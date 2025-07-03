@@ -113,12 +113,7 @@ namespace KeyOverlayFPS.Initialization
             // 保存されたプロファイル設定を復元
             RestoreProfileSettings(window);
             
-            // 設定適用
-            window.ApplyDisplayScale();
-            window.UpdateMousePositions();
-            window.UpdateAllTextForeground();
-            
-            // 設定オーバーライドを適用
+            // 設定オーバーライドを適用（表示スケール、マウス位置、テキスト色も含む）
             window.Settings?.ApplySettingsOverride();
         }
 
