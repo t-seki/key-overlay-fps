@@ -36,6 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 埋め込みリソースとしてレイアウトファイルを設定（単一実行ファイル配布用） -->
+    <EmbeddedResource Include="../layouts/**/*.yaml">
+      <LogicalName>layouts/%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    
+    <!-- 開発時用に外部ファイルとしてもコピー -->
     <Content Include="../layouts/**/*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>layouts/%(Filename)%(Extension)</Link>

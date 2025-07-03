@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using YamlDotNet.Serialization;
 using KeyOverlayFPS.Input;
 using KeyOverlayFPS.Constants;
@@ -36,18 +37,49 @@ namespace KeyOverlayFPS.Layout
 
         /// <summary>
         /// プロファイルに応じたレイアウトを読み込み
+        /// 埋め込みリソース → 外部ファイル → エラーの順で試行
         /// </summary>
         /// <param name="profile">キーボードプロファイル</param>
         public void LoadLayout(KeyboardProfile profile)
         {
+            try
+            {
+                // 1. 埋め込みリソースから読み込みを試行
+                CurrentLayout = LoadEmbeddedLayout(profile);
+                Logger.Info($"埋め込みリソースからレイアウトを読み込み: {profile}");
+                return;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"埋め込みリソースからの読み込みに失敗: {ex.Message}");
+            }
+
+            // 2. 外部ファイルから読み込みを試行
             string layoutPath = GetLayoutPath(profile);
             if (File.Exists(layoutPath))
             {
-                CurrentLayout = ImportLayout(layoutPath);
+                try
+                {
+                    CurrentLayout = ImportLayout(layoutPath);
+                    Logger.Info($"外部ファイルからレイアウトを読み込み: {layoutPath}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning($"外部ファイルからの読み込みに失敗: {ex.Message}");
+                }
             }
-            else
+
+            // 3. フォールバック: デフォルトレイアウトを作成
+            try
             {
-                throw new FileNotFoundException($"レイアウトファイルが見つかりません: {layoutPath}");
+                CurrentLayout = CreateDefaultLayout(profile);
+                Logger.Warning($"デフォルトレイアウトを使用: {profile}");
+                return;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"レイアウトの読み込みに完全に失敗しました: {ex.Message}", ex);
             }
         }
 
@@ -108,6 +140,162 @@ namespace KeyOverlayFPS.Layout
             double height = CurrentLayout.Window.Height;
 
             return (width, height);
+        }
+
+        /// <summary>
+        /// 埋め込みリソースからレイアウトを読み込み
+        /// </summary>
+        /// <param name="profile">キーボードプロファイル</param>
+        /// <returns>レイアウト設定</returns>
+        private LayoutConfig LoadEmbeddedLayout(KeyboardProfile profile)
+        {
+            string resourceName = GetEmbeddedResourceName(profile);
+            var assembly = Assembly.GetExecutingAssembly();
+            
+            Logger.Info($"埋め込みリソースを読み込み中: {resourceName}");
+            
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+            {
+                var availableResources = string.Join(", ", assembly.GetManifestResourceNames());
+                throw new FileNotFoundException(
+                    $"埋め込みリソースが見つかりません: {resourceName}\n" +
+                    $"利用可能なリソース: {availableResources}");
+            }
+
+            using var reader = new StreamReader(stream);
+            var yaml = reader.ReadToEnd();
+            var layout = Deserializer.Deserialize<LayoutConfig>(yaml);
+            
+            // 設定値の検証
+            ValidateLayout(layout);
+            
+            return layout;
+        }
+
+        /// <summary>
+        /// デフォルトレイアウトを作成
+        /// </summary>
+        /// <param name="profile">キーボードプロファイル</param>
+        /// <returns>デフォルトレイアウト設定</returns>
+        private LayoutConfig CreateDefaultLayout(KeyboardProfile profile)
+        {
+            Logger.Info($"デフォルトレイアウトを作成中: {profile}");
+            
+            return profile switch
+            {
+                KeyboardProfile.FPSKeyboard => CreateDefaultFpsLayout(),
+                _ => CreateDefault65Layout()
+            };
+        }
+
+        /// <summary>
+        /// デフォルト65%キーボードレイアウトを作成
+        /// </summary>
+        private LayoutConfig CreateDefault65Layout()
+        {
+            return new LayoutConfig
+            {
+                Profile = new ProfileInfo { Name = "FullKeyboard65" },
+                Global = new GlobalSettings
+                {
+                    FontSize = 14,
+                    BackgroundColor = "Transparent",
+                    ForegroundColor = "White",
+                    HighlightColor = "Green",
+                    KeySize = new SizeConfig { Width = 50, Height = 50 },
+                    ShiftDisplayEnabled = true
+                },
+                Window = new WindowSettings
+                {
+                    Width = 1050,
+                    Height = 300,
+                    WidthWithoutMouse = 750
+                },
+                Keys = CreateDefaultKeyMappings(),
+                Mouse = new MouseSettings
+                {
+                    Position = new PositionConfig { X = 800, Y = 50 },
+                    DirectionCanvas = new MouseDirectionCanvasConfig
+                    {
+                        Offset = new PositionConfig { X = 0, Y = 70 },
+                        Size = new SizeConfig { Width = 200, Height = 150 },
+                        Visualization = new DirectionVisualizationConfig
+                        {
+                            Threshold = 5.0,
+                            HighlightDuration = 500
+                        }
+                    }
+                }
+            };
+        }
+
+        /// <summary>
+        /// デフォルトFPSレイアウトを作成
+        /// </summary>
+        private LayoutConfig CreateDefaultFpsLayout()
+        {
+            var layout = CreateDefault65Layout();
+            layout.Profile!.Name = "FPSKeyboard";
+            layout.Window!.Width = 400;
+            layout.Window.WidthWithoutMouse = 350;
+            
+            // FPS向けに主要キーのみを表示
+            var fpsKeys = new[] { "W", "A", "S", "D", "Space", "Shift", "Ctrl", "Tab", "R", "F", "G", "C" };
+            if (layout.Keys != null)
+            {
+                foreach (var key in layout.Keys.Keys.ToList())
+                {
+                    if (!fpsKeys.Contains(key))
+                    {
+                        layout.Keys[key].IsVisible = false;
+                    }
+                }
+            }
+            
+            return layout;
+        }
+
+        /// <summary>
+        /// デフォルトキーマッピングを作成
+        /// </summary>
+        private Dictionary<string, KeyDefinition> CreateDefaultKeyMappings()
+        {
+            var keys = new Dictionary<string, KeyDefinition>();
+            
+            // 基本的なキーマッピングを定義（簡略版）
+            var basicKeys = new[]
+            {
+                ("W", 150, 50, 87), ("A", 100, 100, 65), ("S", 150, 100, 83), ("D", 200, 100, 68),
+                ("Space", 250, 150, 32), ("Shift", 50, 150, 160), ("Ctrl", 50, 200, 162),
+                ("Tab", 50, 50, 9), ("R", 250, 50, 82), ("F", 300, 100, 70),
+                ("G", 350, 100, 71), ("C", 200, 150, 67)
+            };
+
+            foreach (var (key, x, y, virtualKey) in basicKeys)
+            {
+                keys[key] = new KeyDefinition
+                {
+                    Position = new PositionConfig { X = x, Y = y },
+                    Text = key,
+                    VirtualKey = virtualKey,
+                    IsVisible = true
+                };
+            }
+
+            return keys;
+        }
+
+        /// <summary>
+        /// 埋め込みリソース名を取得
+        /// </summary>
+        private static string GetEmbeddedResourceName(KeyboardProfile profile)
+        {
+            return profile switch
+            {
+                KeyboardProfile.FPSKeyboard => "layouts/fps_keyboard.yaml",
+                _ => "layouts/65_keyboard.yaml"
+            };
         }
 
         /// <summary>
