@@ -79,10 +79,10 @@ git push origin v1.0.0
 ### ビルドエラー
 
 **"Could not execute because the specified command or file was not found"**
-- .NET 8 SDKがインストールされていることを確認
+- .NET 10 SDKがインストールされていることを確認
 
-**"The current .NET SDK does not support targeting .NET 8.0"**
-- .NET 8 SDKをインストール：https://dotnet.microsoft.com/download
+**"The current .NET SDK does not support targeting .NET 10.0"**
+- .NET 10 SDKをインストール：https://dotnet.microsoft.com/download
 
 ### GitHub Actions エラー
 
