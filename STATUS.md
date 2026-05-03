@@ -7,7 +7,7 @@ FPSゲーミング・ストリーミング用のキーボード入力可視化�
 ## 技術仕様
 
 - **プラットフォーム**: Windows専用 (WPF)
-- **開発言語**: C# .NET 8.0
+- **開発言語**: C# .NET 10.0
 - **UI フレームワーク**: WPF (Windows Presentation Foundation)
 - **キー検出**: GetAsyncKeyState() Windows API
 - **更新頻度**: 60FPS (16.67ms間隔)
