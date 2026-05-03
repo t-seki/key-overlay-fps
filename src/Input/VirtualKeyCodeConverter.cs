@@ -18,7 +18,7 @@ namespace KeyOverlayFPS.Input
             return type == typeof(int);
         }
 
-        public object ReadYaml(IParser parser, Type type)
+        public object ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
         {
             var scalar = parser.Consume<Scalar>();
             var value = scalar.Value;
@@ -52,7 +52,7 @@ namespace KeyOverlayFPS.Input
             throw new YamlException($"無効な整数値: {value}");
         }
 
-        public void WriteYaml(IEmitter emitter, object? value, Type type)
+        public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
         {
             if (value is int intValue)
             {
