@@ -159,7 +159,7 @@ currentProfile: TestProfile
         }
 
         [Test]
-        public void SetBackgroundColor_ShouldSetColorName_WhenNotTransparent()
+        public void SetBackgroundColor_ShouldSaveAsArgbHex_WhenNotTransparent()
         {
             // Arrange
             _settingsManager.Load();
@@ -193,7 +193,7 @@ currentProfile: TestProfile
         }
 
         [Test]
-        public void SetForegroundColor_ShouldSetColorName()
+        public void SetForegroundColor_ShouldSaveAsArgbHex()
         {
             // Arrange
             _settingsManager.Load();
@@ -210,7 +210,7 @@ currentProfile: TestProfile
         }
 
         [Test]
-        public void SetHighlightColor_ShouldSetColorName()
+        public void SetHighlightColor_ShouldSaveAsArgbHex()
         {
             // Arrange
             _settingsManager.Load();

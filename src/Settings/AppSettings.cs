@@ -17,7 +17,7 @@ namespace KeyOverlayFPS.Settings
         public double DisplayScale { get; set; } = 1.0;
         public bool IsMouseVisible { get; set; } = true;
         
-        // 色設定（初回起動の既定値。保存形式は #AARRGGBB）
+        // 色設定。既定値の Transparent / White は色名のまま。SettingsManager の Set*Color は #AARRGGBB で保存する（背景の透明のみ "Transparent"）
         public string BackgroundColor { get; set; } = "Transparent";
         public string ForegroundColor { get; set; } = "White";
         public string HighlightColor { get; set; } = "#B400FF00";
