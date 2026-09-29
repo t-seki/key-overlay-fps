@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Windows.Media;
 
 namespace KeyOverlayFPS.Constants
