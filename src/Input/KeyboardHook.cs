@@ -50,12 +50,12 @@ namespace KeyOverlayFPS.Input
         #region イベント
 
         /// <summary>
-        /// キーが押された時に発生するイベント
+        /// キーが押された時に発生するイベント（フックのスレッドで発火する）
         /// </summary>
         public event EventHandler<KeyboardEventArgs>? KeyPressed;
 
         /// <summary>
-        /// キーが離された時に発生するイベント
+        /// キーが離された時に発生するイベント（フックのスレッドで発火する）
         /// </summary>
         public event EventHandler<KeyboardEventArgs>? KeyReleased;
 

@@ -15,6 +15,7 @@ namespace KeyOverlayFPS.Input
 
         private readonly KeyboardHook _keyboardHook;
         private readonly MouseHook _mouseHook;
+        private readonly HookThread _hookThread;
         private readonly ConcurrentDictionary<int, bool> _keyStates;
         private bool _isEnabled = false;
 
@@ -25,7 +26,18 @@ namespace KeyOverlayFPS.Input
         /// <summary>
         /// キー状態が変化した時に発生するイベント
         /// </summary>
+        /// <remarks>
+        /// フックのスレッドで発火する。購読側で UI 要素に触るときは Dispatcher 経由にすること
+        /// </remarks>
         public event EventHandler<KeyStateChangedEventArgs>? KeyStateChanged;
+
+        /// <summary>
+        /// マウスホイールが回転した時に発生するイベント
+        /// </summary>
+        /// <remarks>
+        /// フックのスレッドで発火する。購読側で UI 要素に触るときは Dispatcher 経由にすること
+        /// </remarks>
+        public event EventHandler<MouseWheelEventArgs>? MouseWheelDetected;
 
         #endregion
 
@@ -39,6 +51,7 @@ namespace KeyOverlayFPS.Input
             _keyStates = new ConcurrentDictionary<int, bool>();
             _keyboardHook = new KeyboardHook();
             _mouseHook = new MouseHook();
+            _hookThread = new HookThread("KeyOverlayFPS.InputHook");
             
             // キーボードフックのイベントを購読
             _keyboardHook.KeyPressed += OnKeyPressed;
@@ -47,6 +60,7 @@ namespace KeyOverlayFPS.Input
             // マウスフックのイベントを購読
             _mouseHook.MouseButtonPressed += OnMouseButtonPressed;
             _mouseHook.MouseButtonReleased += OnMouseButtonReleased;
+            _mouseHook.MouseWheelDetected += OnMouseWheelDetected;
         }
 
         /// <summary>
@@ -64,6 +78,9 @@ namespace KeyOverlayFPS.Input
         /// <summary>
         /// キー状態管理を開始
         /// </summary>
+        /// <remarks>
+        /// キーボードとマウスの低レベルフックを、メッセージループ付きの専用スレッドで張る
+        /// </remarks>
         /// <returns>開始に成功した場合true</returns>
         public bool Start()
         {
@@ -74,27 +91,37 @@ namespace KeyOverlayFPS.Input
 
             try
             {
-                bool keyboardSuccess = _keyboardHook.StartHook();
-                bool mouseSuccess = _mouseHook.StartHook();
-                
-                if (keyboardSuccess && mouseSuccess)
+                bool keyboardSuccess = false;
+                bool mouseSuccess = false;
+
+                bool started = _hookThread.Start(
+                    () =>
+                    {
+                        keyboardSuccess = _keyboardHook.StartHook();
+                        mouseSuccess = _mouseHook.StartHook();
+                        return keyboardSuccess && mouseSuccess;
+                    },
+                    () =>
+                    {
+                        // 部分的に成功したフックも含めて解除する（張られていなければ何もしない）
+                        _keyboardHook.StopHook();
+                        _mouseHook.StopHook();
+                    },
+                    HookThread.DefaultTimeout);
+
+                if (started)
                 {
                     _isEnabled = true;
-                    Debug.WriteLine("InputStateManager: 入力状態管理を開始しました");
+                    Logger.Info("InputStateManager: 入力状態管理を開始しました");
                     return true;
                 }
-                else
-                {
-                    Debug.WriteLine($"InputStateManager: フック開始に失敗 - Keyboard: {keyboardSuccess}, Mouse: {mouseSuccess}");
-                    // 部分的に成功したフックを停止
-                    if (keyboardSuccess) _keyboardHook.StopHook();
-                    if (mouseSuccess) _mouseHook.StopHook();
-                    return false;
-                }
+
+                Logger.Error($"InputStateManager: フックの開始に失敗しました - キーボード: {(keyboardSuccess ? "成功" : "失敗")}, マウス: {(mouseSuccess ? "成功" : "失敗")}");
+                return false;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"InputStateManager.Start でエラーが発生: {ex.Message}");
+                Logger.Error("InputStateManager.Start でエラーが発生", ex);
                 return false;
             }
         }
@@ -111,15 +138,15 @@ namespace KeyOverlayFPS.Input
 
             try
             {
-                _keyboardHook.StopHook();
-                _mouseHook.StopHook();
+                // フックはフックのスレッドの上で解除され、スレッドの終了を待つ
+                _hookThread.Stop(HookThread.DefaultTimeout);
                 _keyStates.Clear();
                 _isEnabled = false;
-                Debug.WriteLine("InputStateManager: 入力状態管理を停止しました");
+                Logger.Info("InputStateManager: 入力状態管理を停止しました");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"InputStateManager.Stop でエラーが発生: {ex.Message}");
+                Logger.Error("InputStateManager.Stop でエラーが発生", ex);
             }
         }
 
@@ -257,6 +284,14 @@ namespace KeyOverlayFPS.Input
             }
         }
 
+        /// <summary>
+        /// マウスホイールイベントハンドラー（そのまま転送する）
+        /// </summary>
+        private void OnMouseWheelDetected(object? sender, MouseWheelEventArgs e)
+        {
+            MouseWheelDetected?.Invoke(this, e);
+        }
+
         #endregion
 
         #region DisposableBase実装
@@ -273,7 +308,9 @@ namespace KeyOverlayFPS.Input
             _keyboardHook.KeyReleased -= OnKeyReleased;
             _mouseHook.MouseButtonPressed -= OnMouseButtonPressed;
             _mouseHook.MouseButtonReleased -= OnMouseButtonReleased;
+            _mouseHook.MouseWheelDetected -= OnMouseWheelDetected;
             
+            _hookThread.Dispose();
             _keyboardHook?.Dispose();
             _mouseHook?.Dispose();
         }
