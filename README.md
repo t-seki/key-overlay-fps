@@ -50,14 +50,18 @@ KeyOverlayFPSは、FPSゲームプレイ中のキーボードとマウス入力�
 ### アーキテクチャ
 ```
 src/
+├── App.xaml.cs                 # アプリケーションのエントリ・起動失敗の通知
 ├── MainWindow.xaml.cs          # メインウィンドウ
 ├── Input/                      # 入力システム
-│   ├── BaseHook.cs            # フック基底クラス（IDisposable対応）
+│   ├── BaseHook.cs             # フック基底クラス（DisposableBase の派生）
+│   ├── HookThread.cs           # フック用のメッセージループ付き専用スレッド
 │   ├── KeyboardHook.cs         # Win32 APIキーボードフック
 │   ├── MouseHook.cs            # Win32 APIマウスフック
-│   └── InputStateManager.cs    # 統合入力状態管理
+│   ├── InputStateManager.cs    # 統合入力状態管理
+│   ├── VirtualKeyCodes.cs      # Virtual Key Code 定数定義
+│   └── VirtualKeyCodeConverter.cs # YAML の Virtual Key Code 定数名の読み込み用コンバーター
 ├── Layout/                     # レイアウト管理システム
-│   ├── LayoutManager.cs        # レイアウトの保存・読み込み
+│   ├── LayoutManager.cs        # レイアウトの読み込み（保存はしない）
 │   ├── LayoutConfig.cs         # レイアウト設定データ構造
 │   ├── UIGenerator.cs          # 動的UI生成
 │   ├── KeyboardElementGenerator.cs # キーボード要素生成
@@ -76,8 +80,11 @@ src/
 │   ├── MouseElementManager.cs  # マウス要素管理
 │   ├── ProfileManager.cs       # プロファイル管理
 │   ├── ProfileSwitcher.cs      # プロファイル切替
+│   ├── WindowDragHandler.cs    # ウィンドウのドラッグ操作
 │   ├── BrushFactory.cs         # ブラシ生成ファクトリー
 │   └── UIElementFactory.cs     # UI要素生成ファクトリー
+├── Colors/                     # 色管理
+│   └── SimpleColorManager.cs   # 背景色オプションの管理
 ├── Settings/                   # 設定管理
 │   ├── SettingsManager.cs      # 設定の保存・読み込み
 │   └── AppSettings.cs          # アプリケーション設定モデル
@@ -87,10 +94,12 @@ src/
 │   ├── DisposableBase.cs       # IDisposable基底クラス
 │   └── Logger.cs               # ロギングシステム
 ├── Initialization/             # 初期化システム
+│   ├── InitializationException.cs # 初期化失敗の例外
 │   └── WindowInitializer.cs    # ウィンドウ初期化
 ├── Constants/                  # 定数定義
 │   └── ApplicationConstants.cs # アプリケーション定数
-└── tests/                      # 単体テスト
+
+tests/                          # 単体テスト
 ```
 
 ## 🚀 セットアップ
