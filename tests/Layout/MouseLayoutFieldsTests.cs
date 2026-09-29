@@ -97,6 +97,88 @@ namespace KeyOverlayFPS.Tests.Layout
         }
 
         [Test]
+        public void ImportLayout_ShouldReadOldYamlContainingRemovedKeys()
+        {
+            // 旧版のレイアウトファイル（削除した keySize / directionCanvas.size / isVisible / visualization を含む）
+            const string oldYaml = @"
+global:
+  keySize:
+    width: 26
+    height: 26
+  fontSize: 10
+keys:
+  KeyW:
+    position: { x: 10, y: 20 }
+    text: ""W""
+    virtualKey: VK_W
+window:
+  width: 560
+  height: 160
+  widthWithoutMouse: 490
+mouse:
+  position: { x: 475, y: 20 }
+  buttons:
+    MouseLeft:
+      offset: { x: 3, y: 3 }
+      size: { width: 25, height: 35 }
+      virtualKey: VK_LBUTTON
+  body:
+    offset: { x: 0, y: 0 }
+    size: { width: 60, height: 85 }
+    isVisible: true
+  directionCanvas:
+    offset: { x: 15, y: 50 }
+    size: { width: 30, height: 30 }
+    isVisible: true
+    visualization:
+      circleSize: 15
+      circleColor: ""#FFFFFF""
+      highlightColor: ""#00FF00""
+      highlightDuration: 100
+      threshold: 5.0
+";
+            var directory = Path.Combine(Path.GetTempPath(), "KeyOverlayFPS_Tests_" + Guid.NewGuid().ToString("N")[..8]);
+            Directory.CreateDirectory(directory);
+            try
+            {
+                var path = Path.Combine(directory, "old_layout.yaml");
+                File.WriteAllText(path, oldYaml);
+
+                var layout = new LayoutManager().ImportLayout(path);
+
+                // 知らないキーは無視され、残りのカスタマイズは効く（旧 YAML の body.size 60x85 もそのまま効く）
+                Assert.That(layout.Keys["KeyW"].VirtualKey, Is.EqualTo(VirtualKeyCodes.VK_W));
+                Assert.That(layout.Mouse.Body.Size.Width, Is.EqualTo(60));
+                Assert.That(layout.Mouse.Body.Size.Height, Is.EqualTo(85));
+                Assert.That(layout.Mouse.DirectionCanvas.Offset.X, Is.EqualTo(15));
+                Assert.That(layout.Mouse.DirectionCanvas.Offset.Y, Is.EqualTo(50));
+                Assert.That(layout.Mouse.GetButtonVirtualKeys(),
+                    Is.EqualTo(new List<(string, int)> { ("MouseLeft", VirtualKeyCodes.VK_LBUTTON) }));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [Test]
+        public void GenerateMouseElements_ShouldNotCreateBody_WhenBodyIsNotVisible()
+        {
+            var layout = LoadEmbedded(KeyboardProfile.FullKeyboard65).CurrentLayout!;
+            layout.Mouse.Body.IsVisible = false;
+
+            var canvas = new Canvas();
+            MouseElementGenerator.GenerateMouseElements(canvas, layout);
+            var locator = new UIElementLocator();
+            locator.BuildCache(canvas);
+
+            Assert.That(locator.FindElement<Border>("MouseBody"), Is.Null);
+            // 本体以外は生成される
+            Assert.That(locator.FindElement<Border>("MouseLeft"), Is.Not.Null);
+            Assert.That(locator.FindElement<Canvas>("MouseDirectionCanvas"), Is.Not.Null);
+        }
+
+        [Test]
         public void GenerateMouseElements_ShouldUseBodySizeAndOffsets_AndMatchPositionsAfterProfileSwitch()
         {
             var layoutManager = LoadEmbedded(KeyboardProfile.FullKeyboard65);

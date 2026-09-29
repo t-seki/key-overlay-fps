@@ -30,14 +30,17 @@ namespace KeyOverlayFPS.Layout
             bool isMouseVisible = settings?.IsMouseVisible ?? true;
             var visibility = isMouseVisible ? Visibility.Visible : Visibility.Collapsed;
 
-            // マウス本体を生成
-            var mouseBody = CreateMouseBody(layout.Mouse);
-            mouseBody.Visibility = visibility;
-            // 位置の計算は MouseElementManager.UpdateMousePositions（プロファイル切替時）と揃える
-            CanvasElementHelper.SetPosition(mouseBody,
-                layout.Mouse.Position.X + layout.Mouse.Body.Offset.X,
-                layout.Mouse.Position.Y + layout.Mouse.Body.Offset.Y);
-            canvas.Children.Add(mouseBody);
+            // マウス本体を生成（body.isVisible が false なら生成しない。ボタンの isVisible と同じ扱い）
+            if (layout.Mouse.Body.IsVisible)
+            {
+                var mouseBody = CreateMouseBody(layout.Mouse);
+                mouseBody.Visibility = visibility;
+                // 位置の計算は MouseElementManager.UpdateMousePositions（プロファイル切替時）と揃える
+                CanvasElementHelper.SetPosition(mouseBody,
+                    layout.Mouse.Position.X + layout.Mouse.Body.Offset.X,
+                    layout.Mouse.Position.Y + layout.Mouse.Body.Offset.Y);
+                canvas.Children.Add(mouseBody);
+            }
 
             // マウスボタンを生成
             foreach (var (buttonName, buttonConfig) in layout.Mouse.Buttons)
