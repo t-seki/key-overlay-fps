@@ -32,7 +32,8 @@ namespace KeyOverlayFPS.Input
 
         #region フィールド
 
-        protected IntPtr _hookID = IntPtr.Zero;
+        // フックのスレッドで書き、ほかのスレッドから IsHookActive で読むので volatile にする
+        protected volatile IntPtr _hookID = IntPtr.Zero;
         private bool _disposed = false;
 
         #endregion
@@ -65,6 +66,10 @@ namespace KeyOverlayFPS.Input
         /// <summary>
         /// フックを開始
         /// </summary>
+        /// <remarks>
+        /// 低レベルフックのコールバックは、このメソッドを呼んだスレッドのメッセージループで呼ばれる。
+        /// <see cref="HookThread"/> の上から呼ぶこと
+        /// </remarks>
         public virtual bool StartHook()
         {
             if (IsHookActive)
@@ -107,6 +112,9 @@ namespace KeyOverlayFPS.Input
         /// <summary>
         /// フックを停止
         /// </summary>
+        /// <remarks>
+        /// フックを開始したのと同じ <see cref="HookThread"/> の上から呼ぶ
+        /// </remarks>
         public virtual void StopHook()
         {
             if (!IsHookActive)

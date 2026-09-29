@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using KeyOverlayFPS.Utils;
@@ -57,26 +56,23 @@ namespace KeyOverlayFPS.Input
         #region フィールド
 
         private readonly LowLevelMouseProc _proc;
-        
-        // マウスボタン状態管理
-        private readonly ConcurrentDictionary<int, bool> _buttonStates;
 
         #endregion
 
         #region イベント
 
         /// <summary>
-        /// マウスホイールが回転した時に発生するイベント
+        /// マウスホイールが回転した時に発生するイベント（フックのスレッドで発火する）
         /// </summary>
         public event EventHandler<MouseWheelEventArgs>? MouseWheelDetected;
         
         /// <summary>
-        /// マウスボタンが押された時に発生するイベント
+        /// マウスボタンが押された時に発生するイベント（フックのスレッドで発火する）
         /// </summary>
         public event EventHandler<MouseButtonHookEventArgs>? MouseButtonPressed;
         
         /// <summary>
-        /// マウスボタンが離された時に発生するイベント
+        /// マウスボタンが離された時に発生するイベント（フックのスレッドで発火する）
         /// </summary>
         public event EventHandler<MouseButtonHookEventArgs>? MouseButtonReleased;
 
@@ -90,7 +86,6 @@ namespace KeyOverlayFPS.Input
         public MouseHook()
         {
             _proc = HookCallback;
-            _buttonStates = new ConcurrentDictionary<int, bool>();
         }
 
         #endregion
@@ -111,36 +106,6 @@ namespace KeyOverlayFPS.Input
         protected override Delegate GetHookDelegate()
         {
             return _proc;
-        }
-
-        /// <summary>
-        /// フック停止時の追加処理
-        /// </summary>
-        public override void StopHook()
-        {
-            base.StopHook();
-            _buttonStates.Clear();
-        }
-
-        #endregion
-
-        #region ユーティリティメソッド
-        /// <summary>
-        /// 指定されたマウスボタンが現在押されているかを判定
-        /// </summary>
-        /// <param name="virtualKeyCode">仮想キーコード</param>
-        /// <returns>ボタンが押されている場合true</returns>
-        public bool IsButtonPressed(int virtualKeyCode)
-        {
-            return _buttonStates.TryGetValue(virtualKeyCode, out bool isPressed) && isPressed;
-        }
-        
-        /// <summary>
-        /// 全てのボタン状態をクリア
-        /// </summary>
-        public void ClearAllButtonStates()
-        {
-            _buttonStates.Clear();
         }
 
         #endregion
@@ -168,32 +133,26 @@ namespace KeyOverlayFPS.Input
                             break;
                             
                         case WM_LBUTTONDOWN:
-                            _buttonStates.AddOrUpdate(VirtualKeyCodes.VK_LBUTTON, true, (key, oldValue) => true);
                             MouseButtonPressed?.Invoke(this, new MouseButtonHookEventArgs(VirtualKeyCodes.VK_LBUTTON));
                             break;
                             
                         case WM_LBUTTONUP:
-                            _buttonStates.AddOrUpdate(VirtualKeyCodes.VK_LBUTTON, false, (key, oldValue) => false);
                             MouseButtonReleased?.Invoke(this, new MouseButtonHookEventArgs(VirtualKeyCodes.VK_LBUTTON));
                             break;
                             
                         case WM_RBUTTONDOWN:
-                            _buttonStates.AddOrUpdate(VirtualKeyCodes.VK_RBUTTON, true, (key, oldValue) => true);
                             MouseButtonPressed?.Invoke(this, new MouseButtonHookEventArgs(VirtualKeyCodes.VK_RBUTTON));
                             break;
                             
                         case WM_RBUTTONUP:
-                            _buttonStates.AddOrUpdate(VirtualKeyCodes.VK_RBUTTON, false, (key, oldValue) => false);
                             MouseButtonReleased?.Invoke(this, new MouseButtonHookEventArgs(VirtualKeyCodes.VK_RBUTTON));
                             break;
                             
                         case WM_MBUTTONDOWN:
-                            _buttonStates.AddOrUpdate(VirtualKeyCodes.VK_MBUTTON, true, (key, oldValue) => true);
                             MouseButtonPressed?.Invoke(this, new MouseButtonHookEventArgs(VirtualKeyCodes.VK_MBUTTON));
                             break;
                             
                         case WM_MBUTTONUP:
-                            _buttonStates.AddOrUpdate(VirtualKeyCodes.VK_MBUTTON, false, (key, oldValue) => false);
                             MouseButtonReleased?.Invoke(this, new MouseButtonHookEventArgs(VirtualKeyCodes.VK_MBUTTON));
                             break;
                             
@@ -201,7 +160,6 @@ namespace KeyOverlayFPS.Input
                             // Xボタンの種類を取得（上位16ビット）
                             var xButtonDown = (short)((hookStruct.mouseData >> 16) & 0xFFFF);
                             var xButtonVkDown = xButtonDown == 1 ? VirtualKeyCodes.VK_XBUTTON1 : VirtualKeyCodes.VK_XBUTTON2;
-                            _buttonStates.AddOrUpdate(xButtonVkDown, true, (key, oldValue) => true);
                             MouseButtonPressed?.Invoke(this, new MouseButtonHookEventArgs(xButtonVkDown));
                             break;
                             
@@ -209,7 +167,6 @@ namespace KeyOverlayFPS.Input
                             // Xボタンの種類を取得（上位16ビット）
                             var xButtonUp = (short)((hookStruct.mouseData >> 16) & 0xFFFF);
                             var xButtonVkUp = xButtonUp == 1 ? VirtualKeyCodes.VK_XBUTTON1 : VirtualKeyCodes.VK_XBUTTON2;
-                            _buttonStates.AddOrUpdate(xButtonVkUp, false, (key, oldValue) => false);
                             MouseButtonReleased?.Invoke(this, new MouseButtonHookEventArgs(xButtonVkUp));
                             break;
                     }

@@ -29,14 +29,11 @@ namespace KeyOverlayFPS.UI
         // 入力状態管理（キーボードとマウスを統合）
         private readonly InputStateManager _inputStateManager;
         
-        // マウスホイールフック（ホイールイベントのみ）
-        private readonly MouseHook _mouseWheelHook;
-        
         // スクロール表示タイマー
         private int _scrollUpTimer = 0;
         private int _scrollDownTimer = 0;
         
-        // マウスホイールフラグ（フック検知用）
+        // マウスホイールフラグ（フックのスレッドで立て、タイマーティックで読む）
         private volatile bool _wheelUpDetected = false;
         private volatile bool _wheelDownDetected = false;
         
@@ -79,9 +76,8 @@ namespace KeyOverlayFPS.UI
             // 入力状態管理初期化（キーボードとマウスを統合）
             _inputStateManager = new InputStateManager();
             
-            // マウスホイールフック初期化（ホイールイベントのみ）
-            _mouseWheelHook = new MouseHook();
-            _mouseWheelHook.MouseWheelDetected += OnMouseWheelDetected;
+            // マウスホイールは InputStateManager のマウスフックから受け取る
+            _inputStateManager.MouseWheelDetected += OnMouseWheelDetected;
             
             // マウス移動可視化はMouseDirectionVisualizerで処理
         }
@@ -92,8 +88,17 @@ namespace KeyOverlayFPS.UI
         public void Start()
         {
             _timer.Start();
-            _inputStateManager.Start();
-            _mouseWheelHook.StartHook();
+
+            if (!_inputStateManager.Start())
+            {
+                // 表示は動かないが、ウィンドウとメニューは使えるので起動は続ける
+                Logger.Error("MainWindowInput: 入力の検知を開始できませんでした");
+                MessageBox.Show(
+                    "キーボード・マウスの入力を検知できませんでした。アプリを再起動するか、管理者として実行してください。",
+                    "KeyOverlayFPS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
 
         /// <summary>
@@ -103,7 +108,6 @@ namespace KeyOverlayFPS.UI
         {
             _timer.Stop();
             _inputStateManager.Stop();
-            _mouseWheelHook.StopHook();
         }
 
         /// <summary>
@@ -264,6 +268,9 @@ namespace KeyOverlayFPS.UI
         /// <summary>
         /// マウスホイールフック検知イベントハンドラー
         /// </summary>
+        /// <remarks>
+        /// フックのスレッドで呼ばれるので、UI 要素には触らず volatile のフラグを立てるだけにする
+        /// </remarks>
         private void OnMouseWheelDetected(object? sender, MouseWheelEventArgs e)
         {
             // フラグを設定（タイマーティックで処理される）
@@ -312,8 +319,8 @@ namespace KeyOverlayFPS.UI
         protected override void DisposeManagedResources()
         {
             Stop(); // タイマーとフックを停止
-            _inputStateManager?.Dispose();
-            _mouseWheelHook?.Dispose();
+            _inputStateManager.MouseWheelDetected -= OnMouseWheelDetected;
+            _inputStateManager.Dispose();
         }
 
         #endregion
