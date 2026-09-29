@@ -117,6 +117,8 @@ dotnet test
 dotnet test --filter "TestClass=LayoutManagerTests"
 ```
 
+開発ワークフロー（Supervisor 向けの手順など）は [docs/development.md](docs/development.md) を参照。
+
 ## 💻 使用方法
 
 ### 基本操作
