@@ -76,7 +76,26 @@ namespace KeyOverlayFPS
             catch (Exception ex)
             {
                 Logger.Error("MainWindow 初期化でエラーが発生", ex);
+
+                // コンストラクタが例外で抜けるとウィンドウは閉じられず Closed も来ないため、
+                // ここでフックを解除する。二重 Dispose は DisposableBase が防ぐ
+                DisposeInputAfterInitializationFailure();
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// 初期化の失敗後に入力処理（グローバルフック）を解放する。解放の失敗で元の例外を隠さない
+        /// </summary>
+        private void DisposeInputAfterInitializationFailure()
+        {
+            try
+            {
+                Input.Dispose();
+            }
+            catch (Exception disposeEx)
+            {
+                Logger.Error("初期化失敗後の入力処理の解放でエラーが発生", disposeEx);
             }
         }
         

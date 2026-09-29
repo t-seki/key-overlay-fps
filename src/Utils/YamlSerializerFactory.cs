@@ -23,12 +23,14 @@ namespace KeyOverlayFPS.Utils
 
         /// <summary>
         /// 設定ファイル用のデシリアライザーを作成
-        /// AppSettings など基本的な設定ファイル用
+        /// AppSettings など基本的な設定ファイル用。
+        /// フィールドの削除・改名後も古い設定ファイルを読めるよう、未知のキーは無視する
         /// </summary>
         public static IDeserializer CreateSettingsDeserializer()
         {
             return new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .IgnoreUnmatchedProperties()
                 .Build();
         }
 

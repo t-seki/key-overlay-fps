@@ -364,5 +364,153 @@ currentProfile: TestProfile
             Assert.That(settings.IsTopmost, Is.EqualTo(!initialIsTopmost)); // トグルされた値
             Assert.That(settings.IsMouseVisible, Is.EqualTo(!initialIsMouseVisible)); // トグルされた値
         }
+
+        [Test]
+        public void Load_ShouldIgnoreUnknownKeys()
+        {
+            // Arrange
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
+            File.WriteAllText(settingsFile, @"
+windowLeft: 100
+removedField: something
+displayScale: 1.5
+anotherUnknown:
+  nested: 1
+");
+
+            // Act
+            _settingsManager.Load();
+
+            // Assert
+            Assert.That(_settingsManager.Current.WindowLeft, Is.EqualTo(100));
+            Assert.That(_settingsManager.Current.DisplayScale, Is.EqualTo(1.5));
+            Assert.That(_settingsManager.Recovery, Is.Null);
+            Assert.That(File.Exists(settingsFile + ".bak"), Is.False);
+        }
+
+        [TestCase("windowLeft: [unclosed\ndisplayScale: 1.5\n", TestName = "Load_ShouldBackUpAndRestoreDefaults_WhenYamlIsMalformed")]
+        [TestCase("displayScale: abc\n", TestName = "Load_ShouldBackUpAndRestoreDefaults_WhenTypeMismatches")]
+        public void Load_ShouldBackUpAndRestoreDefaults_WhenFileIsCorrupted(string corruptedYaml)
+        {
+            // Arrange
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
+            var backupFile = settingsFile + ".bak";
+            File.WriteAllText(settingsFile, corruptedYaml);
+
+            // Act
+            _settingsManager.Load();
+
+            // Assert: 元のファイルが .bak に退避されている
+            Assert.That(File.Exists(backupFile), Is.True);
+            Assert.That(File.ReadAllText(backupFile), Is.EqualTo(corruptedYaml));
+
+            // Assert: 復旧の結果が外に出ている
+            var recovery = _settingsManager.Recovery;
+            Assert.That(recovery, Is.Not.Null);
+            Assert.That(recovery!.BackupSucceeded, Is.True);
+            Assert.That(recovery.BackupPath, Is.EqualTo(backupFile));
+            Assert.That(recovery.SettingsPath, Is.EqualTo(settingsFile));
+
+            // Assert: 既定値で作り直した settings.yaml が保存され、読み直せる
+            Assert.That(File.Exists(settingsFile), Is.True);
+            Assert.That(_settingsManager.Current.DisplayScale, Is.EqualTo(1.0));
+            var reloaded = new SettingsManager(_tempDirectory);
+            reloaded.Load();
+            Assert.That(reloaded.Recovery, Is.Null);
+            Assert.That(reloaded.Current.DisplayScale, Is.EqualTo(1.0));
+        }
+
+        [Test]
+        public void Load_ShouldOverwriteExistingBackup_WhenFileIsCorrupted()
+        {
+            // Arrange
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
+            var backupFile = settingsFile + ".bak";
+            File.WriteAllText(backupFile, "old backup");
+            File.WriteAllText(settingsFile, "displayScale: abc\n");
+
+            // Act
+            _settingsManager.Load();
+
+            // Assert
+            Assert.That(File.ReadAllText(backupFile), Is.EqualTo("displayScale: abc\n"));
+            Assert.That(_settingsManager.Recovery!.BackupSucceeded, Is.True);
+        }
+
+        [Test]
+        public void Load_ShouldKeepOriginalAndNotSave_WhenBackupFails()
+        {
+            // Arrange
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
+            var backupFile = settingsFile + ".bak";
+            const string corruptedYaml = "displayScale: abc\n";
+            File.WriteAllText(settingsFile, corruptedYaml);
+            var manager = new SettingsManager(
+                _tempDirectory,
+                (source, destination) => throw new IOException("退避の失敗を模擬"));
+
+            // Act
+            manager.Load();
+
+            // Assert: 既定値をメモリ上で使い、失敗を外に出している
+            Assert.That(manager.Current.DisplayScale, Is.EqualTo(1.0));
+            var recovery = manager.Recovery;
+            Assert.That(recovery, Is.Not.Null);
+            Assert.That(recovery!.BackupSucceeded, Is.False);
+            Assert.That(recovery.BackupPath, Is.EqualTo(backupFile));
+
+            // Assert: 元のファイルは上書きされていない
+            Assert.That(File.ReadAllText(settingsFile), Is.EqualTo(corruptedYaml));
+            Assert.That(File.Exists(backupFile), Is.False);
+
+            // Act & Assert: その後の設定変更でも保存しない
+            manager.UpdateWindowPosition(150, 250);
+            manager.SetCurrentProfile("NewProfile");
+            manager.Save();
+            Assert.That(manager.Current.WindowLeft, Is.EqualTo(150));
+            Assert.That(File.ReadAllText(settingsFile), Is.EqualTo(corruptedYaml));
+        }
+
+        [Test]
+        public void Load_ShouldClearRecovery_WhenLoadedSuccessfullyAfterRecovery()
+        {
+            // Arrange
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
+            File.WriteAllText(settingsFile, "displayScale: abc\n");
+            _settingsManager.Load();
+            Assert.That(_settingsManager.Recovery, Is.Not.Null);
+
+            // Act: 既定値で作り直したファイルを読み直す
+            _settingsManager.Load();
+
+            // Assert
+            Assert.That(_settingsManager.Recovery, Is.Null);
+        }
+
+        [Test]
+        public void Load_ShouldResumeSaving_WhenReloadedSuccessfullyAfterBackupFailure()
+        {
+            // Arrange: 退避に失敗して保存が止まった状態にする
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
+            File.WriteAllText(settingsFile, "displayScale: abc\n");
+            var manager = new SettingsManager(
+                _tempDirectory,
+                (source, destination) => throw new IOException("退避の失敗を模擬"));
+            manager.Load();
+            Assert.That(manager.Recovery!.BackupSucceeded, Is.False);
+
+            // 正常なファイルに置き換えて読み直す
+            File.WriteAllText(settingsFile, "displayScale: 1.5\n");
+            manager.Load();
+            Assert.That(manager.Recovery, Is.Null);
+
+            // Act
+            manager.SetDisplayScale(2.0);
+
+            // Assert: 保存が再開している
+            var reloaded = new SettingsManager(_tempDirectory);
+            reloaded.Load();
+            Assert.That(reloaded.Current.DisplayScale, Is.EqualTo(2.0));
+        }
     }
 }

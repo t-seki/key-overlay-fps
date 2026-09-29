@@ -18,6 +18,17 @@ namespace KeyOverlayFPS.Settings
         private readonly string _settingsPath;
         private readonly ISerializer _serializer;
         private readonly IDeserializer _deserializer;
+        private readonly Action<string, string> _moveFile;
+
+        /// <summary>
+        /// 壊れた設定ファイルの退避に失敗し、元のファイルを守るために保存を止めているかどうか
+        /// </summary>
+        private bool _saveSuppressed;
+
+        /// <summary>
+        /// 保存を止めていることを警告ログに出したかどうか（設定を変えるたびに出さないため）
+        /// </summary>
+        private bool _saveSuppressedWarned;
 
         /// <summary>
         /// 設定変更時のイベント
@@ -33,6 +44,12 @@ namespace KeyOverlayFPS.Settings
         }
 
         /// <summary>
+        /// 直近の <see cref="Load"/> で壊れた設定ファイルを検出し、既定値で復旧したときの結果。
+        /// 復旧していなければ null
+        /// </summary>
+        public SettingsRecoveryInfo? Recovery { get; private set; }
+
+        /// <summary>
         /// コンストラクタ。設定ディレクトリは %APPDATA%\KeyOverlayFPS を使う
         /// </summary>
         public SettingsManager()
@@ -45,7 +62,18 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         /// <param name="settingsDirectory">settings.yaml を置くディレクトリ</param>
         public SettingsManager(string settingsDirectory)
+            : this(settingsDirectory, (source, destination) => File.Move(source, destination, overwrite: true))
         {
+        }
+
+        /// <summary>
+        /// コンストラクタ。設定ディレクトリと、壊れた設定ファイルを退避する処理を指定する（テストでの差し替え用）
+        /// </summary>
+        /// <param name="settingsDirectory">settings.yaml を置くディレクトリ</param>
+        /// <param name="moveFile">ファイルを移動する処理（移動元, 移動先）。移動先が既にあれば上書きすること</param>
+        public SettingsManager(string settingsDirectory, Action<string, string> moveFile)
+        {
+            _moveFile = moveFile ?? throw new ArgumentNullException(nameof(moveFile));
             var appFolder = settingsDirectory;
 
             if (!Directory.Exists(appFolder))
@@ -66,13 +94,31 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void Load()
         {
+            Recovery = null;
+            _saveSuppressed = false;
+            _saveSuppressedWarned = false;
+
             try
             {
                 if (File.Exists(_settingsPath))
                 {
                     Logger.Info($"設定ファイルが存在、読み込み中: {_settingsPath}");
                     var yaml = File.ReadAllText(_settingsPath);
-                    _settings = _deserializer.Deserialize<AppSettings>(yaml) ?? new AppSettings();
+
+                    AppSettings? loaded;
+                    try
+                    {
+                        loaded = _deserializer.Deserialize<AppSettings>(yaml);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 構文エラーや型の不一致など。退避して既定値で起動する
+                        Logger.Error("設定ファイルのデシリアライズに失敗、退避して既定値で復旧する", ex);
+                        RecoverFromCorruptedFile();
+                        return;
+                    }
+
+                    _settings = loaded ?? new AppSettings();
                     Logger.Info("設定デシリアライズ完了");
                 }
                 else
@@ -91,10 +137,49 @@ namespace KeyOverlayFPS.Settings
         }
 
         /// <summary>
-        /// 設定を保存する
+        /// 壊れた設定ファイルを settings.yaml.bak に退避し、既定値で設定を作り直す。
+        /// 退避に失敗したときは元のファイルを上書きしないよう、既定値をメモリ上だけで使い、以後の保存を止める
+        /// </summary>
+        private void RecoverFromCorruptedFile()
+        {
+            var backupPath = _settingsPath + ".bak";
+
+            try
+            {
+                _moveFile(_settingsPath, backupPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"壊れた設定ファイルの退避に失敗、既定値をメモリ上だけで使い保存しない: {backupPath}", ex);
+                _saveSuppressed = true;
+                _settings = CreateSettingsFromLayout();
+                Recovery = new SettingsRecoveryInfo(_settingsPath, backupPath, backupSucceeded: false);
+                return;
+            }
+
+            Logger.Info($"壊れた設定ファイルを退避: {backupPath}");
+            Recovery = new SettingsRecoveryInfo(_settingsPath, backupPath, backupSucceeded: true);
+
+            // ファイルが無いときの初回起動と同じ経路
+            _settings = CreateSettingsFromLayout();
+            Save();
+        }
+
+        /// <summary>
+        /// 設定を保存する。壊れた設定ファイルの退避に失敗したセッションでは何もしない
         /// </summary>
         public void Save()
         {
+            if (_saveSuppressed)
+            {
+                if (!_saveSuppressedWarned)
+                {
+                    Logger.Warning("壊れた設定ファイルを退避できなかったため、設定を保存しない");
+                    _saveSuppressedWarned = true;
+                }
+                return;
+            }
+
             try
             {
                 var yaml = _serializer.Serialize(_settings);
@@ -245,6 +330,40 @@ namespace KeyOverlayFPS.Settings
         private static bool ColorsAreEqual(Color color1, Color color2)
         {
             return color1.R == color2.R && color1.G == color2.G && color1.B == color2.B;
+        }
+    }
+
+    /// <summary>
+    /// 壊れた設定ファイルを検出して既定値で復旧したときの結果
+    /// </summary>
+    public sealed class SettingsRecoveryInfo
+    {
+        /// <summary>
+        /// 設定ファイルのパス
+        /// </summary>
+        public string SettingsPath { get; }
+
+        /// <summary>
+        /// 壊れた設定ファイルの退避先のパス
+        /// </summary>
+        public string BackupPath { get; }
+
+        /// <summary>
+        /// 退避に成功したかどうか。失敗したときは元のファイルがそのまま残り、このセッションでは設定を保存しない
+        /// </summary>
+        public bool BackupSucceeded { get; }
+
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="settingsPath">設定ファイルのパス</param>
+        /// <param name="backupPath">退避先のパス</param>
+        /// <param name="backupSucceeded">退避に成功したかどうか</param>
+        public SettingsRecoveryInfo(string settingsPath, string backupPath, bool backupSucceeded)
+        {
+            SettingsPath = settingsPath;
+            BackupPath = backupPath;
+            BackupSucceeded = backupSucceeded;
         }
     }
 }
