@@ -10,7 +10,6 @@ KeyOverlayFPS is a Windows WPF application that provides real-time keyboard and 
 - Mouse input visualization with 16-directional movement tracking
 - Customizable layouts and themes
 - YAML-based configuration management
-- Layout editor with live preview
 
 ## Development Best Practices
 
