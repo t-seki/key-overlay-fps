@@ -55,8 +55,6 @@ namespace KeyOverlayFPS.Tests
 
             Assert.That(importedLayout, Is.Not.Null);
             Assert.That(importedLayout.Global.FontSize, Is.EqualTo(originalLayout.Global.FontSize));
-            Assert.That(importedLayout.Global.KeySize.Width, Is.EqualTo(originalLayout.Global.KeySize.Width));
-            Assert.That(importedLayout.Global.KeySize.Height, Is.EqualTo(originalLayout.Global.KeySize.Height));
             Assert.That(importedLayout.Global.BackgroundColor, Is.EqualTo(originalLayout.Global.BackgroundColor));
             Assert.That(importedLayout.Keys.Count, Is.EqualTo(originalLayout.Keys.Count));
         }
@@ -165,7 +163,6 @@ keys:
                 Global = new GlobalSettings
                 {
                     FontSize = 12,
-                    KeySize = new SizeConfig { Width = 30, Height = 30 },
                     BackgroundColor = "#123456",
                     HighlightColor = "#789ABC"
                 },
@@ -201,7 +198,6 @@ keys:
                 {
                     FontSize = 14,
                     FontFamily = "Consolas",
-                    KeySize = new SizeConfig { Width = 28, Height = 28 },
                     BackgroundColor = "#FF0000",
                     HighlightColor = "#00FF00",
                     ForegroundColor = "#0000FF"
@@ -235,19 +231,19 @@ keys:
                 Mouse = new MouseSettings
                 {
                     Position = new PositionConfig { X = 290, Y = 20 },
+                    Body = new MouseElementConfig
+                    {
+                        Offset = new PositionConfig { X = 1, Y = 2 },
+                        Size = new SizeConfig { Width = 70, Height = 110 }
+                    },
+                    Buttons = new Dictionary<string, ButtonConfig>
+                    {
+                        ["LeftClick"] = new ButtonConfig { VirtualKey = 0x01 },
+                        ["ScrollUp"] = new ButtonConfig { IsVisible = false }
+                    },
                     DirectionCanvas = new MouseDirectionCanvasConfig
                     {
-                        Offset = new PositionConfig { X = 15, Y = 50 },
-                        Size = new SizeConfig { Width = 30, Height = 30 },
-                        IsVisible = true,
-                        Visualization = new DirectionVisualizationConfig
-                        {
-                            CircleSize = 25,
-                            CircleColor = "#FFFF00",
-                            HighlightColor = "#FF00FF",
-                            HighlightDuration = 200,
-                            Threshold = 3.0
-                        }
+                        Offset = new PositionConfig { X = 15, Y = 50 }
                     }
                 }
             };
@@ -258,8 +254,6 @@ keys:
             // Global settings
             Assert.That(actual.Global.FontSize, Is.EqualTo(expected.Global.FontSize));
             Assert.That(actual.Global.FontFamily, Is.EqualTo(expected.Global.FontFamily));
-            Assert.That(actual.Global.KeySize.Width, Is.EqualTo(expected.Global.KeySize.Width));
-            Assert.That(actual.Global.KeySize.Height, Is.EqualTo(expected.Global.KeySize.Height));
             Assert.That(actual.Global.BackgroundColor, Is.EqualTo(expected.Global.BackgroundColor));
             Assert.That(actual.Global.HighlightColor, Is.EqualTo(expected.Global.HighlightColor));
             Assert.That(actual.Global.ForegroundColor, Is.EqualTo(expected.Global.ForegroundColor));
@@ -296,23 +290,13 @@ keys:
             Assert.That(actual.Mouse.Position.Y, Is.EqualTo(expected.Mouse.Position.Y));
             // IsVisibleプロパティは削除済み - マウス要素の存在自体が表示を意味する
             
-            if (expected.Mouse.DirectionCanvas != null && actual.Mouse.DirectionCanvas != null)
-            {
-                Assert.That(actual.Mouse.DirectionCanvas.Offset.X, Is.EqualTo(expected.Mouse.DirectionCanvas.Offset.X));
-                Assert.That(actual.Mouse.DirectionCanvas.Offset.Y, Is.EqualTo(expected.Mouse.DirectionCanvas.Offset.Y));
-                Assert.That(actual.Mouse.DirectionCanvas.Size.Width, Is.EqualTo(expected.Mouse.DirectionCanvas.Size.Width));
-                Assert.That(actual.Mouse.DirectionCanvas.Size.Height, Is.EqualTo(expected.Mouse.DirectionCanvas.Size.Height));
-                Assert.That(actual.Mouse.DirectionCanvas.IsVisible, Is.EqualTo(expected.Mouse.DirectionCanvas.IsVisible));
-                
-                if (expected.Mouse.DirectionCanvas.Visualization != null && actual.Mouse.DirectionCanvas.Visualization != null)
-                {
-                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.CircleSize, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.CircleSize));
-                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.CircleColor, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.CircleColor));
-                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.HighlightColor, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.HighlightColor));
-                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.HighlightDuration, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.HighlightDuration));
-                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.Threshold, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.Threshold));
-                }
-            }
+            Assert.That(actual.Mouse.DirectionCanvas.Offset.X, Is.EqualTo(expected.Mouse.DirectionCanvas.Offset.X));
+            Assert.That(actual.Mouse.DirectionCanvas.Offset.Y, Is.EqualTo(expected.Mouse.DirectionCanvas.Offset.Y));
+            Assert.That(actual.Mouse.Body.Offset.X, Is.EqualTo(expected.Mouse.Body.Offset.X));
+            Assert.That(actual.Mouse.Body.Offset.Y, Is.EqualTo(expected.Mouse.Body.Offset.Y));
+            Assert.That(actual.Mouse.Body.Size.Width, Is.EqualTo(expected.Mouse.Body.Size.Width));
+            Assert.That(actual.Mouse.Body.Size.Height, Is.EqualTo(expected.Mouse.Body.Size.Height));
+            Assert.That(actual.Mouse.GetButtonVirtualKeys(), Is.EqualTo(expected.Mouse.GetButtonVirtualKeys()));
         }
     }
 }

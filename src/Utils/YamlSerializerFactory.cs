@@ -47,12 +47,14 @@ namespace KeyOverlayFPS.Utils
 
         /// <summary>
         /// レイアウトファイル用のデシリアライザーを作成
-        /// LayoutConfig など VirtualKeyCode を含むレイアウトファイル用
+        /// LayoutConfig など VirtualKeyCode を含むレイアウトファイル用。
+        /// フィールドの削除後も旧版のレイアウトファイルを読めるよう、未知のキーは無視する
         /// </summary>
         public static IDeserializer CreateLayoutDeserializer()
         {
             return new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .IgnoreUnmatchedProperties()
                 .WithTypeConverter(new VirtualKeyCodeConverter())
                 .Build();
         }

@@ -6,9 +6,6 @@ profile:
   createdAt: 2025-01-27T00:00:00Z
 
 global:
-  keySize:
-    width: 26
-    height: 26
   fontSize: 10
   fontFamily: ""
   backgroundColor: "#2A2A2A"
@@ -547,15 +544,7 @@ mouse:
       isVisible: false  # スクロール時のみ一時的に表示
   body:
     offset: { x: 0, y: 0 }
-    size: { width: 60, height: 85 }
+    size: { width: 60, height: 100 }
     isVisible: true
   directionCanvas:
     offset: { x: 15, y: 50 }
-    size: { width: 30, height: 30 }
-    isVisible: true
-    visualization:
-      circleSize: 15
-      circleColor: "#FFFFFF"
-      highlightColor: "#00FF00"
-      highlightDuration: 100
-      threshold: 5.0

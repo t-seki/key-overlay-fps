@@ -226,7 +226,6 @@ namespace KeyOverlayFPS.Layout
                     BackgroundColor = "Transparent",
                     ForegroundColor = "White",
                     HighlightColor = "Green",
-                    KeySize = new SizeConfig { Width = 50, Height = 50 },
                     ShiftDisplayEnabled = true
                 },
                 Window = new WindowSettings
@@ -241,13 +240,7 @@ namespace KeyOverlayFPS.Layout
                     Position = new PositionConfig { X = 800, Y = 50 },
                     DirectionCanvas = new MouseDirectionCanvasConfig
                     {
-                        Offset = new PositionConfig { X = 0, Y = 70 },
-                        Size = new SizeConfig { Width = 200, Height = 150 },
-                        Visualization = new DirectionVisualizationConfig
-                        {
-                            Threshold = 5.0,
-                            HighlightDuration = 500
-                        }
+                        Offset = new PositionConfig { X = 0, Y = 70 }
                     }
                 }
             };
@@ -412,24 +405,8 @@ namespace KeyOverlayFPS.Layout
             if (layout.Global.FontSize <= 0)
                 throw new InvalidOperationException("フォントサイズは1以上である必要があります");
 
-            if (layout.Global.KeySize.Width <= 0 || layout.Global.KeySize.Height <= 0)
-                throw new InvalidOperationException("キーサイズは0より大きい値である必要があります");
-
             if (layout.Window.Width <= 0 || layout.Window.Height <= 0)
                 throw new InvalidOperationException("ウィンドウサイズは0より大きい値である必要があります");
-
-            // マウス設定の検証
-            if (layout.Mouse != null)
-            {
-                if (layout.Mouse.DirectionCanvas?.Visualization != null)
-                {
-                    if (layout.Mouse.DirectionCanvas.Visualization.Threshold < 0)
-                        throw new InvalidOperationException("マウス移動感度は0以上である必要があります");
-
-                    if (layout.Mouse.DirectionCanvas.Visualization.HighlightDuration < 0)
-                        throw new InvalidOperationException("ハイライト継続時間は0以上である必要があります");
-                }
-            }
         }
     }
 }

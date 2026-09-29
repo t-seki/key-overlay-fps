@@ -39,6 +39,19 @@ namespace KeyOverlayFPS.UI
         public static bool IsMouseElement(string elementName) => MouseElements.Names.Contains(elementName);
 
         /// <summary>
+        /// 要素がマウス要素かどうか判定（レイアウトの mouse.buttons のボタン名も含める）
+        /// YAML でボタン名を変えても、そのボタンをマウス要素として扱うため
+        /// </summary>
+        /// <param name="elementName">要素名</param>
+        /// <param name="mouseSettings">現在のレイアウトのマウス設定（無ければ固定の名前だけで判定）</param>
+        /// <returns>マウス要素なら true</returns>
+        public static bool IsMouseElement(string elementName, MouseSettings? mouseSettings)
+        {
+            if (IsMouseElement(elementName)) return true;
+            return mouseSettings?.Buttons?.ContainsKey(elementName) == true;
+        }
+
+        /// <summary>
         /// マウス要素の可視性を設定
         /// </summary>
         public static void SetMouseElementVisibility(UIElement element, bool isMouseVisible)

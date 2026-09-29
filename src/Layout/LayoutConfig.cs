@@ -113,43 +113,43 @@ namespace KeyOverlayFPS.Layout
         /// <summary>
         /// マウス本体設定
         /// </summary>
-        public MouseElementConfig Body { get; set; } = new();
+        public MouseElementConfig Body { get; set; } = new()
+        {
+            Size = new SizeConfig { Width = DefaultBodyWidth, Height = DefaultBodyHeight }
+        };
+
+        /// <summary>
+        /// マウス本体の既定の幅（YAML に body が無いときに使う）
+        /// </summary>
+        public const double DefaultBodyWidth = 60;
+
+        /// <summary>
+        /// マウス本体の既定の高さ（YAML に body が無いときに使う）
+        /// </summary>
+        public const double DefaultBodyHeight = 100;
+
+        /// <summary>
+        /// 仮想キーコードを持つボタンの名前とキーコードを列挙する
+        /// virtualKey を持たないボタン（ScrollUp / ScrollDown など）は含めない
+        /// </summary>
+        /// <returns>ボタン名と仮想キーコードの組</returns>
+        public IEnumerable<(string Name, int VirtualKey)> GetButtonVirtualKeys()
+        {
+            if (Buttons == null) yield break;
+
+            foreach (var (name, button) in Buttons)
+            {
+                if (button != null && button.VirtualKey > 0)
+                {
+                    yield return (name, button.VirtualKey);
+                }
+            }
+        }
 
         /// <summary>
         /// 方向表示キャンバス設定
         /// </summary>
         public MouseDirectionCanvasConfig DirectionCanvas { get; set; } = new();
-    }
-
-    /// <summary>
-    /// 方向可視化設定
-    /// </summary>
-    public class DirectionVisualizationConfig
-    {
-        /// <summary>
-        /// 円のサイズ
-        /// </summary>
-        public double CircleSize { get; set; } = 20;
-
-        /// <summary>
-        /// 基準円の色
-        /// </summary>
-        public string CircleColor { get; set; } = "#FFFFFF";
-
-        /// <summary>
-        /// ハイライト色
-        /// </summary>
-        public string HighlightColor { get; set; } = "#00FF00";
-
-        /// <summary>
-        /// ハイライト継続時間（ミリ秒）
-        /// </summary>
-        public double HighlightDuration { get; set; } = 100;
-
-        /// <summary>
-        /// 移動感度（ピクセル）
-        /// </summary>
-        public double Threshold { get; set; } = 5.0;
     }
 
     /// <summary>
@@ -175,13 +175,14 @@ namespace KeyOverlayFPS.Layout
 
     /// <summary>
     /// マウス方向表示キャンバス設定
+    /// サイズと表示内容は定数（ApplicationConstants.MouseVisualization）で決まり、YAML では位置だけを指定する
     /// </summary>
-    public class MouseDirectionCanvasConfig : MouseElementConfig
+    public class MouseDirectionCanvasConfig
     {
         /// <summary>
-        /// 方向可視化設定
+        /// 相対位置（マウス位置からのオフセット）
         /// </summary>
-        public DirectionVisualizationConfig Visualization { get; set; } = new();
+        public PositionConfig Offset { get; set; } = new();
     }
 
     /// <summary>
@@ -272,11 +273,6 @@ namespace KeyOverlayFPS.Layout
     /// </summary>
     public class GlobalSettings
     {
-        /// <summary>
-        /// デフォルトキーサイズ
-        /// </summary>
-        public SizeConfig KeySize { get; set; } = new() { Width = 26, Height = 26 };
-
         /// <summary>
         /// デフォルトフォントサイズ
         /// </summary>
