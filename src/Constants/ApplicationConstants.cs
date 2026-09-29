@@ -10,7 +10,7 @@ namespace KeyOverlayFPS.Constants
     public static class ApplicationConstants
     {
         /// <summary>
-        /// ファイルパス関連の定数
+        /// レイアウトファイルのディレクトリ名・ファイル名の定数
         /// </summary>
         public static class Paths
         {
@@ -20,14 +20,14 @@ namespace KeyOverlayFPS.Constants
             public const string LayoutsDirectory = "layouts";
             
             /// <summary>
-            /// 65%キーボードレイアウトファイルパス
+            /// 65%キーボードレイアウトのファイル名
             /// </summary>
-            public static string Keyboard65Layout => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LayoutsDirectory, "65_keyboard.yaml");
-            
+            public const string Keyboard65LayoutFileName = "65_keyboard.yaml";
+
             /// <summary>
-            /// FPSキーボードレイアウトファイルパス
+            /// FPSキーボードレイアウトのファイル名
             /// </summary>
-            public static string FpsLayout => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LayoutsDirectory, "fps_keyboard.yaml");
+            public const string FpsLayoutFileName = "fps_keyboard.yaml";
         }
         
         /// <summary>
