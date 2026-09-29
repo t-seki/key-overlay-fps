@@ -93,9 +93,9 @@ namespace KeyOverlayFPS.Tests.Layout
         }
 
         [Test]
-        public void LoadLayout_WithEmbeddedResources_ShouldSucceed()
+        public void LoadLayout_WithDefaultConstructor_ShouldLoadBothProfiles()
         {
-            // Arrange
+            // 既定コンストラクタ（外部ファイルか埋め込みかは環境次第）で両プロファイルが読めること
             var layoutManager = new LayoutManager();
 
             // Act & Assert - 65%キーボードレイアウト
