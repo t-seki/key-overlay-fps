@@ -41,6 +41,11 @@ namespace KeyOverlayFPS.UI
         public bool IsMouseVisible => _settingsManager.Current.IsMouseVisible;
 
         /// <summary>
+        /// 最前面表示の設定値
+        /// </summary>
+        public bool IsTopmost => _settingsManager.Current.IsTopmost;
+
+        /// <summary>
         /// ProfileSwitcherを設定（後から注入）
         /// </summary>
         public ProfileSwitcher? ProfileSwitcher { get; set; }
@@ -293,22 +298,22 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         public void ApplySettingsOverride()
         {
-            var settings = _settingsManager.Current;
-            
-            // マウス可視性のオーバーライド
+            ApplyDisplaySettings();
+
+            // ウィンドウ設定（位置・最前面）のオーバーライド
+            ApplyWindowSettings(_settingsManager.Current);
+        }
+
+        /// <summary>
+        /// 表示に関わる設定（マウス表示・スケールとウィンドウサイズ・文字色・背景色）を適用する。
+        /// ウィンドウ位置は終了時にしか保存されないため、ここでは再適用しない。
+        /// </summary>
+        public void ApplyDisplaySettings()
+        {
             UpdateMouseVisibility();
-            
-            // 表示スケールのオーバーライド
             ApplyDisplayScale();
-            
-            // 色設定のオーバーライド
             UpdateAllTextForeground();
-            
-            // ウィンドウ設定のオーバーライド
-            ApplyWindowSettings(settings);
-            
-            // 背景色設定のオーバーライド
-            ApplyBackgroundSettings(settings);
+            ApplyBackgroundSettings(_settingsManager.Current);
         }
     }
 }

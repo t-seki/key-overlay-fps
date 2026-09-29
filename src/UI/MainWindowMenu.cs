@@ -239,7 +239,7 @@ namespace KeyOverlayFPS.UI
             // 直接参照で更新
             if (_topmostMenuItem != null)
             {
-                _topmostMenuItem.IsChecked = _window.Topmost;
+                _topmostMenuItem.IsChecked = _settings.IsTopmost;
             }
             
             if (_mouseVisibilityMenuItem != null)

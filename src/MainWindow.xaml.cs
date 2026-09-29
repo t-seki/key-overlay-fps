@@ -93,11 +93,11 @@ namespace KeyOverlayFPS
             
             _profileSwitcher = new ProfileSwitcher(
                 ProfileManager,
-                _settingsManager,
                 canvasRebuilder,
                 this,
                 UpdateMousePositions,
-                () => Menu.UpdateMenuCheckedState()
+                () => Menu.UpdateMenuCheckedState(),
+                () => Settings.ApplyDisplaySettings()
             );
             
             // SettingsにProfileSwitcherを設定

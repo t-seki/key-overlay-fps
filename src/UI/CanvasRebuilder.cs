@@ -41,18 +41,14 @@ namespace KeyOverlayFPS.UI
             // 既存のCanvasと置き換え
             window.Content = dynamicCanvas;
 
-            // ウィンドウ背景を設定
-            window.Background = BrushFactory.CreateTransparentBackground();
-
-
             // UI要素検索管理を初期化
             window.ElementLocator?.BuildCache(dynamicCanvas);
 
             // マウス方向可視化を初期化
             window.MouseVisualizer?.Initialize(window.MouseTracker);
 
-            // 注意: 表示スケールの適用はWindowInitializer.ApplyFinalSetup()の
-            // ApplySettingsOverride()で一括して行うため、ここでは行わない
+            // 注意: 背景色・表示スケール等の表示設定は、呼び出し側が
+            // ApplySettingsOverride()（起動時）/ ApplyDisplaySettings()（プロファイル切替時）で適用する
 
             Logger.Info($"キャンバス再構築完了: {profile}");
         }
