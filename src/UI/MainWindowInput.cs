@@ -189,11 +189,14 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private void UpdateMouseKeys()
         {
-            UpdateMouseKey("MouseLeft", VirtualKeyCodes.VK_LBUTTON);
-            UpdateMouseKey("MouseRight", VirtualKeyCodes.VK_RBUTTON);
-            UpdateMouseKey("MouseWheelButton", VirtualKeyCodes.VK_MBUTTON);
-            UpdateMouseKey("MouseButton4", VirtualKeyCodes.VK_XBUTTON1);
-            UpdateMouseKey("MouseButton5", VirtualKeyCodes.VK_XBUTTON2);
+            // レイアウトの mouse.buttons のうち virtualKey を持つボタンだけを更新する
+            var mouse = _layoutManager.CurrentLayout?.Mouse;
+            if (mouse == null) return;
+
+            foreach (var (buttonName, virtualKey) in mouse.GetButtonVirtualKeys())
+            {
+                UpdateMouseKey(buttonName, virtualKey);
+            }
         }
 
         /// <summary>

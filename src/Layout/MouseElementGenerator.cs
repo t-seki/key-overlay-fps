@@ -33,7 +33,10 @@ namespace KeyOverlayFPS.Layout
             // マウス本体を生成
             var mouseBody = CreateMouseBody(layout.Mouse);
             mouseBody.Visibility = visibility;
-            CanvasElementHelper.SetPosition(mouseBody, layout.Mouse.Position.X, layout.Mouse.Position.Y);
+            // 位置の計算は MouseElementManager.UpdateMousePositions（プロファイル切替時）と揃える
+            CanvasElementHelper.SetPosition(mouseBody,
+                layout.Mouse.Position.X + layout.Mouse.Body.Offset.X,
+                layout.Mouse.Position.Y + layout.Mouse.Body.Offset.Y);
             canvas.Children.Add(mouseBody);
 
             // マウスボタンを生成
@@ -50,11 +53,11 @@ namespace KeyOverlayFPS.Layout
             }
 
             // マウス移動可視化キャンバスを生成
-            var directionCanvas = CreateMouseDirectionCanvas(layout.Mouse);
+            var directionCanvas = CreateMouseDirectionCanvas();
             directionCanvas.Visibility = visibility;
             CanvasElementHelper.SetPosition(directionCanvas, 
-                layout.Mouse.Position.X + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetX,
-                layout.Mouse.Position.Y + ApplicationConstants.MouseVisualization.DirectionCanvasOffsetY);
+                layout.Mouse.Position.X + layout.Mouse.DirectionCanvas.Offset.X,
+                layout.Mouse.Position.Y + layout.Mouse.DirectionCanvas.Offset.Y);
             canvas.Children.Add(directionCanvas);
         }
 
@@ -68,7 +71,9 @@ namespace KeyOverlayFPS.Layout
                 throw new ArgumentNullException(nameof(mouseSettings));
             }
             
-            return UIElementFactory.CreateMouseBodyBorder();
+            return UIElementFactory.CreateMouseBodyBorder(
+                mouseSettings.Body.Size.Width,
+                mouseSettings.Body.Size.Height);
         }
 
         /// <summary>
@@ -122,7 +127,7 @@ namespace KeyOverlayFPS.Layout
         /// <summary>
         /// マウス移動可視化キャンバスを作成
         /// </summary>
-        private static Canvas CreateMouseDirectionCanvas(MouseSettings mouseSettings)
+        private static Canvas CreateMouseDirectionCanvas()
         {
             var canvas = new Canvas
             {

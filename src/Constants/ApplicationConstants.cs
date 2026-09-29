@@ -148,16 +148,6 @@ namespace KeyOverlayFPS.Constants
         public static class UILayout
         {
             /// <summary>
-            /// マウス本体の幅
-            /// </summary>
-            public const double MouseBodyWidth = 60.0;
-            
-            /// <summary>
-            /// マウス本体の高さ
-            /// </summary>
-            public const double MouseBodyHeight = 100.0;
-            
-            /// <summary>
             /// キーの角丸半径（X方向）
             /// </summary>
             public const double KeyCornerRadiusX = 28.0;
@@ -292,16 +282,6 @@ namespace KeyOverlayFPS.Constants
             /// 方向表示キャンバスのサイズ
             /// </summary>
             public static double CanvasSize => CircleRadius * 2;
-            
-            /// <summary>
-            /// 方向表示キャンバスのX軸オフセット
-            /// </summary>
-            public const double DirectionCanvasOffsetX = 15.0;
-            
-            /// <summary>
-            /// 方向表示キャンバスのY軸オフセット
-            /// </summary>
-            public const double DirectionCanvasOffsetY = 50.0;
         }
     }
 }

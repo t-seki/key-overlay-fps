@@ -56,13 +56,15 @@ namespace KeyOverlayFPS.UI
         /// <summary>
         /// マウス本体用のBorderを作成
         /// </summary>
-        public static Border CreateMouseBodyBorder()
+        /// <param name="width">幅（レイアウトの mouse.body.size.width）</param>
+        /// <param name="height">高さ（レイアウトの mouse.body.size.height）</param>
+        public static Border CreateMouseBodyBorder(double width, double height)
         {
             return new Border
             {
                 Name = "MouseBody",
-                Width = ApplicationConstants.UILayout.MouseBodyWidth,
-                Height = ApplicationConstants.UILayout.MouseBodyHeight,
+                Width = width,
+                Height = height,
                 BorderBrush = new SolidColorBrush(ApplicationConstants.Colors.MouseBodyBorderColor),
                 BorderThickness = new Thickness(ApplicationConstants.UILayout.MouseBodyBorderThickness),
                 CornerRadius = new CornerRadius(
