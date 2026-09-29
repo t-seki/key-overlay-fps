@@ -58,7 +58,7 @@ namespace KeyOverlayFPS.Tests.Settings
             Assert.That(settings.IsMouseVisible, Is.True);
             Assert.That(settings.BackgroundColor, Is.EqualTo("Transparent"));
             Assert.That(settings.ForegroundColor, Is.EqualTo("White"));
-            Assert.That(settings.HighlightColor, Is.EqualTo("Green"));
+            Assert.That(settings.HighlightColor, Is.EqualTo("#B400FF00"));
             Assert.That(settings.CurrentProfile, Is.EqualTo("FullKeyboard65"));
         }
 
@@ -171,7 +171,7 @@ currentProfile: TestProfile
             _settingsManager.SetBackgroundColor(color, false);
 
             // Assert
-            Assert.That(_settingsManager.Current.BackgroundColor, Is.EqualTo("Red"));
+            Assert.That(_settingsManager.Current.BackgroundColor, Is.EqualTo("#FFFF0000"));
             Assert.That(eventFired, Is.True);
         }
 
@@ -205,7 +205,7 @@ currentProfile: TestProfile
             _settingsManager.SetForegroundColor(color);
 
             // Assert
-            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("Blue"));
+            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("#FF0000FF"));
             Assert.That(eventFired, Is.True);
         }
 
@@ -222,7 +222,7 @@ currentProfile: TestProfile
             _settingsManager.SetHighlightColor(color);
 
             // Assert
-            Assert.That(_settingsManager.Current.HighlightColor, Is.EqualTo("Yellow"));
+            Assert.That(_settingsManager.Current.HighlightColor, Is.EqualTo("#FFFFFF00"));
             Assert.That(eventFired, Is.True);
         }
 
@@ -276,40 +276,20 @@ currentProfile: TestProfile
         }
 
         [Test]
-        public void GetColorNameFromColor_ShouldReturnCorrectColorName_ForKnownColors()
+        public void SetForegroundColor_ShouldSaveAsArgbHex_ForKnownAndCustomColors()
         {
             // Arrange
             _settingsManager.Load();
 
-            // Act & Assert - 複数の色で確認
+            // Act & Assert - 色名には変換せず、常に #AARRGGBB で保存する
             _settingsManager.SetForegroundColor(System.Windows.Media.Colors.White);
-            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("White"));
+            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("#FFFFFFFF"));
 
-            _settingsManager.SetForegroundColor(System.Windows.Media.Colors.Green);
-            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("Green"));
+            _settingsManager.SetForegroundColor(System.Windows.Media.Color.FromRgb(128, 64, 192));
+            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("#FF8040C0"));
 
-            _settingsManager.SetForegroundColor(System.Windows.Media.Colors.Orange);
-            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("Orange"));
-
-            _settingsManager.SetForegroundColor(System.Windows.Media.Colors.Purple);
-            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("Purple"));
-
-            _settingsManager.SetForegroundColor(System.Windows.Media.Colors.Pink);
-            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("Pink"));
-        }
-
-        [Test]
-        public void GetColorNameFromColor_ShouldReturnHexValue_ForUnknownColors()
-        {
-            // Arrange
-            _settingsManager.Load();
-            var customColor = System.Windows.Media.Color.FromRgb(128, 64, 192); // カスタムカラー
-
-            // Act
-            _settingsManager.SetForegroundColor(customColor);
-
-            // Assert
-            Assert.That(_settingsManager.Current.ForegroundColor, Is.EqualTo("#8040C0"));
+            _settingsManager.SetHighlightColor(ApplicationConstants.Colors.DefaultHighlight);
+            Assert.That(_settingsManager.Current.HighlightColor, Is.EqualTo("#B400FF00"));
         }
 
         [Test]
@@ -357,9 +337,9 @@ currentProfile: TestProfile
             Assert.That(settings.WindowLeft, Is.EqualTo(300));
             Assert.That(settings.WindowTop, Is.EqualTo(400));
             Assert.That(settings.DisplayScale, Is.EqualTo(1.5));
-            Assert.That(settings.BackgroundColor, Is.EqualTo("Red"));
-            Assert.That(settings.ForegroundColor, Is.EqualTo("Blue"));
-            Assert.That(settings.HighlightColor, Is.EqualTo("Yellow"));
+            Assert.That(settings.BackgroundColor, Is.EqualTo("#FFFF0000"));
+            Assert.That(settings.ForegroundColor, Is.EqualTo("#FF0000FF"));
+            Assert.That(settings.HighlightColor, Is.EqualTo("#FFFFFF00"));
             Assert.That(settings.CurrentProfile, Is.EqualTo("TestProfile"));
             Assert.That(settings.IsTopmost, Is.EqualTo(!initialIsTopmost)); // トグルされた値
             Assert.That(settings.IsMouseVisible, Is.EqualTo(!initialIsMouseVisible)); // トグルされた値
