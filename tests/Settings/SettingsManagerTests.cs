@@ -15,7 +15,6 @@ namespace KeyOverlayFPS.Tests.Settings
     {
         private SettingsManager _settingsManager;
         private string _tempDirectory;
-        private string _originalAppData;
 
         [SetUp]
         public void SetUp()
@@ -24,19 +23,12 @@ namespace KeyOverlayFPS.Tests.Settings
             _tempDirectory = Path.Combine(Path.GetTempPath(), "KeyOverlayFPS_Tests_" + Guid.NewGuid().ToString("N")[..8]);
             Directory.CreateDirectory(_tempDirectory);
 
-            // AppDataの場所を一時的に変更
-            _originalAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            Environment.SetEnvironmentVariable("APPDATA", _tempDirectory);
-
-            _settingsManager = new SettingsManager();
+            _settingsManager = new SettingsManager(_tempDirectory);
         }
 
         [TearDown]
         public void TearDown()
         {
-            // AppDataの場所を元に戻す
-            Environment.SetEnvironmentVariable("APPDATA", _originalAppData);
-
             // 一時ディレクトリを削除
             if (Directory.Exists(_tempDirectory))
             {
@@ -89,8 +81,7 @@ namespace KeyOverlayFPS.Tests.Settings
         {
             // Arrange
             _settingsManager.Load();
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var expectedPath = Path.Combine(appDataPath, "KeyOverlayFPS", "settings.yaml");
+            var expectedPath = Path.Combine(_tempDirectory, "settings.yaml");
 
             // Act
             _settingsManager.Save();
@@ -103,11 +94,7 @@ namespace KeyOverlayFPS.Tests.Settings
         public void Load_ShouldReadExistingFile_WhenFileExists()
         {
             // Arrange
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var settingsDir = Path.Combine(appDataPath, "KeyOverlayFPS");
-            Directory.CreateDirectory(settingsDir);
-            
-            var settingsFile = Path.Combine(settingsDir, "settings.yaml");
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
             var yamlContent = @"
 windowLeft: 100
 windowTop: 200
@@ -362,7 +349,7 @@ currentProfile: TestProfile
             _settingsManager.Save();
             
             // 新しいインスタンスで読み込み
-            var newSettingsManager = new SettingsManager();
+            var newSettingsManager = new SettingsManager(_tempDirectory);
             newSettingsManager.Load();
 
             // Assert

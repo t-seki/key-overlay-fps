@@ -33,13 +33,21 @@ namespace KeyOverlayFPS.Settings
         }
 
         /// <summary>
-        /// コンストラクタ
+        /// コンストラクタ。設定ディレクトリは %APPDATA%\KeyOverlayFPS を使う
         /// </summary>
         public SettingsManager()
+            : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyOverlayFPS"))
         {
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var appFolder = Path.Combine(appDataPath, "KeyOverlayFPS");
-            
+        }
+
+        /// <summary>
+        /// コンストラクタ。設定ディレクトリを指定する（テストでの隔離用）
+        /// </summary>
+        /// <param name="settingsDirectory">settings.yaml を置くディレクトリ</param>
+        public SettingsManager(string settingsDirectory)
+        {
+            var appFolder = settingsDirectory;
+
             if (!Directory.Exists(appFolder))
             {
                 Directory.CreateDirectory(appFolder);
