@@ -159,7 +159,7 @@ isMouseVisible: true
 isTopmost: true
 backgroundColor: "Transparent"
 foregroundColor: "White"
-highlightColor: "Green"
+highlightColor: "#B400FF00"
 windowLeft: 100
 windowTop: 100
 ```

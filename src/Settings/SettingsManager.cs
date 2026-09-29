@@ -4,7 +4,6 @@ using System.Windows.Media;
 using YamlDotNet.Serialization;
 using KeyOverlayFPS.Utils;
 using KeyOverlayFPS.Constants;
-using KeyOverlayFPS.Layout;
 using KeyOverlayFPS.UI;
 
 namespace KeyOverlayFPS.Settings
@@ -123,9 +122,8 @@ namespace KeyOverlayFPS.Settings
                 }
                 else
                 {
-                    Logger.Info($"設定ファイルが存在しない、65%キーボードYAMLから初期設定を読み込み: {_settingsPath}");
-                    // 65%キーボードYAMLから初期設定を作成
-                    _settings = CreateSettingsFromLayout();
+                    Logger.Info($"設定ファイルが存在しない、既定値で初期設定を作成: {_settingsPath}");
+                    _settings = new AppSettings();
                     Save();
                 }
             }
@@ -152,7 +150,7 @@ namespace KeyOverlayFPS.Settings
             {
                 Logger.Error($"壊れた設定ファイルの退避に失敗、既定値をメモリ上だけで使い保存しない: {backupPath}", ex);
                 _saveSuppressed = true;
-                _settings = CreateSettingsFromLayout();
+                _settings = new AppSettings();
                 Recovery = new SettingsRecoveryInfo(_settingsPath, backupPath, backupSucceeded: false);
                 return;
             }
@@ -161,7 +159,7 @@ namespace KeyOverlayFPS.Settings
             Recovery = new SettingsRecoveryInfo(_settingsPath, backupPath, backupSucceeded: true);
 
             // ファイルが無いときの初回起動と同じ経路
-            _settings = CreateSettingsFromLayout();
+            _settings = new AppSettings();
             Save();
         }
 
@@ -205,35 +203,6 @@ namespace KeyOverlayFPS.Settings
         }
 
         /// <summary>
-        /// 65%キーボードYAMLから初期設定を作成
-        /// </summary>
-        private AppSettings CreateSettingsFromLayout()
-        {
-            try
-            {
-                var layoutManager = new LayoutManager();
-                layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);
-                var layout = layoutManager.CurrentLayout;
-
-                if (layout == null)
-                {
-                    Logger.Warning("レイアウトがnullのため、デフォルト設定を使用");
-                    return new AppSettings();
-                }
-
-                var settings = AppSettings.CreateFromLayout(layout);
-                
-                Logger.Info("65%キーボードYAMLから初期設定を作成完了");
-                return settings;
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("65%キーボードYAMLからの設定作成でエラーが発生、デフォルト設定を使用", ex);
-                return new AppSettings();
-            }
-        }
-
-        /// <summary>
         /// ウィンドウ位置を更新
         /// </summary>
         public void UpdateWindowPosition(double left, double top)
@@ -259,7 +228,7 @@ namespace KeyOverlayFPS.Settings
         public void SetBackgroundColor(Color color, bool transparent)
         {
             UpdateSettingsAndNotify(() => 
-                _settings.BackgroundColor = transparent ? "Transparent" : GetColorNameFromColor(color));
+                _settings.BackgroundColor = transparent ? "Transparent" : color.ToString());
         }
 
         /// <summary>
@@ -267,7 +236,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void SetForegroundColor(Color color)
         {
-            UpdateSettingsAndNotify(() => _settings.ForegroundColor = GetColorNameFromColor(color));
+            UpdateSettingsAndNotify(() => _settings.ForegroundColor = color.ToString());
         }
 
         /// <summary>
@@ -275,7 +244,7 @@ namespace KeyOverlayFPS.Settings
         /// </summary>
         public void SetHighlightColor(Color color)
         {
-            UpdateSettingsAndNotify(() => _settings.HighlightColor = GetColorNameFromColor(color));
+            UpdateSettingsAndNotify(() => _settings.HighlightColor = color.ToString());
         }
 
         /// <summary>
@@ -300,36 +269,6 @@ namespace KeyOverlayFPS.Settings
         public void SetCurrentProfile(string profile)
         {
             UpdateSettingsAndNotify(() => _settings.CurrentProfile = profile);
-        }
-
-
-
-        /// <summary>
-        /// Colorから色名を取得
-        /// </summary>
-        private string GetColorNameFromColor(Color color)
-        {
-            // よく使用される色の名前を返す
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.White)) return "White";
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.Red)) return "Red";
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.Green)) return "Green";
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.Blue)) return "Blue";
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.Yellow)) return "Yellow";
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.Orange)) return "Orange";
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.Purple)) return "Purple";
-            if (ColorsAreEqual(color, System.Windows.Media.Colors.Pink)) return "Pink";
-            if (ColorsAreEqual(color, ApplicationConstants.Colors.DefaultHighlight)) return "LimeGreen";
-            
-            // RGB形式で返す
-            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-        }
-
-        /// <summary>
-        /// 色の比較（アルファ値を無視）
-        /// </summary>
-        private static bool ColorsAreEqual(Color color1, Color color2)
-        {
-            return color1.R == color2.R && color1.G == color2.G && color1.B == color2.B;
         }
     }
 
