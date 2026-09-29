@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using NUnit.Framework;
 using KeyOverlayFPS.Layout;
 
@@ -9,6 +11,87 @@ namespace KeyOverlayFPS.Tests.Layout
     [TestFixture]
     public class EmbeddedLayoutTests
     {
+        private string _tempDirectory = null!;
+
+        // 存在しないディレクトリ（外部ファイルの経路を通さない）
+        private string MissingLayoutsDirectory => Path.Combine(_tempDirectory, "missing_layouts");
+
+        [SetUp]
+        public void SetUp()
+        {
+            _tempDirectory = Path.Combine(Path.GetTempPath(), "KeyOverlayFPS_Tests_" + Guid.NewGuid().ToString("N")[..8]);
+            Directory.CreateDirectory(_tempDirectory);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (Directory.Exists(_tempDirectory))
+            {
+                Directory.Delete(_tempDirectory, true);
+            }
+        }
+
+        [Test]
+        public void LoadLayout_WithoutExternalFile_ShouldUseEmbeddedResource()
+        {
+            var layoutManager = new LayoutManager(MissingLayoutsDirectory, typeof(LayoutManager).Assembly);
+
+            layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);
+            Assert.That(layoutManager.CurrentLayout?.Profile?.Name, Is.EqualTo("65%キーボード"));
+
+            layoutManager.LoadLayout(KeyboardProfile.FPSKeyboard);
+            Assert.That(layoutManager.CurrentLayout?.Profile?.Name, Is.EqualTo("FPSキーボード"));
+        }
+
+        [Test]
+        public void LoadLayout_WithoutExternalFileAndEmbeddedResource_ShouldFallbackToDefault()
+        {
+            // テストのアセンブリはレイアウトのリソースを持たない
+            var layoutManager = new LayoutManager(MissingLayoutsDirectory, typeof(EmbeddedLayoutTests).Assembly);
+
+            layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);
+            Assert.That(layoutManager.CurrentLayout?.Profile?.Name, Is.EqualTo("FullKeyboard65"));
+            Assert.That(layoutManager.CurrentLayout?.Keys, Is.Not.Empty);
+
+            layoutManager.LoadLayout(KeyboardProfile.FPSKeyboard);
+            Assert.That(layoutManager.CurrentLayout?.Profile?.Name, Is.EqualTo("FPSKeyboard"));
+        }
+
+        [Test]
+        public void LoadLayout_WithExternalFile_ShouldPreferExternalFile()
+        {
+            var layoutsDirectory = Path.Combine(_tempDirectory, "layouts");
+            var layout = new LayoutManager().ImportLayout(FindRepoLayout("65_keyboard.yaml"));
+            layout.Profile!.Name = "外部ファイル";
+            LayoutManager.ExportLayout(layout, Path.Combine(layoutsDirectory, "65_keyboard.yaml"));
+            var layoutManager = new LayoutManager(layoutsDirectory, typeof(LayoutManager).Assembly);
+
+            layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);
+
+            Assert.That(layoutManager.CurrentLayout?.Profile?.Name, Is.EqualTo("外部ファイル"));
+        }
+
+        [Test]
+        public void LoadLayout_WithInvalidExternalFile_ShouldFallbackToEmbeddedResource()
+        {
+            var layoutsDirectory = Path.Combine(_tempDirectory, "layouts");
+            Directory.CreateDirectory(layoutsDirectory);
+            File.WriteAllText(Path.Combine(layoutsDirectory, "65_keyboard.yaml"), "invalid yaml content: [[[");
+            var layoutManager = new LayoutManager(layoutsDirectory, typeof(LayoutManager).Assembly);
+
+            layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);
+
+            Assert.That(layoutManager.CurrentLayout?.Profile?.Name, Is.EqualTo("65%キーボード"));
+        }
+
+        private static string FindRepoLayout(string fileName)
+        {
+            // テスト実行ディレクトリから4階層上がってリポジトリのルートに到達
+            var projectRoot = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory))))!;
+            return Path.Combine(projectRoot, "layouts", fileName);
+        }
+
         [Test]
         public void LoadLayout_WithEmbeddedResources_ShouldSucceed()
         {
@@ -27,12 +110,12 @@ namespace KeyOverlayFPS.Tests.Layout
         }
 
         [Test]
-        public void LoadLayout_WhenEmbeddedResourceFails_ShouldFallbackToDefault()
+        public void LoadLayout_WhenResourceMissing_ShouldFallbackToDefaultWithValidSections()
         {
             // Arrange
-            var layoutManager = new LayoutManager();
+            var layoutManager = new LayoutManager(MissingLayoutsDirectory, typeof(EmbeddedLayoutTests).Assembly);
 
-            // Act - 埋め込みリソースが見つからない場合でもデフォルトレイアウトで成功するはず
+            // Act - 外部ファイルも埋め込みリソースも無い場合でもデフォルトレイアウトで成功するはず
             layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);
 
             // Assert
