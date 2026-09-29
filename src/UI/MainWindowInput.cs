@@ -118,6 +118,9 @@ namespace KeyOverlayFPS.UI
             // マウス位置更新
             _mouseTracker.Update();
 
+            // 離放イベントの取りこぼしで押下が残らないよう、実際の状態と照合する
+            _inputStateManager.ReconcileKeyStates();
+
             // キーボード入力更新
             bool isShiftPressed = _inputStateManager.IsKeyPressed(VirtualKeyCodes.VK_LSHIFT) || 
                                   _inputStateManager.IsKeyPressed(VirtualKeyCodes.VK_RSHIFT);
