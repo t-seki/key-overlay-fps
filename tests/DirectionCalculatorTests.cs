@@ -11,56 +11,56 @@ namespace KeyOverlayFPS.Tests
         public void CalculateDirection_East_ReturnsEast()
         {
             var result = DirectionCalculator.CalculateDirection(10, 0);
-            Assert.AreEqual(MouseDirection.East, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.East));
         }
 
         [Test]
         public void CalculateDirection_West_ReturnsWest()
         {
             var result = DirectionCalculator.CalculateDirection(-10, 0);
-            Assert.AreEqual(MouseDirection.West, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.West));
         }
 
         [Test]
         public void CalculateDirection_North_ReturnsNorth()
         {
             var result = DirectionCalculator.CalculateDirection(0, -10);
-            Assert.AreEqual(MouseDirection.North, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.North));
         }
 
         [Test]
         public void CalculateDirection_South_ReturnsSouth()
         {
             var result = DirectionCalculator.CalculateDirection(0, 10);
-            Assert.AreEqual(MouseDirection.South, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.South));
         }
 
         [Test]
         public void CalculateDirection_NorthEast_ReturnsNorthEast()
         {
             var result = DirectionCalculator.CalculateDirection(10, -10);
-            Assert.AreEqual(MouseDirection.NorthEast, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.NorthEast));
         }
 
         [Test]
         public void CalculateDirection_SouthWest_ReturnsSouthWest()
         {
             var result = DirectionCalculator.CalculateDirection(-10, 10);
-            Assert.AreEqual(MouseDirection.SouthWest, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.SouthWest));
         }
 
         [Test]
         public void CalculateDirection_ZeroMovement_ReturnsEast()
         {
             var result = DirectionCalculator.CalculateDirection(0, 0);
-            Assert.AreEqual(MouseDirection.East, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.East));
         }
 
         [Test]
         public void CalculateDirection_VerySmallMovement_ReturnsEast()
         {
             var result = DirectionCalculator.CalculateDirection(0.0001, 0.0001);
-            Assert.AreEqual(MouseDirection.East, result);
+            Assert.That(result, Is.EqualTo(MouseDirection.East));
         }
 
         [TestCase(22.5, MouseDirection.EastNorthEast)]
@@ -82,7 +82,7 @@ namespace KeyOverlayFPS.Tests
         public void GetDirectionFromAngle_ExactAngles_ReturnsCorrectDirection(double angle, MouseDirection expected)
         {
             var result = DirectionCalculator.GetDirectionFromAngle(angle);
-            Assert.AreEqual(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
         [TestCase(11, MouseDirection.East)] // 11°付近はEast (-11.25° ~ +11.25°)
@@ -92,7 +92,7 @@ namespace KeyOverlayFPS.Tests
         public void GetDirectionFromAngle_BorderAngles_ReturnsCorrectDirection(double angle, MouseDirection expected)
         {
             var result = DirectionCalculator.GetDirectionFromAngle(angle);
-            Assert.AreEqual(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
         [TestCase(-90, MouseDirection.South)] // 負の角度
@@ -101,19 +101,19 @@ namespace KeyOverlayFPS.Tests
         public void GetDirectionFromAngle_NormalizedAngles_ReturnsCorrectDirection(double angle, MouseDirection expected)
         {
             var result = DirectionCalculator.GetDirectionFromAngle(angle);
-            Assert.AreEqual(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
         [Test]
         public void GetCenterAngle_AllDirections_ReturnsCorrectAngles()
         {
-            Assert.AreEqual(0, DirectionCalculator.GetCenterAngle(MouseDirection.East));
-            Assert.AreEqual(22.5, DirectionCalculator.GetCenterAngle(MouseDirection.EastNorthEast));
-            Assert.AreEqual(45, DirectionCalculator.GetCenterAngle(MouseDirection.NorthEast));
-            Assert.AreEqual(90, DirectionCalculator.GetCenterAngle(MouseDirection.North));
-            Assert.AreEqual(180, DirectionCalculator.GetCenterAngle(MouseDirection.West));
-            Assert.AreEqual(270, DirectionCalculator.GetCenterAngle(MouseDirection.South));
-            Assert.AreEqual(337.5, DirectionCalculator.GetCenterAngle(MouseDirection.EastSouthEast));
+            Assert.That(DirectionCalculator.GetCenterAngle(MouseDirection.East), Is.EqualTo(0));
+            Assert.That(DirectionCalculator.GetCenterAngle(MouseDirection.EastNorthEast), Is.EqualTo(22.5));
+            Assert.That(DirectionCalculator.GetCenterAngle(MouseDirection.NorthEast), Is.EqualTo(45));
+            Assert.That(DirectionCalculator.GetCenterAngle(MouseDirection.North), Is.EqualTo(90));
+            Assert.That(DirectionCalculator.GetCenterAngle(MouseDirection.West), Is.EqualTo(180));
+            Assert.That(DirectionCalculator.GetCenterAngle(MouseDirection.South), Is.EqualTo(270));
+            Assert.That(DirectionCalculator.GetCenterAngle(MouseDirection.EastSouthEast), Is.EqualTo(337.5));
         }
 
     }
