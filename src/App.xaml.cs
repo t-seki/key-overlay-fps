@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
+using KeyOverlayFPS.Settings;
 using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS
@@ -54,6 +56,82 @@ namespace KeyOverlayFPS
                 Logger.Error("OnStartup中にエラーが発生", ex);
                 throw;
             }
+
+            // StartupUri は使わず、生成の失敗を捕まえられるようにここでウィンドウを作る
+            MainWindow window;
+            try
+            {
+                window = new MainWindow();
+                MainWindow = window;
+                window.Show();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("起動時に致命的なエラーが発生、アプリケーションを終了", ex);
+                MessageBox.Show(
+                    "KeyOverlayFPS を起動できませんでした。\n\n" +
+                    $"詳しくはログを確認してください: {LogFilePath}\n\n" +
+                    $"エラー: {ex.Message}",
+                    "KeyOverlayFPS - 起動エラー",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                // ウィンドウの無いプロセスを残さない
+                Shutdown(1);
+                return;
+            }
+
+            NotifySettingsRecovery(window);
+        }
+
+        /// <summary>
+        /// ログファイルのパス。Logger と同じ場所を指す
+        /// </summary>
+        private static string LogFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log");
+
+        /// <summary>
+        /// 壊れた設定ファイルを既定値で復旧していたら、ウィンドウを表示した後にユーザーへ知らせる
+        /// </summary>
+        /// <param name="window">表示済みのメインウィンドウ</param>
+        private static void NotifySettingsRecovery(MainWindow window)
+        {
+            var recovery = window.SettingsManager.Recovery;
+            if (recovery == null)
+            {
+                return;
+            }
+
+            try
+            {
+                MessageBox.Show(
+                    window,
+                    BuildRecoveryMessage(recovery),
+                    "KeyOverlayFPS - 設定の初期化",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("設定の初期化の通知でエラーが発生", ex);
+            }
+        }
+
+        /// <summary>
+        /// 設定の復旧を知らせる文面を作る
+        /// </summary>
+        /// <param name="recovery">復旧の結果</param>
+        /// <returns>通知の文面</returns>
+        private static string BuildRecoveryMessage(SettingsRecoveryInfo recovery)
+        {
+            if (recovery.BackupSucceeded)
+            {
+                return "設定ファイルを読み込めなかったため、設定を初期化しました。\n\n" +
+                       $"元のファイルは {recovery.BackupPath} に保存しています。";
+            }
+
+            return "設定ファイルを読み込めなかったため、既定の設定で起動しました。\n\n" +
+                   $"元のファイルを {recovery.BackupPath} に退避できなかったため、{recovery.SettingsPath} にそのまま残しています。\n" +
+                   "元のファイルを上書きしないよう、今回の起動中は設定を保存しません。";
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
