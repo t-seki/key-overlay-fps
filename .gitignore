@@ -417,3 +417,6 @@ $RECYCLE.BIN/
 
 # Application specific files
 # (Add any KeyOverlayFPS specific files that shouldn't be tracked)
+
+# Claude Code worktrees
+.claude/worktrees/
