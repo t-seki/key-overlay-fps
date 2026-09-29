@@ -22,6 +22,7 @@ namespace KeyOverlayFPS.Input
         private readonly Func<int, bool> _isKeyDown;
         private readonly Func<long> _getTickMs;
         private bool _isEnabled = false;
+        private bool _hasLoggedReconcileError = false;
 
         #endregion
 
@@ -38,6 +39,11 @@ namespace KeyOverlayFPS.Input
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
 
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
+
+        private const int SM_SWAPBUTTON = 23;
+
         #endregion
 
         #region イベント
@@ -46,7 +52,8 @@ namespace KeyOverlayFPS.Input
         /// キー状態が変化した時に発生するイベント
         /// </summary>
         /// <remarks>
-        /// フックのスレッドで発火する。購読側で UI 要素に触るときは Dispatcher 経由にすること
+        /// フックのスレッドで発火する。<see cref="ReconcileKeyStates"/> が離放を補ったときは、それを呼んだスレッド（UI スレッド）からも発火する。
+        /// 購読側で UI 要素に触るときは Dispatcher 経由にすること
         /// </remarks>
         public event EventHandler<KeyStateChangedEventArgs>? KeyStateChanged;
 
@@ -236,7 +243,12 @@ namespace KeyOverlayFPS.Input
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"InputStateManager.ReconcileKeyStates でエラーが発生: {ex.Message}");
+                    // tick ごとに呼ばれるため、ログは初回だけ出す
+                    if (!_hasLoggedReconcileError)
+                    {
+                        _hasLoggedReconcileError = true;
+                        Logger.Warning("InputStateManager.ReconcileKeyStates でキー状態の問い合わせに失敗しました（以降のエラーはログ出力を省略）", ex);
+                    }
                     continue;
                 }
 
@@ -278,9 +290,36 @@ namespace KeyOverlayFPS.Input
         /// <summary>
         /// GetAsyncKeyState の上位ビットでキーが押されているかを返す
         /// </summary>
+        /// <remarks>
+        /// 左右ボタンを入れ替える設定のとき、LL フックと GetAsyncKeyState の左右が一致するかは実機でしか確かめられない。
+        /// どちらの意味でも誤って消さないよう、左右どちらかが押されていれば両方を押下とみなす
+        /// </remarks>
         private static bool IsKeyDownByAsyncKeyState(int virtualKeyCode)
         {
+            return IsKeyDownConsideringSwap(virtualKeyCode, GetSystemMetrics(SM_SWAPBUTTON) != 0, RawIsKeyDown);
+        }
+
+        private static bool RawIsKeyDown(int virtualKeyCode)
+        {
             return (GetAsyncKeyState(virtualKeyCode) & 0x8000) != 0;
+        }
+
+        /// <summary>
+        /// 左右ボタン入れ替えを考慮して、キーが押されているかを判定する
+        /// </summary>
+        /// <param name="virtualKeyCode">仮想キーコード</param>
+        /// <param name="isButtonSwapped">左右ボタンを入れ替える設定か</param>
+        /// <param name="rawIsKeyDown">GetAsyncKeyState 相当の問い合わせ</param>
+        /// <returns>押下とみなす場合 true</returns>
+        public static bool IsKeyDownConsideringSwap(int virtualKeyCode, bool isButtonSwapped, Func<int, bool> rawIsKeyDown)
+        {
+            if (isButtonSwapped &&
+                (virtualKeyCode == VirtualKeyCodes.VK_LBUTTON || virtualKeyCode == VirtualKeyCodes.VK_RBUTTON))
+            {
+                return rawIsKeyDown(VirtualKeyCodes.VK_LBUTTON) || rawIsKeyDown(VirtualKeyCodes.VK_RBUTTON);
+            }
+
+            return rawIsKeyDown(virtualKeyCode);
         }
 
         /// <summary>

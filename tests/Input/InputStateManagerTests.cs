@@ -139,5 +139,18 @@ namespace KeyOverlayFPS.Tests.Input
 
             Assert.That(_manager.IsKeyPressed(VirtualKeyCodes.VK_LBUTTON), Is.False);
         }
+
+        [TestCase(true, VirtualKeyCodes.VK_LBUTTON, VirtualKeyCodes.VK_RBUTTON, true)]
+        [TestCase(true, VirtualKeyCodes.VK_RBUTTON, VirtualKeyCodes.VK_LBUTTON, true)]
+        [TestCase(false, VirtualKeyCodes.VK_LBUTTON, VirtualKeyCodes.VK_RBUTTON, false)]
+        [TestCase(true, VirtualKeyCodes.VK_MBUTTON, VirtualKeyCodes.VK_LBUTTON, false)]
+        [TestCase(true, KeyA, VirtualKeyCodes.VK_LBUTTON, false)]
+        public void IsKeyDownConsideringSwap_TreatsLeftRightAsEitherWhenSwapped(
+            bool swapped, int queried, int physicallyDown, bool expected)
+        {
+            bool result = InputStateManager.IsKeyDownConsideringSwap(queried, swapped, vk => vk == physicallyDown);
+
+            Assert.That(result, Is.EqualTo(expected));
+        }
     }
 }
