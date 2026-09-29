@@ -24,7 +24,30 @@ namespace KeyOverlayFPS.Layout
     /// </summary>
     public class LayoutManager
     {
+        private readonly string _layoutsDirectory;
+        private readonly Assembly _resourceAssembly;
         private LayoutConfig? _currentLayout;
+
+        /// <summary>
+        /// コンストラクタ。実行ファイル配下の layouts/ と、実行中のアセンブリの埋め込みリソースを使う
+        /// </summary>
+        public LayoutManager()
+            : this(
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ApplicationConstants.Paths.LayoutsDirectory),
+                Assembly.GetExecutingAssembly())
+        {
+        }
+
+        /// <summary>
+        /// コンストラクタ。外部レイアウトのディレクトリと埋め込みリソースのアセンブリを指定する（テストでの隔離用）
+        /// </summary>
+        /// <param name="layoutsDirectory">外部レイアウトファイルを探すディレクトリ</param>
+        /// <param name="resourceAssembly">埋め込みレイアウトリソースを持つアセンブリ</param>
+        public LayoutManager(string layoutsDirectory, Assembly resourceAssembly)
+        {
+            _layoutsDirectory = layoutsDirectory ?? throw new ArgumentNullException(nameof(layoutsDirectory));
+            _resourceAssembly = resourceAssembly ?? throw new ArgumentNullException(nameof(resourceAssembly));
+        }
 
         /// <summary>
         /// 現在のレイアウト設定
@@ -150,7 +173,7 @@ namespace KeyOverlayFPS.Layout
         private LayoutConfig LoadEmbeddedLayout(KeyboardProfile profile)
         {
             string resourceName = GetEmbeddedResourceName(profile);
-            var assembly = Assembly.GetExecutingAssembly();
+            var assembly = _resourceAssembly;
             
             Logger.Info($"埋め込みリソースを読み込み中: {resourceName}");
             
@@ -301,13 +324,14 @@ namespace KeyOverlayFPS.Layout
         /// <summary>
         /// プロファイルに応じたレイアウトファイルパスを取得
         /// </summary>
-        private static string GetLayoutPath(KeyboardProfile profile)
+        private string GetLayoutPath(KeyboardProfile profile)
         {
-            return profile switch
+            var fileName = profile switch
             {
-                KeyboardProfile.FPSKeyboard => ApplicationConstants.Paths.FpsLayout,
-                _ => ApplicationConstants.Paths.Keyboard65Layout
+                KeyboardProfile.FPSKeyboard => Path.GetFileName(ApplicationConstants.Paths.FpsLayout),
+                _ => Path.GetFileName(ApplicationConstants.Paths.Keyboard65Layout)
             };
+            return Path.Combine(_layoutsDirectory, fileName);
         }
 
         private static readonly ISerializer Serializer = YamlSerializerFactory.CreateLayoutSerializer();

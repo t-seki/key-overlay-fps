@@ -233,6 +233,37 @@ namespace KeyOverlayFPS.Tests.Input
             Assert.That(deserializedData.VirtualKey, Is.EqualTo(originalData.VirtualKey));
         }
 
+        /// <summary>
+        /// 現状の挙動を固定するテスト。意図が未確認のため、変更する場合は #58 の判断に従うこと。
+        /// WriteYaml が使われうる経路は LayoutManager.ExportLayout（テストからしか使われない）だが、
+        /// レイアウト用シリアライザーには VirtualKeyCodeConverter が登録されていないため、
+        /// VK 定数に一致する値でも定数名ではなく数値で出力される。
+        /// </summary>
+        [Test]
+        public void ExportLayout_CurrentBehavior_WritesVirtualKeyAsNumber()
+        {
+            var tempDirectory = Path.Combine(Path.GetTempPath(), "KeyOverlayFPS_Tests_" + Guid.NewGuid().ToString("N")[..8]);
+            try
+            {
+                var layout = new KeyOverlayFPS.Layout.LayoutConfig();
+                layout.Keys["KeyA"] = new KeyOverlayFPS.Layout.KeyDefinition { Text = "A", VirtualKey = VirtualKeyCodes.VK_A };
+                var path = Path.Combine(tempDirectory, "layout.yaml");
+
+                KeyOverlayFPS.Layout.LayoutManager.ExportLayout(layout, path);
+
+                var yaml = File.ReadAllText(path);
+                Assert.That(yaml, Does.Contain($"virtualKey: {VirtualKeyCodes.VK_A}"));
+                Assert.That(yaml, Does.Not.Contain("VK_A"));
+            }
+            finally
+            {
+                if (Directory.Exists(tempDirectory))
+                {
+                    Directory.Delete(tempDirectory, true);
+                }
+            }
+        }
+
         [Test]
         public void RoundTripTest_HexValues_ShouldPreserveValues()
         {
