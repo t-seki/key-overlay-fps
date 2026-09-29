@@ -319,8 +319,8 @@ namespace KeyOverlayFPS.Layout
         {
             var fileName = profile switch
             {
-                KeyboardProfile.FPSKeyboard => Path.GetFileName(ApplicationConstants.Paths.FpsLayout),
-                _ => Path.GetFileName(ApplicationConstants.Paths.Keyboard65Layout)
+                KeyboardProfile.FPSKeyboard => ApplicationConstants.Paths.FpsLayoutFileName,
+                _ => ApplicationConstants.Paths.Keyboard65LayoutFileName
             };
             return Path.Combine(_layoutsDirectory, fileName);
         }
