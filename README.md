@@ -84,7 +84,7 @@ src/
 │   ├── BrushFactory.cs         # ブラシ生成ファクトリー
 │   └── UIElementFactory.cs     # UI要素生成ファクトリー
 ├── Colors/                     # 色管理
-│   └── SimpleColorManager.cs   # 背景色オプションの管理
+│   └── SimpleColorManager.cs   # 背景色・前景色・ハイライト色のメニュー選択肢
 ├── Settings/                   # 設定管理
 │   ├── SettingsManager.cs      # 設定の保存・読み込み
 │   └── AppSettings.cs          # アプリケーション設定モデル
