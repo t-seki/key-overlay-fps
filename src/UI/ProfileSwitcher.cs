@@ -40,7 +40,7 @@ namespace KeyOverlayFPS.UI
         {
             Logger.Info($"プロファイル切り替え開始: {profile}");
             
-            // CanvasRebuilderを使用してキャンバスを完全に再構築（スケール適用を含む）
+            // CanvasRebuilderを使用してキャンバスを再構築（表示設定は後段の ApplyDisplaySettings で適用する）
             try
             {
                 _canvasRebuilder.RebuildCanvas(_mainWindow, profile);
