@@ -26,6 +26,11 @@ namespace KeyOverlayFPS.Settings
         private bool _saveSuppressed;
 
         /// <summary>
+        /// 保存を止めていることを警告ログに出したかどうか（設定を変えるたびに出さないため）
+        /// </summary>
+        private bool _saveSuppressedWarned;
+
+        /// <summary>
         /// 設定変更時のイベント
         /// </summary>
         public event EventHandler? SettingsChanged;
@@ -90,6 +95,8 @@ namespace KeyOverlayFPS.Settings
         public void Load()
         {
             Recovery = null;
+            _saveSuppressed = false;
+            _saveSuppressedWarned = false;
 
             try
             {
@@ -165,7 +172,11 @@ namespace KeyOverlayFPS.Settings
         {
             if (_saveSuppressed)
             {
-                Logger.Info("壊れた設定ファイルを退避できなかったため、設定を保存しない");
+                if (!_saveSuppressedWarned)
+                {
+                    Logger.Warning("壊れた設定ファイルを退避できなかったため、設定を保存しない");
+                    _saveSuppressedWarned = true;
+                }
                 return;
             }
 

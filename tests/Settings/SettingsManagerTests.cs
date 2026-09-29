@@ -486,5 +486,31 @@ anotherUnknown:
             // Assert
             Assert.That(_settingsManager.Recovery, Is.Null);
         }
+
+        [Test]
+        public void Load_ShouldResumeSaving_WhenReloadedSuccessfullyAfterBackupFailure()
+        {
+            // Arrange: 退避に失敗して保存が止まった状態にする
+            var settingsFile = Path.Combine(_tempDirectory, "settings.yaml");
+            File.WriteAllText(settingsFile, "displayScale: abc\n");
+            var manager = new SettingsManager(
+                _tempDirectory,
+                (source, destination) => throw new IOException("退避の失敗を模擬"));
+            manager.Load();
+            Assert.That(manager.Recovery!.BackupSucceeded, Is.False);
+
+            // 正常なファイルに置き換えて読み直す
+            File.WriteAllText(settingsFile, "displayScale: 1.5\n");
+            manager.Load();
+            Assert.That(manager.Recovery, Is.Null);
+
+            // Act
+            manager.SetDisplayScale(2.0);
+
+            // Assert: 保存が再開している
+            var reloaded = new SettingsManager(_tempDirectory);
+            reloaded.Load();
+            Assert.That(reloaded.Current.DisplayScale, Is.EqualTo(2.0));
+        }
     }
 }
