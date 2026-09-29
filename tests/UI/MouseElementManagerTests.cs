@@ -34,6 +34,26 @@ namespace KeyOverlayFPS.Tests.UI
         }
 
         [Test]
+        public void IsMouseElement_WithMouseSettings_ShouldIncludeRenamedButtons()
+        {
+            var mouse = new MouseSettings
+            {
+                Buttons = new System.Collections.Generic.Dictionary<string, ButtonConfig>
+                {
+                    ["LeftClick"] = new ButtonConfig { VirtualKey = 0x01 }
+                }
+            };
+
+            // YAML で改名したボタンもマウス要素として扱う
+            Assert.That(MouseElementManager.IsMouseElement("LeftClick", mouse), Is.True);
+            // 固定の名前は引き続きマウス要素
+            Assert.That(MouseElementManager.IsMouseElement("MouseBody", mouse), Is.True);
+            Assert.That(MouseElementManager.IsMouseElement("KeyW", mouse), Is.False);
+            // マウス設定が無いときは固定の名前だけで判定する
+            Assert.That(MouseElementManager.IsMouseElement("LeftClick", null), Is.False);
+        }
+
+        [Test]
         public void Constructor_ShouldThrow_ForNullArguments()
         {
             Assert.Throws<ArgumentNullException>(() => new MouseElementManager(null!, new UIElementLocator()));

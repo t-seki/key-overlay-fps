@@ -280,7 +280,7 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private bool IsMouseElement(string? elementName)
         {
-            return MouseElementManager.IsMouseElement(elementName ?? string.Empty);
+            return MouseElementManager.IsMouseElement(elementName ?? string.Empty, _layoutManager.CurrentLayout?.Mouse);
         }
 
         /// <summary>
