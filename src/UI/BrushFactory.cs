@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Concurrent;
 using System.Windows;
 using System.Windows.Media;
 using KeyOverlayFPS.Constants;
+using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.UI
 {
@@ -10,6 +13,11 @@ namespace KeyOverlayFPS.UI
     /// </summary>
     public static class BrushFactory
     {
+        /// <summary>
+        /// 変換に失敗したことをログに出した色文字列（毎フレーム呼ばれるため、同じ文字列は一度だけログに出す）
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, byte> _loggedInvalidColors = new();
+
         /// <summary>
         /// 標準背景グラデーションブラシを作成（キーボードキー・マウス本体共用）
         /// </summary>
@@ -97,11 +105,14 @@ namespace KeyOverlayFPS.UI
         /// <param name="colorString">色を表す文字列</param>
         /// <param name="fallbackBrush">変換失敗時のフォールバック</param>
         /// <returns>SolidColorBrush</returns>
+        /// <remarks>
+        /// 変換に失敗したときは警告をログに出してフォールバックを返す。同じ色文字列の警告は一度だけ出す
+        /// </remarks>
         public static Brush CreateBrushFromString(string colorString, Brush? fallbackBrush = null)
         {
             try
             {
-                if (colorString.Equals("Transparent", System.StringComparison.OrdinalIgnoreCase))
+                if (colorString.Equals("Transparent", StringComparison.OrdinalIgnoreCase))
                 {
                     return CreateTransparentBackground();
                 }
@@ -109,8 +120,12 @@ namespace KeyOverlayFPS.UI
                 var color = (Color)ColorConverter.ConvertFromString(colorString);
                 return new SolidColorBrush(color);
             }
-            catch
+            catch (Exception ex)
             {
+                if (_loggedInvalidColors.TryAdd(colorString ?? string.Empty, 0))
+                {
+                    Logger.Warning($"色文字列をブラシに変換できないため、フォールバックの色を使います: \"{colorString}\"", ex);
+                }
                 return fallbackBrush ?? Brushes.White;
             }
         }

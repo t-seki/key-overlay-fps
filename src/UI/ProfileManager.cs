@@ -18,42 +18,18 @@ namespace KeyOverlayFPS.UI
         {
             get
             {
-                try
+                var profileName = _settingsService.Current.CurrentProfile;
+                if (!string.IsNullOrEmpty(profileName) && Enum.TryParse<KeyboardProfile>(profileName, out var profile))
                 {
-                    var profileName = _settingsService.Current.CurrentProfile;
-                    if (!string.IsNullOrEmpty(profileName) && Enum.TryParse<KeyboardProfile>(profileName, out var profile))
-                    {
-                        return profile;
-                    }
-                }
-                catch (Exception)
-                {
-                    // エラーの場合はデフォルト値を返す
+                    return profile;
                 }
                 return KeyboardProfile.FullKeyboard65;
             }
         }
         
-        /// <summary>
-        /// プロファイル変更イベント
-        /// </summary>
-        public event EventHandler<ProfileChangedEventArgs>? ProfileChanged;
-        
         public ProfileManager(SettingsManager settingsService)
         {
             _settingsService = settingsService;
-        }
-        
-        /// <summary>
-        /// プロファイルを設定から復元
-        /// </summary>
-        /// <param name="profileName">設定から読み込んだプロファイル名</param>
-        public void RestoreFromSettings(string profileName)
-        {
-            if (Enum.TryParse<KeyboardProfile>(profileName, out var profile))
-            {
-                SwitchProfile(profile);
-            }
         }
         
         /// <summary>
@@ -62,14 +38,7 @@ namespace KeyOverlayFPS.UI
         /// <param name="profile">新しいプロファイル</param>
         public void SwitchProfile(KeyboardProfile profile)
         {
-            var oldProfile = CurrentProfile;
             _settingsService.SetCurrentProfile(profile.ToString());
-            
-            // プロファイルが実際に変更された場合のみイベントを発火
-            if (oldProfile != profile)
-            {
-                ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(profile));
-            }
         }
         
         /// <summary>
@@ -89,20 +58,6 @@ namespace KeyOverlayFPS.UI
         public bool IsCurrentProfile(KeyboardProfile profile)
         {
             return CurrentProfile == profile;
-        }
-        
-    }
-    
-    /// <summary>
-    /// プロファイル変更イベント引数
-    /// </summary>
-    public class ProfileChangedEventArgs : EventArgs
-    {
-        public KeyboardProfile NewProfile { get; }
-        
-        public ProfileChangedEventArgs(KeyboardProfile newProfile)
-        {
-            NewProfile = newProfile;
         }
     }
 }

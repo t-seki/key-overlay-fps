@@ -28,15 +28,6 @@ namespace KeyOverlayFPS.Constants
             /// FPSキーボードレイアウトファイルパス
             /// </summary>
             public static string FpsLayout => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LayoutsDirectory, "fps_keyboard.yaml");
-            
-            /// <summary>
-            /// 設定ファイル格納ディレクトリ
-            /// </summary>
-            public static string SettingsDirectory => Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-                "KeyOverlayFPS"
-            );
-            
         }
         
         /// <summary>

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using KeyOverlayFPS.Layout;
@@ -66,37 +65,6 @@ namespace KeyOverlayFPS.Tests.UI
             _profileManager.SwitchProfile(KeyboardProfile.FPSKeyboard);
 
             Assert.That(_settingsManager.Current.CurrentProfile, Is.EqualTo("FPSKeyboard"));
-            Assert.That(_profileManager.CurrentProfile, Is.EqualTo(KeyboardProfile.FPSKeyboard));
-        }
-
-        [Test]
-        public void SwitchProfile_ShouldRaiseProfileChanged_OnlyWhenProfileActuallyChanges()
-        {
-            var raised = new List<KeyboardProfile>();
-            _profileManager.ProfileChanged += (_, e) => raised.Add(e.NewProfile);
-
-            _profileManager.SwitchProfile(KeyboardProfile.FullKeyboard65); // 既定と同じ
-            _profileManager.SwitchProfile(KeyboardProfile.FPSKeyboard);
-            _profileManager.SwitchProfile(KeyboardProfile.FPSKeyboard); // 変化なし
-
-            Assert.That(raised, Is.EqualTo(new[] { KeyboardProfile.FPSKeyboard }));
-        }
-
-        [Test]
-        public void RestoreFromSettings_ShouldSwitchProfile_ForValidName()
-        {
-            _profileManager.RestoreFromSettings("FPSKeyboard");
-
-            Assert.That(_profileManager.CurrentProfile, Is.EqualTo(KeyboardProfile.FPSKeyboard));
-        }
-
-        [Test]
-        public void RestoreFromSettings_ShouldIgnoreInvalidName()
-        {
-            _profileManager.SwitchProfile(KeyboardProfile.FPSKeyboard);
-
-            _profileManager.RestoreFromSettings("UnknownProfile");
-
             Assert.That(_profileManager.CurrentProfile, Is.EqualTo(KeyboardProfile.FPSKeyboard));
         }
 

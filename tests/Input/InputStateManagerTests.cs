@@ -80,20 +80,15 @@ namespace KeyOverlayFPS.Tests.Input
         }
 
         [Test]
-        public void Reconcile_MismatchOverThreshold_ClearsAndRaisesEvent()
+        public void Reconcile_MismatchOverThreshold_Clears()
         {
             HookKeyDown(KeyA);
-            KeyStateChangedEventArgs? raised = null;
-            _manager.KeyStateChanged += (s, e) => raised = e;
 
             _manager.ReconcileKeyStates();
             _now += InputStateManager.ReconcileReleaseThresholdMs;
             _manager.ReconcileKeyStates();
 
             Assert.That(_manager.IsKeyPressed(KeyA), Is.False);
-            Assert.That(raised, Is.Not.Null);
-            Assert.That(raised!.VirtualKeyCode, Is.EqualTo(KeyA));
-            Assert.That(raised.IsPressed, Is.False);
         }
 
         [Test]

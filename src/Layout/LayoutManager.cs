@@ -223,9 +223,7 @@ namespace KeyOverlayFPS.Layout
                 Global = new GlobalSettings
                 {
                     FontSize = 14,
-                    BackgroundColor = "Transparent",
                     ForegroundColor = "White",
-                    HighlightColor = "Green",
                     ShiftDisplayEnabled = true
                 },
                 Window = new WindowSettings
@@ -327,33 +325,7 @@ namespace KeyOverlayFPS.Layout
             return Path.Combine(_layoutsDirectory, fileName);
         }
 
-        private static readonly ISerializer Serializer = YamlSerializerFactory.CreateLayoutSerializer();
         private static readonly IDeserializer Deserializer = YamlSerializerFactory.CreateLayoutDeserializer();
-
-        /// <summary>
-        /// レイアウトファイルをエクスポート
-        /// </summary>
-        /// <param name="layout">レイアウト設定</param>
-        /// <param name="filePath">保存先ファイルパス</param>
-        public static void ExportLayout(LayoutConfig layout, string filePath)
-        {
-            try
-            {
-                // ディレクトリが存在しない場合は作成
-                var directory = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                var yaml = Serializer.Serialize(layout);
-                File.WriteAllText(filePath, yaml);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"レイアウトファイルのエクスポートに失敗しました: {ex.Message}", ex);
-            }
-        }
 
         /// <summary>
         /// レイアウトファイルをインポート
