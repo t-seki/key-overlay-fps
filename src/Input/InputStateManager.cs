@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using KeyOverlayFPS.Utils;
 
 namespace KeyOverlayFPS.Input
@@ -17,7 +18,25 @@ namespace KeyOverlayFPS.Input
         private readonly MouseHook _mouseHook;
         private readonly HookThread _hookThread;
         private readonly ConcurrentDictionary<int, bool> _keyStates;
+        private readonly ConcurrentDictionary<int, long> _releasedSince;
+        private readonly Func<int, bool> _isKeyDown;
+        private readonly Func<long> _getTickMs;
         private bool _isEnabled = false;
+
+        #endregion
+
+        #region 定数
+
+        /// <summary>
+        /// 押下中と記録しているキーが「離されている」と返され続けたら、離したことにするまでの時間（ミリ秒）
+        /// </summary>
+        /// <remarks>
+        /// フックのイベント直後は GetAsyncKeyState に反映されていないことがあるため、一度の食い違いでは消さない
+        /// </remarks>
+        public const int ReconcileReleaseThresholdMs = 100;
+
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int vKey);
 
         #endregion
 
@@ -46,8 +65,23 @@ namespace KeyOverlayFPS.Input
         /// <summary>
         /// InputStateManagerクラスの新しいインスタンスを初期化
         /// </summary>
-        public InputStateManager()
+        public InputStateManager() : this(IsKeyDownByAsyncKeyState, () => Environment.TickCount64)
         {
+        }
+
+        /// <summary>
+        /// キー状態の問い合わせと時刻を差し替えて、InputStateManagerクラスの新しいインスタンスを初期化
+        /// </summary>
+        /// <remarks>
+        /// コンストラクタではフックを張らない（Start で張る）
+        /// </remarks>
+        /// <param name="isKeyDown">仮想キーコードを受け取り、そのキーが実際に押されているかを返す</param>
+        /// <param name="getTickMs">現在時刻（ミリ秒）を返す</param>
+        public InputStateManager(Func<int, bool> isKeyDown, Func<long> getTickMs)
+        {
+            _isKeyDown = isKeyDown ?? throw new ArgumentNullException(nameof(isKeyDown));
+            _getTickMs = getTickMs ?? throw new ArgumentNullException(nameof(getTickMs));
+            _releasedSince = new ConcurrentDictionary<int, long>();
             _keyStates = new ConcurrentDictionary<int, bool>();
             _keyboardHook = new KeyboardHook();
             _mouseHook = new MouseHook();
@@ -141,6 +175,7 @@ namespace KeyOverlayFPS.Input
                 // フックはフックのスレッドの上で解除され、スレッドの終了を待つ
                 _hookThread.Stop(HookThread.DefaultTimeout);
                 _keyStates.Clear();
+                _releasedSince.Clear();
                 _isEnabled = false;
                 Logger.Info("InputStateManager: 入力状態管理を停止しました");
             }
@@ -172,6 +207,58 @@ namespace KeyOverlayFPS.Input
         public void ClearAllStates()
         {
             _keyStates.Clear();
+            _releasedSince.Clear();
+        }
+
+        /// <summary>
+        /// 押下中と記録しているキー・マウスボタンを、実際の状態と照合する
+        /// </summary>
+        /// <remarks>
+        /// 離放イベントを取りこぼしても押下が残り続けないようにする。UI スレッド（表示タイマーの tick）から呼ぶ。
+        /// 「離されている」状態が <see cref="ReconcileReleaseThresholdMs"/> 続いたキーだけを離したことにする。
+        /// </remarks>
+        public void ReconcileKeyStates()
+        {
+            long now = _getTickMs();
+
+            foreach (var entry in _keyStates)
+            {
+                if (!entry.Value)
+                {
+                    continue;
+                }
+
+                int key = entry.Key;
+                bool actuallyDown;
+                try
+                {
+                    actuallyDown = _isKeyDown(key);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"InputStateManager.ReconcileKeyStates でエラーが発生: {ex.Message}");
+                    continue;
+                }
+
+                if (actuallyDown)
+                {
+                    _releasedSince.TryRemove(key, out _);
+                    continue;
+                }
+
+                long since = _releasedSince.GetOrAdd(key, now);
+                if (now - since < ReconcileReleaseThresholdMs)
+                {
+                    continue;
+                }
+
+                // 押下のままのときだけ書き換える（照合の直後に来た押下を潰さない）
+                if (_keyStates.TryUpdate(key, false, true))
+                {
+                    _releasedSince.TryRemove(key, out _);
+                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(key, false));
+                }
+            }
         }
 
         /// <summary>
@@ -189,6 +276,14 @@ namespace KeyOverlayFPS.Input
         #region プライベートメソッド
 
         /// <summary>
+        /// GetAsyncKeyState の上位ビットでキーが押されているかを返す
+        /// </summary>
+        private static bool IsKeyDownByAsyncKeyState(int virtualKeyCode)
+        {
+            return (GetAsyncKeyState(virtualKeyCode) & 0x8000) != 0;
+        }
+
+        /// <summary>
         /// キー押下イベントハンドラー
         /// </summary>
         private void OnKeyPressed(object? sender, KeyboardEventArgs e)
@@ -199,6 +294,7 @@ namespace KeyOverlayFPS.Input
                 
                 // キー状態を更新（押下状態にする）
                 _keyStates.AddOrUpdate(e.VirtualKeyCode, true, (key, oldValue) => true);
+                _releasedSince.TryRemove(e.VirtualKeyCode, out _);
                 
                 // 状態が変化した場合のみイベントを発火
                 if (!previousState)
@@ -247,6 +343,7 @@ namespace KeyOverlayFPS.Input
                 
                 // ボタン状態を更新（押下状態にする）
                 _keyStates.AddOrUpdate(e.VirtualKeyCode, true, (key, oldValue) => true);
+                _releasedSince.TryRemove(e.VirtualKeyCode, out _);
                 
                 // 状態が変化した場合のみイベントを発火
                 if (!previousState)
