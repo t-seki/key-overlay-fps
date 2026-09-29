@@ -9,22 +9,18 @@ namespace KeyOverlayFPS
 {
     public partial class App : Application
     {
-        // DPI認識のためのWin32 API定義
+        // DPI認識の確認用 Win32 API 定義
         [DllImport("user32.dll")]
-        private static extern bool SetProcessDPIAware();
+        private static extern IntPtr GetThreadDpiAwarenessContext();
 
-        [DllImport("shcore.dll")]
-        private static extern int SetProcessDpiAwareness(ProcessDpiAwareness value);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool AreDpiAwarenessContextsEqual(IntPtr dpiContextA, IntPtr dpiContextB);
 
-        private const int S_OK = 0;
-        private const int E_ACCESSDENIED = unchecked((int)0x80070005);
-
-        private enum ProcessDpiAwareness
-        {
-            DpiUnaware = 0,
-            SystemDpiAware = 1,
-            PerMonitorDpiAware = 2
-        }
+        private static readonly IntPtr DpiContextUnaware = new IntPtr(-1);
+        private static readonly IntPtr DpiContextSystemAware = new IntPtr(-2);
+        private static readonly IntPtr DpiContextPerMonitorAware = new IntPtr(-3);
+        private static readonly IntPtr DpiContextPerMonitorAwareV2 = new IntPtr(-4);
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -32,8 +28,8 @@ namespace KeyOverlayFPS
             Logger.Initialize();
             Logger.Info("アプリケーション開始");
 
-            // DPI認識を設定（スケール問題を防ぐため）
-            EnableDpiAwareness();
+            // DPI認識はマニフェスト（app.manifest）で指定している。実際の認識をログに残す
+            LogDpiAwareness();
 
             // 未処理例外のハンドリング
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
@@ -77,41 +73,44 @@ namespace KeyOverlayFPS
         }
 
         /// <summary>
-        /// プロセスの DPI 認識を有効にし、結果をログに出す
+        /// 実際の DPI 認識をログに出す
         /// </summary>
         /// <remarks>
-        /// SetProcessDpiAwareness を呼べない環境（shcore.dll が無い）では、レガシー API にフォールバックする。
-        /// SetProcessDpiAwareness が失敗の HRESULT を返したときはフォールバックせず、ログに残すだけにする
+        /// DPI 認識はマニフェストで決まる。マニフェストの指定が効いているかを、debug.log で確かめるために残している。
+        /// API を呼べなくても起動は続ける
         /// </remarks>
-        private static void EnableDpiAwareness()
+        private static void LogDpiAwareness()
         {
             try
             {
-                int hr = SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware);
-                if (hr == S_OK)
+                IntPtr context = GetThreadDpiAwarenessContext();
+                string name;
+                if (AreDpiAwarenessContextsEqual(context, DpiContextPerMonitorAwareV2))
                 {
-                    Logger.Info("Per-Monitor DPI認識を有効化");
+                    name = "Per-Monitor V2";
                 }
-                else if (hr == E_ACCESSDENIED)
+                else if (AreDpiAwarenessContextsEqual(context, DpiContextPerMonitorAware))
                 {
-                    Logger.Info("DPI認識は既に設定済みのため、Per-Monitor DPI認識の有効化を省略 (HRESULT: 0x80070005)");
+                    name = "Per-Monitor";
+                }
+                else if (AreDpiAwarenessContextsEqual(context, DpiContextSystemAware))
+                {
+                    name = "System";
+                }
+                else if (AreDpiAwarenessContextsEqual(context, DpiContextUnaware))
+                {
+                    name = "Unaware";
                 }
                 else
                 {
-                    Logger.Warning($"Per-Monitor DPI認識の有効化に失敗 (HRESULT: 0x{hr:X8})");
+                    name = "不明";
                 }
+
+                Logger.Info($"DPI認識: {name}");
             }
             catch (Exception ex)
             {
-                Logger.Warning("SetProcessDpiAwareness を呼び出せないため、レガシーAPIでDPI認識を設定", ex);
-                if (SetProcessDPIAware())
-                {
-                    Logger.Info("System DPI認識を有効化（フォールバック）");
-                }
-                else
-                {
-                    Logger.Warning("System DPI認識の有効化に失敗（フォールバック）");
-                }
+                Logger.Warning("DPI認識を取得できませんでした", ex);
             }
         }
 
