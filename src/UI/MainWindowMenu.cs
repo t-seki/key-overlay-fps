@@ -23,6 +23,9 @@ namespace KeyOverlayFPS.UI
         private MenuItem? _fullKeyboardMenuItem;
         private MenuItem? _fpsKeyboardMenuItem;
         private MenuItem[]? _scaleMenuItems;
+        private MenuItem[]? _backgroundColorMenuItems;
+        private MenuItem[]? _foregroundColorMenuItems;
+        private MenuItem[]? _highlightColorMenuItems;
 
         /// <summary>
         /// メニューアクション
@@ -81,16 +84,25 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private MenuItem CreateBackgroundColorMenu()
         {
-            var backgroundMenuItem = new MenuItem { Header = "背景色" };
+            var parentMenuItem = new MenuItem { Header = "背景色" };
+            var options = SimpleColorManager.BackgroundMenuOptions;
+            _backgroundColorMenuItems = new MenuItem[options.Length];
             
-            foreach (var (name, color, transparent) in SimpleColorManager.BackgroundMenuOptions)
+            for (int i = 0; i < options.Length; i++)
             {
-                var menuItem = new MenuItem { Header = name };
-                menuItem.Click += (s, e) => SetBackgroundColorAction?.Invoke(color, transparent);
-                backgroundMenuItem.Items.Add(menuItem);
+                var (name, color, transparent) = options[i];
+                var menuItem = new MenuItem { Header = name, IsCheckable = true };
+                menuItem.Click += (s, e) =>
+                {
+                    SetBackgroundColorAction?.Invoke(color, transparent);
+                    UpdateMenuCheckedState();
+                };
+                _backgroundColorMenuItems[i] = menuItem;
+                parentMenuItem.Items.Add(menuItem);
             }
+            UpdateColorMenuCheckedState(_backgroundColorMenuItems, SimpleColorManager.FindBackgroundIndex(_settings.BackgroundColorSetting));
             
-            return backgroundMenuItem;
+            return parentMenuItem;
         }
 
         /// <summary>
@@ -98,16 +110,25 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private MenuItem CreateForegroundColorMenu()
         {
-            var foregroundMenuItem = new MenuItem { Header = "文字色" };
+            var parentMenuItem = new MenuItem { Header = "文字色" };
+            var options = SimpleColorManager.ForegroundMenuOptions;
+            _foregroundColorMenuItems = new MenuItem[options.Length];
             
-            foreach (var (name, color) in SimpleColorManager.ForegroundMenuOptions)
+            for (int i = 0; i < options.Length; i++)
             {
-                var menuItem = new MenuItem { Header = name };
-                menuItem.Click += (s, e) => SetForegroundColorAction?.Invoke(color);
-                foregroundMenuItem.Items.Add(menuItem);
+                var (name, color) = options[i];
+                var menuItem = new MenuItem { Header = name, IsCheckable = true };
+                menuItem.Click += (s, e) =>
+                {
+                    SetForegroundColorAction?.Invoke(color);
+                    UpdateMenuCheckedState();
+                };
+                _foregroundColorMenuItems[i] = menuItem;
+                parentMenuItem.Items.Add(menuItem);
             }
+            UpdateColorMenuCheckedState(_foregroundColorMenuItems, SimpleColorManager.FindForegroundIndex(_settings.ForegroundColorSetting));
             
-            return foregroundMenuItem;
+            return parentMenuItem;
         }
 
         /// <summary>
@@ -115,16 +136,37 @@ namespace KeyOverlayFPS.UI
         /// </summary>
         private MenuItem CreateHighlightColorMenu()
         {
-            var highlightMenuItem = new MenuItem { Header = "ハイライト色" };
+            var parentMenuItem = new MenuItem { Header = "ハイライト色" };
+            var options = SimpleColorManager.HighlightMenuOptions;
+            _highlightColorMenuItems = new MenuItem[options.Length];
             
-            foreach (var (name, color) in SimpleColorManager.HighlightMenuOptions)
+            for (int i = 0; i < options.Length; i++)
             {
-                var menuItem = new MenuItem { Header = name };
-                menuItem.Click += (s, e) => SetHighlightColorAction?.Invoke(color);
-                highlightMenuItem.Items.Add(menuItem);
+                var (name, color) = options[i];
+                var menuItem = new MenuItem { Header = name, IsCheckable = true };
+                menuItem.Click += (s, e) =>
+                {
+                    SetHighlightColorAction?.Invoke(color);
+                    UpdateMenuCheckedState();
+                };
+                _highlightColorMenuItems[i] = menuItem;
+                parentMenuItem.Items.Add(menuItem);
             }
+            UpdateColorMenuCheckedState(_highlightColorMenuItems, SimpleColorManager.FindHighlightIndex(_settings.HighlightColorSetting));
             
-            return highlightMenuItem;
+            return parentMenuItem;
+        }
+
+        /// <summary>
+        /// 色メニューのチェックを、一致した位置（-1 なら全て外す）だけに付ける
+        /// </summary>
+        private static void UpdateColorMenuCheckedState(MenuItem[]? items, int checkedIndex)
+        {
+            if (items == null) return;
+            for (int i = 0; i < items.Length; i++)
+            {
+                items[i].IsChecked = i == checkedIndex;
+            }
         }
 
         /// <summary>
@@ -257,6 +299,11 @@ namespace KeyOverlayFPS.UI
                 _fpsKeyboardMenuItem.IsChecked = _profileManager.IsCurrentProfile(KeyboardProfile.FPSKeyboard);
             }
             
+            // 色メニューの更新
+            UpdateColorMenuCheckedState(_backgroundColorMenuItems, SimpleColorManager.FindBackgroundIndex(_settings.BackgroundColorSetting));
+            UpdateColorMenuCheckedState(_foregroundColorMenuItems, SimpleColorManager.FindForegroundIndex(_settings.ForegroundColorSetting));
+            UpdateColorMenuCheckedState(_highlightColorMenuItems, SimpleColorManager.FindHighlightIndex(_settings.HighlightColorSetting));
+
             // スケールメニューの更新
             UpdateScaleMenuCheckedState();
         }

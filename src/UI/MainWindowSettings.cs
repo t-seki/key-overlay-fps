@@ -31,6 +31,21 @@ namespace KeyOverlayFPS.UI
         public Brush ActiveBrush => BrushFactory.CreateBrushFromString(_settingsManager.Current.HighlightColor, Brushes.White);
         
         /// <summary>
+        /// 背景色の設定値（色名または #AARRGGBB）
+        /// </summary>
+        public string BackgroundColorSetting => _settingsManager.Current.BackgroundColor;
+
+        /// <summary>
+        /// 前景色の設定値（色名または #AARRGGBB）
+        /// </summary>
+        public string ForegroundColorSetting => _settingsManager.Current.ForegroundColor;
+
+        /// <summary>
+        /// ハイライト色の設定値（色名または #AARRGGBB）
+        /// </summary>
+        public string HighlightColorSetting => _settingsManager.Current.HighlightColor;
+
+        /// <summary>
         /// 表示スケール
         /// </summary>
         public double DisplayScale => _settingsManager.Current.DisplayScale;
