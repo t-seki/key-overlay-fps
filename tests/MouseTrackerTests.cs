@@ -42,7 +42,7 @@ namespace KeyOverlayFPS.Tests
             
             // リセット後の初回更新ではイベントが発生しない
             _tracker.Update(5.0);
-            Assert.AreEqual(0, _eventCount);
+            Assert.That(_eventCount, Is.EqualTo(0));
         }
 
         [Test]
@@ -50,8 +50,8 @@ namespace KeyOverlayFPS.Tests
         {
             _tracker.Update(5.0);
             
-            Assert.AreEqual(0, _eventCount);
-            Assert.IsNull(_lastEvent);
+            Assert.That(_eventCount, Is.EqualTo(0));
+            Assert.That(_lastEvent, Is.Null);
         }
 
         [Test]
@@ -64,50 +64,50 @@ namespace KeyOverlayFPS.Tests
 
             var eventArgs = new MouseMoveEventArgs(deltaX, deltaY, direction, distance);
 
-            Assert.AreEqual(deltaX, eventArgs.DeltaX);
-            Assert.AreEqual(deltaY, eventArgs.DeltaY);
-            Assert.AreEqual(direction, eventArgs.Direction);
-            Assert.AreEqual(distance, eventArgs.Distance);
+            Assert.That(eventArgs.DeltaX, Is.EqualTo(deltaX));
+            Assert.That(eventArgs.DeltaY, Is.EqualTo(deltaY));
+            Assert.That(eventArgs.Direction, Is.EqualTo(direction));
+            Assert.That(eventArgs.Distance, Is.EqualTo(distance));
         }
 
         [Test]
         public void MouseDirection_EnumValues_Have16Values()
         {
             var values = Enum.GetValues<MouseDirection>();
-            Assert.AreEqual(16, values.Length);
+            Assert.That(values.Length, Is.EqualTo(16));
 
             // 値が0-15の連続した値であることを確認
             for (int i = 0; i < 16; i++)
             {
-                Assert.IsTrue(Enum.IsDefined(typeof(MouseDirection), i), $"MouseDirection value {i} should be defined");
+                Assert.That(Enum.IsDefined(typeof(MouseDirection), i), Is.True, $"MouseDirection value {i} should be defined");
             }
         }
 
         [Test]
         public void MouseDirection_EnumNames_AreCorrect()
         {
-            Assert.AreEqual("East", MouseDirection.East.ToString());
-            Assert.AreEqual("North", MouseDirection.North.ToString());
-            Assert.AreEqual("West", MouseDirection.West.ToString());
-            Assert.AreEqual("South", MouseDirection.South.ToString());
-            Assert.AreEqual("NorthEast", MouseDirection.NorthEast.ToString());
-            Assert.AreEqual("SouthWest", MouseDirection.SouthWest.ToString());
-            Assert.AreEqual("EastNorthEast", MouseDirection.EastNorthEast.ToString());
-            Assert.AreEqual("WestSouthWest", MouseDirection.WestSouthWest.ToString());
+            Assert.That(MouseDirection.East.ToString(), Is.EqualTo("East"));
+            Assert.That(MouseDirection.North.ToString(), Is.EqualTo("North"));
+            Assert.That(MouseDirection.West.ToString(), Is.EqualTo("West"));
+            Assert.That(MouseDirection.South.ToString(), Is.EqualTo("South"));
+            Assert.That(MouseDirection.NorthEast.ToString(), Is.EqualTo("NorthEast"));
+            Assert.That(MouseDirection.SouthWest.ToString(), Is.EqualTo("SouthWest"));
+            Assert.That(MouseDirection.EastNorthEast.ToString(), Is.EqualTo("EastNorthEast"));
+            Assert.That(MouseDirection.WestSouthWest.ToString(), Is.EqualTo("WestSouthWest"));
         }
 
         [Test]
         public void MouseDirection_Values_AreInCorrectOrder()
         {
             // 時計回りの順序で定義されていることを確認（32方向）
-            Assert.AreEqual(0, (int)MouseDirection.East);
-            Assert.AreEqual(1, (int)MouseDirection.EastNorthEast);
-            Assert.AreEqual(2, (int)MouseDirection.NorthEast);
-            Assert.AreEqual(3, (int)MouseDirection.NorthNorthEast);
-            Assert.AreEqual(4, (int)MouseDirection.North);
-            Assert.AreEqual(8, (int)MouseDirection.West);
-            Assert.AreEqual(12, (int)MouseDirection.South);
-            Assert.AreEqual(15, (int)MouseDirection.EastSouthEast);
+            Assert.That((int)MouseDirection.East, Is.EqualTo(0));
+            Assert.That((int)MouseDirection.EastNorthEast, Is.EqualTo(1));
+            Assert.That((int)MouseDirection.NorthEast, Is.EqualTo(2));
+            Assert.That((int)MouseDirection.NorthNorthEast, Is.EqualTo(3));
+            Assert.That((int)MouseDirection.North, Is.EqualTo(4));
+            Assert.That((int)MouseDirection.West, Is.EqualTo(8));
+            Assert.That((int)MouseDirection.South, Is.EqualTo(12));
+            Assert.That((int)MouseDirection.EastSouthEast, Is.EqualTo(15));
         }
 
         // 注意: MouseTrackerの実際のマウス座標取得機能は、Win32 APIに依存するため
@@ -127,7 +127,7 @@ namespace KeyOverlayFPS.Tests
             _tracker.Update(5.0);
             
             // マウスが移動していれば、イベントが発生する
-            // Assert.Greater(_eventCount, 0);
+            // Assert.That(_eventCount, Is.GreaterThan(0));
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace KeyOverlayFPS.Tests
             // _mockMouseProvider.SetPosition(2, 2); // 閾値以下の移動
             // _tracker.Update(5.0);
             // 
-            // Assert.AreEqual(0, _eventCount);
+            // Assert.That(_eventCount, Is.EqualTo(0));
         }
 
         [Test]
@@ -156,7 +156,7 @@ namespace KeyOverlayFPS.Tests
 
             var eventArgs = new MouseMoveEventArgs(deltaX, deltaY, MouseDirection.North, expectedDistance);
 
-            Assert.AreEqual(expectedDistance, eventArgs.Distance, 0.001);
+            Assert.That(eventArgs.Distance, Is.EqualTo(expectedDistance).Within(0.001));
         }
 
         [Test]
@@ -169,7 +169,7 @@ namespace KeyOverlayFPS.Tests
 
             var eventArgs = new MouseMoveEventArgs(deltaX, deltaY, expectedDirection, 10.0);
 
-            Assert.AreEqual(expectedDirection, eventArgs.Direction);
+            Assert.That(eventArgs.Direction, Is.EqualTo(expectedDirection));
         }
     }
 

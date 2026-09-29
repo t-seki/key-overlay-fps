@@ -38,11 +38,11 @@ namespace KeyOverlayFPS.Tests
 
             LayoutManager.ExportLayout(layout, _testFilePath);
 
-            Assert.IsTrue(File.Exists(_testFilePath));
+            Assert.That(File.Exists(_testFilePath), Is.True);
             var content = File.ReadAllText(_testFilePath);
-            Assert.IsNotEmpty(content);
-            Assert.IsTrue(content.Contains("global:"));
-            Assert.IsTrue(content.Contains("keys:"));
+            Assert.That(content, Is.Not.Empty);
+            Assert.That(content.Contains("global:"), Is.True);
+            Assert.That(content.Contains("keys:"), Is.True);
         }
 
         [Test]
@@ -53,12 +53,12 @@ namespace KeyOverlayFPS.Tests
 
             var importedLayout = _layoutManager.ImportLayout(_testFilePath);
 
-            Assert.IsNotNull(importedLayout);
-            Assert.AreEqual(originalLayout.Global.FontSize, importedLayout.Global.FontSize);
-            Assert.AreEqual(originalLayout.Global.KeySize.Width, importedLayout.Global.KeySize.Width);
-            Assert.AreEqual(originalLayout.Global.KeySize.Height, importedLayout.Global.KeySize.Height);
-            Assert.AreEqual(originalLayout.Global.BackgroundColor, importedLayout.Global.BackgroundColor);
-            Assert.AreEqual(originalLayout.Keys.Count, importedLayout.Keys.Count);
+            Assert.That(importedLayout, Is.Not.Null);
+            Assert.That(importedLayout.Global.FontSize, Is.EqualTo(originalLayout.Global.FontSize));
+            Assert.That(importedLayout.Global.KeySize.Width, Is.EqualTo(originalLayout.Global.KeySize.Width));
+            Assert.That(importedLayout.Global.KeySize.Height, Is.EqualTo(originalLayout.Global.KeySize.Height));
+            Assert.That(importedLayout.Global.BackgroundColor, Is.EqualTo(originalLayout.Global.BackgroundColor));
+            Assert.That(importedLayout.Keys.Count, Is.EqualTo(originalLayout.Keys.Count));
         }
 
         [Test]
@@ -155,7 +155,7 @@ keys:
             var layout = CreateTestLayout();
             LayoutManager.ExportLayout(layout, deepPath);
 
-            Assert.IsTrue(File.Exists(deepPath));
+            Assert.That(File.Exists(deepPath), Is.True);
         }
 
         private static LayoutConfig CreateTestLayout()
@@ -256,61 +256,61 @@ keys:
         private static void AssertLayoutsEqual(LayoutConfig expected, LayoutConfig actual)
         {
             // Global settings
-            Assert.AreEqual(expected.Global.FontSize, actual.Global.FontSize);
-            Assert.AreEqual(expected.Global.FontFamily, actual.Global.FontFamily);
-            Assert.AreEqual(expected.Global.KeySize.Width, actual.Global.KeySize.Width);
-            Assert.AreEqual(expected.Global.KeySize.Height, actual.Global.KeySize.Height);
-            Assert.AreEqual(expected.Global.BackgroundColor, actual.Global.BackgroundColor);
-            Assert.AreEqual(expected.Global.HighlightColor, actual.Global.HighlightColor);
-            Assert.AreEqual(expected.Global.ForegroundColor, actual.Global.ForegroundColor);
+            Assert.That(actual.Global.FontSize, Is.EqualTo(expected.Global.FontSize));
+            Assert.That(actual.Global.FontFamily, Is.EqualTo(expected.Global.FontFamily));
+            Assert.That(actual.Global.KeySize.Width, Is.EqualTo(expected.Global.KeySize.Width));
+            Assert.That(actual.Global.KeySize.Height, Is.EqualTo(expected.Global.KeySize.Height));
+            Assert.That(actual.Global.BackgroundColor, Is.EqualTo(expected.Global.BackgroundColor));
+            Assert.That(actual.Global.HighlightColor, Is.EqualTo(expected.Global.HighlightColor));
+            Assert.That(actual.Global.ForegroundColor, Is.EqualTo(expected.Global.ForegroundColor));
 
             // Keys
-            Assert.AreEqual(expected.Keys.Count, actual.Keys.Count);
+            Assert.That(actual.Keys.Count, Is.EqualTo(expected.Keys.Count));
             
             foreach (var (key, expectedKey) in expected.Keys)
             {
-                Assert.IsTrue(actual.Keys.ContainsKey(key), $"Key '{key}' not found in actual keys");
+                Assert.That(actual.Keys.ContainsKey(key), Is.True, $"Key '{key}' not found in actual keys");
                 var actualKey = actual.Keys[key];
                 
-                Assert.AreEqual(expectedKey.Position.X, actualKey.Position.X, $"X position mismatch for {key}");
-                Assert.AreEqual(expectedKey.Position.Y, actualKey.Position.Y, $"Y position mismatch for {key}");
-                Assert.AreEqual(expectedKey.Text, actualKey.Text, $"Text mismatch for {key}");
-                Assert.AreEqual(expectedKey.IsVisible, actualKey.IsVisible, $"Visibility mismatch for {key}");
-                Assert.AreEqual(expectedKey.FontSize, actualKey.FontSize, $"FontSize mismatch for {key}");
-                Assert.AreEqual(expectedKey.VirtualKey, actualKey.VirtualKey, $"VirtualKey mismatch for {key}");
+                Assert.That(actualKey.Position.X, Is.EqualTo(expectedKey.Position.X), $"X position mismatch for {key}");
+                Assert.That(actualKey.Position.Y, Is.EqualTo(expectedKey.Position.Y), $"Y position mismatch for {key}");
+                Assert.That(actualKey.Text, Is.EqualTo(expectedKey.Text), $"Text mismatch for {key}");
+                Assert.That(actualKey.IsVisible, Is.EqualTo(expectedKey.IsVisible), $"Visibility mismatch for {key}");
+                Assert.That(actualKey.FontSize, Is.EqualTo(expectedKey.FontSize), $"FontSize mismatch for {key}");
+                Assert.That(actualKey.VirtualKey, Is.EqualTo(expectedKey.VirtualKey), $"VirtualKey mismatch for {key}");
                 
                 if (expectedKey.Size == null)
                 {
-                    Assert.IsNull(actualKey.Size, $"Size should be null for {key}");
+                    Assert.That(actualKey.Size, Is.Null, $"Size should be null for {key}");
                 }
                 else
                 {
-                    Assert.IsNotNull(actualKey.Size, $"Size should not be null for {key}");
-                    Assert.AreEqual(expectedKey.Size.Width, actualKey.Size.Width, $"Size width mismatch for {key}");
-                    Assert.AreEqual(expectedKey.Size.Height, actualKey.Size.Height, $"Size height mismatch for {key}");
+                    Assert.That(actualKey.Size, Is.Not.Null, $"Size should not be null for {key}");
+                    Assert.That(actualKey.Size.Width, Is.EqualTo(expectedKey.Size.Width), $"Size width mismatch for {key}");
+                    Assert.That(actualKey.Size.Height, Is.EqualTo(expectedKey.Size.Height), $"Size height mismatch for {key}");
                 }
             }
 
             // Mouse settings
-            Assert.AreEqual(expected.Mouse.Position.X, actual.Mouse.Position.X);
-            Assert.AreEqual(expected.Mouse.Position.Y, actual.Mouse.Position.Y);
+            Assert.That(actual.Mouse.Position.X, Is.EqualTo(expected.Mouse.Position.X));
+            Assert.That(actual.Mouse.Position.Y, Is.EqualTo(expected.Mouse.Position.Y));
             // IsVisibleプロパティは削除済み - マウス要素の存在自体が表示を意味する
             
             if (expected.Mouse.DirectionCanvas != null && actual.Mouse.DirectionCanvas != null)
             {
-                Assert.AreEqual(expected.Mouse.DirectionCanvas.Offset.X, actual.Mouse.DirectionCanvas.Offset.X);
-                Assert.AreEqual(expected.Mouse.DirectionCanvas.Offset.Y, actual.Mouse.DirectionCanvas.Offset.Y);
-                Assert.AreEqual(expected.Mouse.DirectionCanvas.Size.Width, actual.Mouse.DirectionCanvas.Size.Width);
-                Assert.AreEqual(expected.Mouse.DirectionCanvas.Size.Height, actual.Mouse.DirectionCanvas.Size.Height);
-                Assert.AreEqual(expected.Mouse.DirectionCanvas.IsVisible, actual.Mouse.DirectionCanvas.IsVisible);
+                Assert.That(actual.Mouse.DirectionCanvas.Offset.X, Is.EqualTo(expected.Mouse.DirectionCanvas.Offset.X));
+                Assert.That(actual.Mouse.DirectionCanvas.Offset.Y, Is.EqualTo(expected.Mouse.DirectionCanvas.Offset.Y));
+                Assert.That(actual.Mouse.DirectionCanvas.Size.Width, Is.EqualTo(expected.Mouse.DirectionCanvas.Size.Width));
+                Assert.That(actual.Mouse.DirectionCanvas.Size.Height, Is.EqualTo(expected.Mouse.DirectionCanvas.Size.Height));
+                Assert.That(actual.Mouse.DirectionCanvas.IsVisible, Is.EqualTo(expected.Mouse.DirectionCanvas.IsVisible));
                 
                 if (expected.Mouse.DirectionCanvas.Visualization != null && actual.Mouse.DirectionCanvas.Visualization != null)
                 {
-                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.CircleSize, actual.Mouse.DirectionCanvas.Visualization.CircleSize);
-                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.CircleColor, actual.Mouse.DirectionCanvas.Visualization.CircleColor);
-                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.HighlightColor, actual.Mouse.DirectionCanvas.Visualization.HighlightColor);
-                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.HighlightDuration, actual.Mouse.DirectionCanvas.Visualization.HighlightDuration);
-                    Assert.AreEqual(expected.Mouse.DirectionCanvas.Visualization.Threshold, actual.Mouse.DirectionCanvas.Visualization.Threshold);
+                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.CircleSize, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.CircleSize));
+                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.CircleColor, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.CircleColor));
+                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.HighlightColor, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.HighlightColor));
+                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.HighlightDuration, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.HighlightDuration));
+                    Assert.That(actual.Mouse.DirectionCanvas.Visualization.Threshold, Is.EqualTo(expected.Mouse.DirectionCanvas.Visualization.Threshold));
                 }
             }
         }

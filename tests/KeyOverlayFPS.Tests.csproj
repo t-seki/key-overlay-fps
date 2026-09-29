@@ -6,8 +6,6 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <!-- NUnit2005警告を無効化（クラシックアサーション使用のため） -->
-    <NoWarn>$(NoWarn);NUnit2005</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
