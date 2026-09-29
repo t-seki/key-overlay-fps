@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using NUnit.Framework;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -16,7 +15,6 @@ namespace KeyOverlayFPS.Tests.Input
     {
         private VirtualKeyCodeConverter _converter;
         private IDeserializer _deserializer;
-        private ISerializer _serializer;
 
         [SetUp]
         public void SetUp()
@@ -24,11 +22,6 @@ namespace KeyOverlayFPS.Tests.Input
             _converter = new VirtualKeyCodeConverter();
             
             _deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .WithTypeConverter(_converter)
-                .Build();
-
-            _serializer = new SerializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .WithTypeConverter(_converter)
                 .Build();
@@ -136,174 +129,10 @@ namespace KeyOverlayFPS.Tests.Input
         }
 
         [Test]
-        [TestCase(0x41, ExpectedResult = "VK_A")]
-        [TestCase(0x20, ExpectedResult = "VK_SPACE")]
-        [TestCase(0x1B, ExpectedResult = "VK_ESCAPE")]
-        [TestCase(0x70, ExpectedResult = "VK_F1")]
-        [TestCase(0xA0, ExpectedResult = "VK_LSHIFT")]
-        [TestCase(0x0D, ExpectedResult = "VK_RETURN")]
-        public string WriteYaml_ShouldReturnConstantName_ForKnownVKValues(int value)
+        public void WriteYaml_ShouldThrowNotSupportedException()
         {
-            // Arrange
-            var data = new TestVirtualKeyData { VirtualKey = value };
-
-            // Act
-            var yaml = _serializer.Serialize(data);
-
-            // Assert
-            using var reader = new StringReader(yaml);
-            var line = reader.ReadLine();
-            while (line != null)
-            {
-                if (line.Contains("virtualKey:"))
-                {
-                    return line.Split(':')[1].Trim();
-                }
-                line = reader.ReadLine();
-            }
-            
-            return string.Empty;
-        }
-
-        [Test]
-        [TestCase(999, ExpectedResult = "999")]
-        [TestCase(1000, ExpectedResult = "1000")]
-        [TestCase(-1, ExpectedResult = "VK_FN")] // VK_FN is defined as -1
-        public string WriteYaml_ShouldReturnNumericValue_ForUnknownValues(int value)
-        {
-            // Arrange
-            var data = new TestVirtualKeyData { VirtualKey = value };
-
-            // Act
-            var yaml = _serializer.Serialize(data);
-
-            // Assert
-            using var reader = new StringReader(yaml);
-            var line = reader.ReadLine();
-            while (line != null)
-            {
-                if (line.Contains("virtualKey:"))
-                {
-                    return line.Split(':')[1].Trim();
-                }
-                line = reader.ReadLine();
-            }
-            
-            return string.Empty;
-        }
-
-        [Test]
-        public void WriteYaml_ShouldHandleNullValue()
-        {
-            // Arrange
-            var data = new TestVirtualKeyDataNullable { VirtualKey = null };
-
-            // Act
-            var yaml = _serializer.Serialize(data);
-
-            // Assert
-            using var reader = new StringReader(yaml);
-            var line = reader.ReadLine();
-            while (line != null)
-            {
-                if (line.Contains("virtualKey:"))
-                {
-                    var value = line.Split(':')[1].Trim();
-                    // Null values are typically serialized as empty or null in YAML
-                    Assert.That(value, Is.AnyOf("", "null", "~"));
-                    return;
-                }
-                line = reader.ReadLine();
-            }
-            
-            Assert.Fail("virtualKey property not found in YAML output");
-        }
-
-        [Test]
-        public void RoundTripTest_VKConstants_ShouldPreserveValues()
-        {
-            // Arrange
-            var originalData = new TestVirtualKeyData { VirtualKey = VirtualKeyCodes.VK_A };
-
-            // Act - シリアライズしてデシリアライズ
-            var yaml = _serializer.Serialize(originalData);
-            var deserializedData = _deserializer.Deserialize<TestVirtualKeyData>(yaml);
-
-            // Assert
-            Assert.That(deserializedData.VirtualKey, Is.EqualTo(originalData.VirtualKey));
-        }
-
-        /// <summary>
-        /// 現状の挙動を固定するテスト。意図が未確認のため、変更する場合は #58 の判断に従うこと。
-        /// WriteYaml が使われうる経路は LayoutManager.ExportLayout（テストからしか使われない）だが、
-        /// レイアウト用シリアライザーには VirtualKeyCodeConverter が登録されていないため、
-        /// VK 定数に一致する値でも定数名ではなく数値で出力される。
-        /// </summary>
-        [Test]
-        public void ExportLayout_CurrentBehavior_WritesVirtualKeyAsNumber()
-        {
-            var tempDirectory = Path.Combine(Path.GetTempPath(), "KeyOverlayFPS_Tests_" + Guid.NewGuid().ToString("N")[..8]);
-            try
-            {
-                var layout = new KeyOverlayFPS.Layout.LayoutConfig();
-                layout.Keys["KeyA"] = new KeyOverlayFPS.Layout.KeyDefinition { Text = "A", VirtualKey = VirtualKeyCodes.VK_A };
-                var path = Path.Combine(tempDirectory, "layout.yaml");
-
-                KeyOverlayFPS.Layout.LayoutManager.ExportLayout(layout, path);
-
-                var yaml = File.ReadAllText(path);
-                Assert.That(yaml, Does.Contain($"virtualKey: {VirtualKeyCodes.VK_A}"));
-                Assert.That(yaml, Does.Not.Contain("VK_A"));
-            }
-            finally
-            {
-                if (Directory.Exists(tempDirectory))
-                {
-                    Directory.Delete(tempDirectory, true);
-                }
-            }
-        }
-
-        [Test]
-        public void RoundTripTest_HexValues_ShouldPreserveValues()
-        {
-            // Arrange
-            var testValues = new[] { 0x41, 0x20, 0xFF, 0x00, 0x1B };
-
-            foreach (var value in testValues)
-            {
-                // Arrange
-                var originalData = new TestVirtualKeyData { VirtualKey = value };
-
-                // Act
-                var yaml = _serializer.Serialize(originalData);
-                var deserializedData = _deserializer.Deserialize<TestVirtualKeyData>(yaml);
-
-                // Assert
-                Assert.That(deserializedData.VirtualKey, Is.EqualTo(originalData.VirtualKey), 
-                    $"Failed for value 0x{value:X2}");
-            }
-        }
-
-        [Test]
-        public void RoundTripTest_DecimalValues_ShouldPreserveValues()
-        {
-            // Arrange
-            var testValues = new[] { 65, 32, 255, 0, 27, 999 };
-
-            foreach (var value in testValues)
-            {
-                // Arrange
-                var originalData = new TestVirtualKeyData { VirtualKey = value };
-
-                // Act
-                var yaml = _serializer.Serialize(originalData);
-                var deserializedData = _deserializer.Deserialize<TestVirtualKeyData>(yaml);
-
-                // Assert
-                Assert.That(deserializedData.VirtualKey, Is.EqualTo(originalData.VirtualKey), 
-                    $"Failed for value {value}");
-            }
+            // Act & Assert
+            Assert.Throws<NotSupportedException>(() => _converter.WriteYaml(null!, 0x41, typeof(int), null!));
         }
 
         [Test]
@@ -370,14 +199,6 @@ keys:
         public class TestVirtualKeyData
         {
             public int VirtualKey { get; set; }
-        }
-
-        /// <summary>
-        /// テスト用のnullable型データクラス
-        /// </summary>
-        public class TestVirtualKeyDataNullable
-        {
-            public int? VirtualKey { get; set; }
         }
 
         /// <summary>

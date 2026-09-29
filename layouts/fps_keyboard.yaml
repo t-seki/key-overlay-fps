@@ -8,8 +8,6 @@ profile:
 global:
   fontSize: 10
   fontFamily: "Arial"
-  backgroundColor: "#2A2A2A"
-  highlightColor: "#00FF00"
   foregroundColor: "#FFFFFF"
   shiftDisplayEnabled: false
 

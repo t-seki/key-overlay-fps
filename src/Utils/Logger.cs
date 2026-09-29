@@ -8,7 +8,11 @@ namespace KeyOverlayFPS.Utils
     /// </summary>
     public static class Logger
     {
-        private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log");
+        /// <summary>
+        /// ログファイルのパス
+        /// </summary>
+        public static string LogFilePath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log");
+
         private static readonly object LogLock = new object();
 
         /// <summary>

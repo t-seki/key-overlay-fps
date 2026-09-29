@@ -35,19 +35,8 @@ namespace KeyOverlayFPS.Utils
         }
 
         /// <summary>
-        /// レイアウトファイル用のシリアライザーを作成
-        /// LayoutConfig など VirtualKeyCode を含むレイアウトファイル用
-        /// </summary>
-        public static ISerializer CreateLayoutSerializer()
-        {
-            return new SerializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-        }
-
-        /// <summary>
         /// レイアウトファイル用のデシリアライザーを作成
-        /// LayoutConfig など VirtualKeyCode を含むレイアウトファイル用。
+        /// LayoutConfig など仮想キーコードを含むレイアウトファイル用。
         /// フィールドの削除後も旧版のレイアウトファイルを読めるよう、未知のキーは無視する
         /// </summary>
         public static IDeserializer CreateLayoutDeserializer()

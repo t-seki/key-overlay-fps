@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
@@ -17,6 +16,9 @@ namespace KeyOverlayFPS
         [DllImport("shcore.dll")]
         private static extern int SetProcessDpiAwareness(ProcessDpiAwareness value);
 
+        private const int S_OK = 0;
+        private const int E_ACCESSDENIED = unchecked((int)0x80070005);
+
         private enum ProcessDpiAwareness
         {
             DpiUnaware = 0,
@@ -26,22 +28,12 @@ namespace KeyOverlayFPS
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            // DPI認識を設定（スケール問題を防ぐため）
-            try
-            {
-                SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware);
-                Logger.Info("Per-Monitor DPI認識を有効化");
-            }
-            catch
-            {
-                // フォールバックとしてレガシーAPIを使用
-                SetProcessDPIAware();
-                Logger.Info("System DPI認識を有効化（フォールバック）");
-            }
-
-            // ログシステム初期化
+            // ログシステム初期化。Initialize は既存のログファイルを削除するので、ほかのログより先に呼ぶ
             Logger.Initialize();
             Logger.Info("アプリケーション開始");
+
+            // DPI認識を設定（スケール問題を防ぐため）
+            EnableDpiAwareness();
 
             // 未処理例外のハンドリング
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
@@ -70,7 +62,7 @@ namespace KeyOverlayFPS
                 Logger.Error("起動時に致命的なエラーが発生、アプリケーションを終了", ex);
                 MessageBox.Show(
                     "KeyOverlayFPS を起動できませんでした。\n\n" +
-                    $"詳しくはログを確認してください: {LogFilePath}\n\n" +
+                    $"詳しくはログを確認してください: {Logger.LogFilePath}\n\n" +
                     $"エラー: {ex.Message}",
                     "KeyOverlayFPS - 起動エラー",
                     MessageBoxButton.OK,
@@ -85,9 +77,43 @@ namespace KeyOverlayFPS
         }
 
         /// <summary>
-        /// ログファイルのパス。Logger と同じ場所を指す
+        /// プロセスの DPI 認識を有効にし、結果をログに出す
         /// </summary>
-        private static string LogFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log");
+        /// <remarks>
+        /// SetProcessDpiAwareness を呼べない環境（shcore.dll が無い）では、レガシー API にフォールバックする。
+        /// SetProcessDpiAwareness が失敗の HRESULT を返したときはフォールバックせず、ログに残すだけにする
+        /// </remarks>
+        private static void EnableDpiAwareness()
+        {
+            try
+            {
+                int hr = SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware);
+                if (hr == S_OK)
+                {
+                    Logger.Info("Per-Monitor DPI認識を有効化");
+                }
+                else if (hr == E_ACCESSDENIED)
+                {
+                    Logger.Info("DPI認識は既に設定済みのため、Per-Monitor DPI認識の有効化を省略 (HRESULT: 0x80070005)");
+                }
+                else
+                {
+                    Logger.Warning($"Per-Monitor DPI認識の有効化に失敗 (HRESULT: 0x{hr:X8})");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("SetProcessDpiAwareness を呼び出せないため、レガシーAPIでDPI認識を設定", ex);
+                if (SetProcessDPIAware())
+                {
+                    Logger.Info("System DPI認識を有効化（フォールバック）");
+                }
+                else
+                {
+                    Logger.Warning("System DPI認識の有効化に失敗（フォールバック）");
+                }
+            }
+        }
 
         /// <summary>
         /// 壊れた設定ファイルを既定値で復旧していたら、ウィンドウを表示した後にユーザーへ知らせる

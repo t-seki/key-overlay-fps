@@ -11,8 +11,6 @@ namespace KeyOverlayFPS.Initialization
     /// </summary>
     public class WindowInitializer
     {
-        private CanvasRebuilder? _canvasRebuilder;
-
         public WindowInitializer()
         {
         }
@@ -74,8 +72,8 @@ namespace KeyOverlayFPS.Initialization
         private void InitializeLayout(MainWindow window)
         {
             // SettingsManagerをプロパティから取得してCanvasRebuilderを作成
-            _canvasRebuilder = new CanvasRebuilder(window.SettingsManager);
-            _canvasRebuilder.RebuildCanvas(window, window.ProfileManager.CurrentProfile);
+            var canvasRebuilder = new CanvasRebuilder(window.SettingsManager);
+            canvasRebuilder.RebuildCanvas(window, window.ProfileManager.CurrentProfile);
         }
 
         /// <summary>
@@ -110,29 +108,8 @@ namespace KeyOverlayFPS.Initialization
             // UI管理クラスを初期化
             window.InitializeUIManagers();
             
-            // 保存されたプロファイル設定を復元
-            RestoreProfileSettings(window);
-            
             // 設定オーバーライドを適用（表示スケール、マウス位置、テキスト色も含む）
             window.Settings?.ApplySettingsOverride();
-        }
-
-        /// <summary>
-        /// 保存されたプロファイル設定を復元
-        /// </summary>
-        private void RestoreProfileSettings(MainWindow window)
-        {
-            try
-            {
-                if (window.ProfileManager != null)
-                {
-                    Logger.Info($"プロファイル設定を復元: {window.ProfileManager.CurrentProfile}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("プロファイル設定復元でエラー", ex);
-            }
         }
     }
 }

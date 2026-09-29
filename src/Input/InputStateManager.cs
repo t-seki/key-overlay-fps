@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using KeyOverlayFPS.Utils;
 
@@ -49,15 +48,6 @@ namespace KeyOverlayFPS.Input
         #region イベント
 
         /// <summary>
-        /// キー状態が変化した時に発生するイベント
-        /// </summary>
-        /// <remarks>
-        /// フックのスレッドで発火する。<see cref="ReconcileKeyStates"/> が離放を補ったときは、それを呼んだスレッド（UI スレッド）からも発火する。
-        /// 購読側で UI 要素に触るときは Dispatcher 経由にすること
-        /// </remarks>
-        public event EventHandler<KeyStateChangedEventArgs>? KeyStateChanged;
-
-        /// <summary>
         /// マウスホイールが回転した時に発生するイベント
         /// </summary>
         /// <remarks>
@@ -67,7 +57,7 @@ namespace KeyOverlayFPS.Input
 
         #endregion
 
-        #region コンストラクタ・デストラクタ
+        #region コンストラクタ
 
         /// <summary>
         /// InputStateManagerクラスの新しいインスタンスを初期化
@@ -102,14 +92,6 @@ namespace KeyOverlayFPS.Input
             _mouseHook.MouseButtonPressed += OnMouseButtonPressed;
             _mouseHook.MouseButtonReleased += OnMouseButtonReleased;
             _mouseHook.MouseWheelDetected += OnMouseWheelDetected;
-        }
-
-        /// <summary>
-        /// デストラクタ
-        /// </summary>
-        ~InputStateManager()
-        {
-            Dispose(false);
         }
 
         #endregion
@@ -209,15 +191,6 @@ namespace KeyOverlayFPS.Input
         }
 
         /// <summary>
-        /// 全てのキー状態をクリア
-        /// </summary>
-        public void ClearAllStates()
-        {
-            _keyStates.Clear();
-            _releasedSince.Clear();
-        }
-
-        /// <summary>
         /// 押下中と記録しているキー・マウスボタンを、実際の状態と照合する
         /// </summary>
         /// <remarks>
@@ -268,7 +241,6 @@ namespace KeyOverlayFPS.Input
                 if (_keyStates.TryUpdate(key, false, true))
                 {
                     _releasedSince.TryRemove(key, out _);
-                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(key, false));
                 }
             }
         }
@@ -277,11 +249,6 @@ namespace KeyOverlayFPS.Input
         /// 管理が有効かどうかを取得
         /// </summary>
         public bool IsEnabled => _isEnabled && _keyboardHook.IsHookActive && _mouseHook.IsHookActive;
-
-        /// <summary>
-        /// 現在管理されているキーの数を取得
-        /// </summary>
-        public int TrackedKeyCount => _keyStates.Count;
 
         #endregion
 
@@ -329,21 +296,13 @@ namespace KeyOverlayFPS.Input
         {
             try
             {
-                bool previousState = _keyStates.TryGetValue(e.VirtualKeyCode, out bool current) && current;
-                
                 // キー状態を更新（押下状態にする）
                 _keyStates.AddOrUpdate(e.VirtualKeyCode, true, (key, oldValue) => true);
                 _releasedSince.TryRemove(e.VirtualKeyCode, out _);
-                
-                // 状態が変化した場合のみイベントを発火
-                if (!previousState)
-                {
-                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(e.VirtualKeyCode, true));
-                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"InputStateManager.OnKeyPressed でエラーが発生: {ex.Message}");
+                Logger.Error("InputStateManager.OnKeyPressed でエラーが発生", ex);
             }
         }
 
@@ -354,20 +313,12 @@ namespace KeyOverlayFPS.Input
         {
             try
             {
-                bool previousState = _keyStates.TryGetValue(e.VirtualKeyCode, out bool current) && current;
-                
                 // キー状態を更新（離放状態にする）
                 _keyStates.AddOrUpdate(e.VirtualKeyCode, false, (key, oldValue) => false);
-                
-                // 状態が変化した場合のみイベントを発火
-                if (previousState)
-                {
-                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(e.VirtualKeyCode, false));
-                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"InputStateManager.OnKeyReleased でエラーが発生: {ex.Message}");
+                Logger.Error("InputStateManager.OnKeyReleased でエラーが発生", ex);
             }
         }
 
@@ -378,21 +329,13 @@ namespace KeyOverlayFPS.Input
         {
             try
             {
-                bool previousState = _keyStates.TryGetValue(e.VirtualKeyCode, out bool current) && current;
-                
                 // ボタン状態を更新（押下状態にする）
                 _keyStates.AddOrUpdate(e.VirtualKeyCode, true, (key, oldValue) => true);
                 _releasedSince.TryRemove(e.VirtualKeyCode, out _);
-                
-                // 状態が変化した場合のみイベントを発火
-                if (!previousState)
-                {
-                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(e.VirtualKeyCode, true));
-                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"InputStateManager.OnMouseButtonPressed でエラーが発生: {ex.Message}");
+                Logger.Error("InputStateManager.OnMouseButtonPressed でエラーが発生", ex);
             }
         }
 
@@ -403,20 +346,12 @@ namespace KeyOverlayFPS.Input
         {
             try
             {
-                bool previousState = _keyStates.TryGetValue(e.VirtualKeyCode, out bool current) && current;
-                
                 // ボタン状態を更新（離放状態にする）
                 _keyStates.AddOrUpdate(e.VirtualKeyCode, false, (key, oldValue) => false);
-                
-                // 状態が変化した場合のみイベントを発火
-                if (previousState)
-                {
-                    KeyStateChanged?.Invoke(this, new KeyStateChangedEventArgs(e.VirtualKeyCode, false));
-                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"InputStateManager.OnMouseButtonReleased でエラーが発生: {ex.Message}");
+                Logger.Error("InputStateManager.OnMouseButtonReleased でエラーが発生", ex);
             }
         }
 
@@ -452,32 +387,5 @@ namespace KeyOverlayFPS.Input
         }
 
         #endregion
-    }
-
-    /// <summary>
-    /// キー状態変化イベント引数
-    /// </summary>
-    public class KeyStateChangedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// 仮想キーコード
-        /// </summary>
-        public int VirtualKeyCode { get; }
-
-        /// <summary>
-        /// キーが押されているかどうか
-        /// </summary>
-        public bool IsPressed { get; }
-
-        /// <summary>
-        /// コンストラクタ
-        /// </summary>
-        /// <param name="virtualKeyCode">仮想キーコード</param>
-        /// <param name="isPressed">キー押下状態</param>
-        public KeyStateChangedEventArgs(int virtualKeyCode, bool isPressed)
-        {
-            VirtualKeyCode = virtualKeyCode;
-            IsPressed = isPressed;
-        }
     }
 }

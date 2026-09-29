@@ -253,25 +253,6 @@ namespace KeyOverlayFPS.UI
         }
 
         /// <summary>
-        /// マウスホイール処理
-        /// </summary>
-        public void HandleMouseWheel(int delta)
-        {
-            if (_settings.IsMouseVisible)
-            {
-                // スクロール表示（マウス表示時のみ）
-                if (delta > 0)
-                {
-                    _scrollUpTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
-                }
-                else if (delta < 0)
-                {
-                    _scrollDownTimer = ApplicationConstants.Timing.ScrollDisplayFrames;
-                }
-            }
-        }
-
-        /// <summary>
         /// マウスホイールフック検知イベントハンドラー
         /// </summary>
         /// <remarks>

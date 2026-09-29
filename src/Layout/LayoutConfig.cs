@@ -284,17 +284,7 @@ namespace KeyOverlayFPS.Layout
         public string FontFamily { get; set; } = "Arial";
 
         /// <summary>
-        /// 背景色
-        /// </summary>
-        public string BackgroundColor { get; set; } = "#2A2A2A";
-
-        /// <summary>
-        /// ハイライト色
-        /// </summary>
-        public string HighlightColor { get; set; } = "#00FF00";
-
-        /// <summary>
-        /// 前景色（文字色）
+        /// 前景色（キーの枠線と文字の初期色。文字色は表示設定の前景色で上書きされる）
         /// </summary>
         public string ForegroundColor { get; set; } = "#FFFFFF";
 

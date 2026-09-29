@@ -7,7 +7,7 @@ using YamlDotNet.Serialization;
 namespace KeyOverlayFPS.Input
 {
     /// <summary>
-    /// YAMLでVirtual Key Code定数名をサポートするコンバーター
+    /// YAMLでVirtual Key Code定数名をサポートするコンバーター（読み込み専用）
     /// </summary>
     public class VirtualKeyCodeConverter : IYamlTypeConverter
     {
@@ -52,47 +52,16 @@ namespace KeyOverlayFPS.Input
             throw new YamlException($"無効な整数値: {value}");
         }
 
+        /// <summary>
+        /// 書き出しには対応しない
+        /// </summary>
+        /// <remarks>
+        /// レイアウトを YAML に書き出す経路は無い。<see cref="IYamlTypeConverter"/> の実装上メソッドは消せないため、呼ばれたら例外を投げる
+        /// </remarks>
+        /// <exception cref="NotSupportedException">常に投げる</exception>
         public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
         {
-            if (value is int intValue)
-            {
-                // Virtual Key Codeかどうかの判定
-                // VirtualKeyCodesクラスに定義されている値の場合は定数名で出力
-                var constantName = GetVirtualKeyConstantName(intValue);
-                if (!string.IsNullOrEmpty(constantName))
-                {
-                    emitter.Emit(new Scalar(constantName));
-                }
-                else
-                {
-                    // 標準の整数出力
-                    emitter.Emit(new Scalar(intValue.ToString()));
-                }
-            }
-            else
-            {
-                emitter.Emit(new Scalar("0"));
-            }
-        }
-
-        /// <summary>
-        /// Virtual Key Code値から定数名を取得
-        /// </summary>
-        private static string? GetVirtualKeyConstantName(int value)
-        {
-            var fields = typeof(VirtualKeyCodes).GetFields(BindingFlags.Public | BindingFlags.Static);
-            foreach (var field in fields)
-            {
-                if (field.FieldType == typeof(int))
-                {
-                    var fieldValue = field.GetValue(null);
-                    if (fieldValue != null && (int)fieldValue == value)
-                    {
-                        return field.Name;
-                    }
-                }
-            }
-            return null;
+            throw new NotSupportedException("VirtualKeyCodeConverter は YAML への書き出しに対応していません");
         }
     }
 }

@@ -62,9 +62,11 @@ namespace KeyOverlayFPS.Tests.Layout
         public void LoadLayout_WithExternalFile_ShouldPreferExternalFile()
         {
             var layoutsDirectory = Path.Combine(_tempDirectory, "layouts");
-            var layout = new LayoutManager().ImportLayout(FindRepoLayout("65_keyboard.yaml"));
-            layout.Profile!.Name = "外部ファイル";
-            LayoutManager.ExportLayout(layout, Path.Combine(layoutsDirectory, "65_keyboard.yaml"));
+            Directory.CreateDirectory(layoutsDirectory);
+            var yaml = File.ReadAllText(FindRepoLayout("65_keyboard.yaml"));
+            var replaced = yaml.Replace("name: \"65%キーボード\"", "name: \"外部ファイル\"");
+            Assert.That(replaced, Is.Not.EqualTo(yaml), "リポジトリのレイアウトのプロファイル名を書き換えられませんでした");
+            File.WriteAllText(Path.Combine(layoutsDirectory, "65_keyboard.yaml"), replaced);
             var layoutManager = new LayoutManager(layoutsDirectory, typeof(LayoutManager).Assembly);
 
             layoutManager.LoadLayout(KeyboardProfile.FullKeyboard65);

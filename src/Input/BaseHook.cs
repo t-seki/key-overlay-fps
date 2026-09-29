@@ -9,7 +9,7 @@ namespace KeyOverlayFPS.Input
     /// Win32フックの基底クラス
     /// KeyboardHookとMouseHookの共通機能を提供
     /// </summary>
-    public abstract class BaseHook : IDisposable
+    public abstract class BaseHook : DisposableBase
     {
         #region Win32 API定義（共通）
 
@@ -34,7 +34,6 @@ namespace KeyOverlayFPS.Input
 
         // フックのスレッドで書き、ほかのスレッドから IsHookActive で読むので volatile にする
         protected volatile IntPtr _hookID = IntPtr.Zero;
-        private bool _disposed = false;
 
         #endregion
 
@@ -142,39 +141,14 @@ namespace KeyOverlayFPS.Input
 
         #endregion
 
-        #region IDisposable
+        #region DisposableBase実装
 
         /// <summary>
-        /// リソースを解放
+        /// マネージリソースの解放（フックを解除する）
         /// </summary>
-        public void Dispose()
+        protected override void DisposeManagedResources()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// リソースを解放
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    StopHook();
-                }
-
-                _disposed = true;
-            }
-        }
-
-        /// <summary>
-        /// ファイナライザ
-        /// </summary>
-        ~BaseHook()
-        {
-            Dispose(false);
+            StopHook();
         }
 
         #endregion
