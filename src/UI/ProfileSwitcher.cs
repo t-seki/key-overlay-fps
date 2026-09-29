@@ -11,26 +11,26 @@ namespace KeyOverlayFPS.UI
     public class ProfileSwitcher
     {
         private readonly ProfileManager _profileManager;
-        private readonly SettingsManager _settingsService;
         private readonly CanvasRebuilder _canvasRebuilder;
         private readonly MainWindow _mainWindow;
         private readonly Action _updateMousePositionsAction;
         private readonly Action _updateMenuStateAction;
+        private readonly Action _applyDisplaySettingsAction;
 
         public ProfileSwitcher(
             ProfileManager profileManager,
-            SettingsManager settingsService,
             CanvasRebuilder canvasRebuilder,
             MainWindow mainWindow,
             Action updateMousePositionsAction,
-            Action updateMenuStateAction)
+            Action updateMenuStateAction,
+            Action applyDisplaySettingsAction)
         {
             _profileManager = profileManager ?? throw new ArgumentNullException(nameof(profileManager));
-            _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _canvasRebuilder = canvasRebuilder ?? throw new ArgumentNullException(nameof(canvasRebuilder));
             _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
             _updateMousePositionsAction = updateMousePositionsAction ?? throw new ArgumentNullException(nameof(updateMousePositionsAction));
             _updateMenuStateAction = updateMenuStateAction ?? throw new ArgumentNullException(nameof(updateMenuStateAction));
+            _applyDisplaySettingsAction = applyDisplaySettingsAction ?? throw new ArgumentNullException(nameof(applyDisplaySettingsAction));
         }
 
         /// <summary>
@@ -40,9 +40,7 @@ namespace KeyOverlayFPS.UI
         {
             Logger.Info($"プロファイル切り替え開始: {profile}");
             
-            _profileManager.SwitchProfile(profile);
-            
-            // CanvasRebuilderを使用してキャンバスを完全に再構築（スケール適用を含む）
+            // CanvasRebuilderを使用してキャンバスを再構築（表示設定は後段の ApplyDisplaySettings で適用する）
             try
             {
                 _canvasRebuilder.RebuildCanvas(_mainWindow, profile);
@@ -53,9 +51,12 @@ namespace KeyOverlayFPS.UI
                 throw;
             }
             
-            // 設定を保存
-            _settingsService.SetCurrentProfile(_profileManager.GetCurrentProfileName());
-            
+            // 再構築に成功してから現在のプロファイルを更新・保存する（保存は 1 回だけ）
+            _profileManager.SwitchProfile(profile);
+
+            // 再構築で失われた表示設定（背景色・スケール・文字色・マウス表示）を再適用
+            _applyDisplaySettingsAction();
+
             // 追加の更新処理を実行
             _updateMousePositionsAction();
             _updateMenuStateAction();
